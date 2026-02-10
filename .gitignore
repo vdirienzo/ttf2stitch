@@ -10,9 +10,6 @@ build/
 node_modules/
 uv.lock
 
-# Fonts (too large for git, ~700 TTF files)
-fonts/
-
 # Output
 output/
 
