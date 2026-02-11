@@ -15,34 +15,48 @@
     if (nameEl) nameEl.textContent = color.name;
     if (codeEl) codeEl.textContent = 'DMC ' + color.code;
 
+    var searchInput = document.getElementById('sheetColorSearch');
+    if (searchInput && !searchInput._bound) {
+      searchInput._bound = true;
+      searchInput.addEventListener('input', function () {
+        renderSheetColorGrid(this.value);
+      });
+    }
+
+    renderSheetColorGrid(searchInput ? searchInput.value : '');
+  }
+
+  function renderSheetColorGrid(query) {
     var grid = document.getElementById('sheetColorGrid');
     if (!grid) return;
     grid.innerHTML = '';
 
-    DMC_COLORS.forEach(function (c, index) {
-      var dot = document.createElement('div');
-      dot.className = 'color-dot' + (index === currentColorIndex ? ' selected' : '');
-      dot.style.backgroundColor = c.hex;
-      dot.dataset.index = index;
-
-      dot.addEventListener('click', function () {
-        currentColorIndex = index;
-
-        // Update desktop sidebar
-        colorRow.querySelectorAll('.color-dot').forEach(function (d) {
-          d.classList.toggle('selected', parseInt(d.dataset.index) === index);
-        });
-
-        // Sync mobile color strip
-        syncMobileColorStrip();
-
-        // Update this sheet
-        populateColorSheet();
-        updatePreview();
-      });
-
-      grid.appendChild(dot);
+    var q = (query || '').toLowerCase().trim();
+    var filtered = DMC_COLORS.filter(function (c) {
+      if (!q) return true;
+      return c.code.toLowerCase().indexOf(q) !== -1 || c.name.toLowerCase().indexOf(q) !== -1;
     });
+
+    var fragment = document.createDocumentFragment();
+    filtered.forEach(function (c) {
+      var dot = document.createElement('div');
+      dot.className = 'color-dot' + (c.code === currentColorCode ? ' selected' : '');
+      dot.style.backgroundColor = c.hex;
+      dot.dataset.code = c.code;
+      fragment.appendChild(dot);
+    });
+    grid.appendChild(fragment);
+
+    // Delegated click handler (set once)
+    if (!grid._bound) {
+      grid._bound = true;
+      grid.addEventListener('click', function (e) {
+        var dot = e.target.closest('.color-dot');
+        if (!dot || !dot.dataset.code) return;
+        selectColor(dot.dataset.code);
+        populateColorSheet();
+      });
+    }
   }
 
   // ============================================================

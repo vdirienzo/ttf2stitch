@@ -453,6 +453,105 @@
   }
   .color-dot:hover .tip { opacity: 1; }
 
+  /* "All colors" button in sidebar */
+  .color-all-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1.5px dashed var(--text-muted);
+    background: transparent;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-muted);
+    transition: border-color 0.12s, color 0.12s, background 0.12s;
+  }
+  .color-all-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  /* -- Desktop Color Popover -- */
+  .sidebar-color-section { position: relative; }
+  .color-popover {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--panel);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    z-index: 30;
+    padding: 10px;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 320px;
+  }
+  .color-popover.open { display: flex; }
+  .color-popover-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .color-popover-search {
+    flex: 1;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--text);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .color-popover-search:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .color-popover-close {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.12s, color 0.12s;
+    flex-shrink: 0;
+  }
+  .color-popover-close:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .color-popover-grid {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    max-height: 240px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .color-popover-grid .color-dot {
+    width: 24px;
+    height: 24px;
+  }
+  .color-popover-grid .color-dot .tip { display: none; }
+  .color-popover-grid .color-dot:hover .tip { display: block; }
+
   /* -- Aida selector -- */
   .aida-row {
     display: flex;
@@ -606,6 +705,9 @@
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
+
+  /* Desktop sidebar: icon-only alignment buttons */
+  .sidebar .align-btn span { display: none; }
 
   /* -- Global Unit Toggle (topbar cm/in) -- */
   .unit-toggle {
@@ -1407,11 +1509,39 @@
     font-size: 12px;
     color: var(--text-muted);
   }
+  .sheet-color-search {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 0 0 12px;
+    background: var(--panel);
+  }
+  .sheet-color-search input {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--text);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .sheet-color-search input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
   .sheet-color-grid {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
     justify-content: flex-start;
+    max-height: 50vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
   }
   .sheet-color-grid .color-dot {
     width: 44px;
@@ -1703,12 +1833,20 @@
     </div>
 
     <!-- Color Picker -->
-    <div class="sidebar-section">
+    <div class="sidebar-section sidebar-color-section">
       <div class="section-header">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
         <span data-i18n="section_color">Thread Color</span>
       </div>
       <div class="color-row" id="colorRow"></div>
+      <!-- Desktop color popover (all 449 DMC colors with search) -->
+      <div class="color-popover" id="colorPopover">
+        <div class="color-popover-header">
+          <input type="text" class="color-popover-search" id="colorPopoverSearch" placeholder="Search DMC colors…" autocomplete="off" spellcheck="false" />
+          <button class="color-popover-close" id="colorPopoverClose" aria-label="Close">&times;</button>
+        </div>
+        <div class="color-popover-grid" id="colorPopoverGrid"></div>
+      </div>
     </div>
 
     <!-- Aida Count -->
@@ -1912,6 +2050,9 @@
         <div class="sheet-color-code" id="sheetColorCode">DMC --</div>
       </div>
     </div>
+    <div class="sheet-color-search">
+      <input type="text" id="sheetColorSearch" placeholder="Search DMC colors…" autocomplete="off" spellcheck="false" />
+    </div>
     <div class="sheet-color-grid" id="sheetColorGrid"></div>
   </div>
 </div>
@@ -2028,30 +2169,464 @@
 
 <!-- ═══ Embedded Font & Color Data ═══ -->
 <script>
-// DMC thread color data for word2stitch
+// DMC thread color data for word2stitch (449 colors)
 const DMC_COLORS = [
-  {"code":"310","name":"Black","hex":"#000000"},
-  {"code":"321","name":"Christmas Red","hex":"#C72C2C"},
   {"code":"blanc","name":"White","hex":"#FFFFFF"},
-  {"code":"498","name":"Christmas Red Dark","hex":"#A7132B"},
-  {"code":"666","name":"Bright Red","hex":"#E31D42"},
-  {"code":"336","name":"Navy Blue","hex":"#253B73"},
-  {"code":"796","name":"Royal Blue Dark","hex":"#13395F"},
-  {"code":"699","name":"Christmas Green","hex":"#056533"},
-  {"code":"702","name":"Kelly Green","hex":"#5CA462"},
-  {"code":"553","name":"Violet","hex":"#9B6E94"},
-  {"code":"550","name":"Violet Very Dark","hex":"#501A55"},
-  {"code":"720","name":"Orange Spice Dark","hex":"#E55B00"},
-  {"code":"741","name":"Tangerine Medium","hex":"#FFA300"},
+  {"code":"ecru","name":"Ecru","hex":"#F0EADA"},
+  {"code":"150","name":"Dusty Rose Ultra Very Dark","hex":"#AB0249"},
+  {"code":"151","name":"Dusty Rose Very Light","hex":"#F0D6D7"},
+  {"code":"152","name":"Shell Pink Medium Light","hex":"#E0A0A7"},
+  {"code":"153","name":"Violet Very Light","hex":"#E6CCD9"},
+  {"code":"154","name":"Grape Very Dark","hex":"#572333"},
+  {"code":"155","name":"Blue Violet Medium Dark","hex":"#8098C0"},
+  {"code":"156","name":"Blue Violet Medium Light","hex":"#A3B8D2"},
+  {"code":"157","name":"Cornflower Blue Very Light","hex":"#BBCBDA"},
+  {"code":"158","name":"Cornflower Blue Medium Very Dark","hex":"#4C5872"},
+  {"code":"159","name":"Blue Gray Light","hex":"#C7CAD7"},
+  {"code":"160","name":"Blue Gray Medium","hex":"#999FB7"},
+  {"code":"161","name":"Blue Gray","hex":"#7880A0"},
+  {"code":"162","name":"Blue Ultra Very Light","hex":"#DBEBF3"},
+  {"code":"163","name":"Celadon Green Medium","hex":"#536E54"},
+  {"code":"164","name":"Forest Green Light","hex":"#C8D8B8"},
+  {"code":"165","name":"Moss Green Very Light","hex":"#EFF4A8"},
+  {"code":"166","name":"Moss Green Medium Light","hex":"#C0C840"},
+  {"code":"167","name":"Yellow Beige Very Dark","hex":"#A08050"},
+  {"code":"168","name":"Pewter Very Light","hex":"#D1D1D1"},
+  {"code":"169","name":"Pewter Light","hex":"#848484"},
+  {"code":"208","name":"Lavender Very Dark","hex":"#835B8B"},
+  {"code":"209","name":"Lavender Dark","hex":"#A37BA7"},
+  {"code":"210","name":"Lavender Medium","hex":"#C39FC3"},
+  {"code":"211","name":"Lavender Light","hex":"#E3CBE3"},
+  {"code":"221","name":"Shell Pink Very Dark","hex":"#883848"},
+  {"code":"223","name":"Shell Pink Light","hex":"#CC8888"},
+  {"code":"224","name":"Shell Pink Very Light","hex":"#E8C0C0"},
+  {"code":"225","name":"Shell Pink Ultra Very Light","hex":"#FFDFDF"},
+  {"code":"300","name":"Mahogany Very Dark","hex":"#6F2F00"},
+  {"code":"301","name":"Mahogany Medium","hex":"#B35F2B"},
+  {"code":"304","name":"Christmas Red Medium","hex":"#B3272F"},
   {"code":"307","name":"Lemon","hex":"#FDED54"},
+  {"code":"309","name":"Rose Dark","hex":"#B83858"},
+  {"code":"310","name":"Black","hex":"#000000"},
+  {"code":"311","name":"Navy Blue Medium","hex":"#4E6583"},
+  {"code":"312","name":"Navy Blue Light","hex":"#35536B"},
+  {"code":"315","name":"Antique Mauve Medium Very Dark","hex":"#814952"},
+  {"code":"316","name":"Antique Mauve Medium","hex":"#B7777F"},
+  {"code":"317","name":"Pewter Gray","hex":"#6C6C6C"},
+  {"code":"318","name":"Steel Gray Light","hex":"#ABABAB"},
+  {"code":"319","name":"Pistachio Green Very Dark","hex":"#205F47"},
+  {"code":"320","name":"Pistachio Green Medium","hex":"#698867"},
+  {"code":"321","name":"Christmas Red","hex":"#C72C2C"},
+  {"code":"322","name":"Navy Blue Very Light","hex":"#5A7692"},
+  {"code":"326","name":"Rose Very Dark","hex":"#A73757"},
+  {"code":"327","name":"Violet Dark","hex":"#633666"},
+  {"code":"333","name":"Blue Violet Very Dark","hex":"#5C5478"},
+  {"code":"334","name":"Baby Blue Medium","hex":"#85ABCA"},
+  {"code":"335","name":"Rose","hex":"#EE546E"},
+  {"code":"336","name":"Navy Blue","hex":"#253B73"},
+  {"code":"340","name":"Blue Violet Medium","hex":"#ADA7C7"},
+  {"code":"341","name":"Blue Violet Light","hex":"#B7BFDD"},
+  {"code":"347","name":"Salmon Very Dark","hex":"#BF2D2D"},
+  {"code":"349","name":"Coral Dark","hex":"#D21035"},
+  {"code":"350","name":"Coral Medium","hex":"#E33044"},
+  {"code":"351","name":"Coral","hex":"#E96A67"},
+  {"code":"352","name":"Coral Light","hex":"#FD9C97"},
+  {"code":"353","name":"Peach","hex":"#FED7CC"},
+  {"code":"355","name":"Terra Cotta Dark","hex":"#983F33"},
+  {"code":"356","name":"Terra Cotta Medium","hex":"#E7917B"},
+  {"code":"367","name":"Pistachio Green Dark","hex":"#617A60"},
+  {"code":"368","name":"Pistachio Green Light","hex":"#A6C298"},
+  {"code":"369","name":"Pistachio Green Very Light","hex":"#D7EDCC"},
+  {"code":"370","name":"Mustard Medium","hex":"#B88A00"},
+  {"code":"371","name":"Mustard","hex":"#BF9B5F"},
+  {"code":"372","name":"Mustard Light","hex":"#CCB784"},
+  {"code":"400","name":"Mahogany Dark","hex":"#8F4108"},
+  {"code":"402","name":"Mahogany Very Light","hex":"#F7A777"},
+  {"code":"407","name":"Desert Sand Dark","hex":"#BB8B77"},
+  {"code":"413","name":"Pewter Gray Dark","hex":"#565656"},
+  {"code":"414","name":"Steel Gray Dark","hex":"#8C8C8C"},
+  {"code":"415","name":"Pearl Gray","hex":"#D3D3D6"},
+  {"code":"420","name":"Hazelnut Brown Dark","hex":"#A07042"},
+  {"code":"422","name":"Hazelnut Brown Light","hex":"#C69F7B"},
+  {"code":"433","name":"Brown Medium","hex":"#7A451F"},
+  {"code":"434","name":"Brown Light","hex":"#985E33"},
+  {"code":"435","name":"Brown Very Light","hex":"#B87748"},
+  {"code":"436","name":"Tan","hex":"#CB9051"},
+  {"code":"437","name":"Tan Light","hex":"#E4BB8E"},
   {"code":"444","name":"Lemon Dark","hex":"#FFD600"},
-  {"code":"3846","name":"Bright Turquoise Light","hex":"#06E3E6"},
-  {"code":"3801","name":"Christmas Red Very Dark","hex":"#E50033"},
-  {"code":"3607","name":"Plum Light","hex":"#E74F86"},
+  {"code":"445","name":"Lemon Light","hex":"#FFEB84"},
+  {"code":"451","name":"Shell Gray Dark","hex":"#917B73"},
+  {"code":"452","name":"Shell Gray Medium","hex":"#C0B3AC"},
+  {"code":"453","name":"Shell Gray Light","hex":"#D7CECB"},
+  {"code":"469","name":"Avocado Green","hex":"#72843C"},
+  {"code":"470","name":"Avocado Green Light","hex":"#94B257"},
+  {"code":"471","name":"Avocado Green Very Light","hex":"#AEBF79"},
+  {"code":"472","name":"Avocado Green Ultra Light","hex":"#D8E498"},
+  {"code":"498","name":"Christmas Red Dark","hex":"#A7132B"},
+  {"code":"500","name":"Blue Green Very Dark","hex":"#005441"},
+  {"code":"501","name":"Blue Green Dark","hex":"#3A6A5B"},
+  {"code":"502","name":"Blue Green","hex":"#869E8B"},
+  {"code":"503","name":"Blue Green Medium","hex":"#A4BDAF"},
+  {"code":"504","name":"Blue Green Very Light","hex":"#C4D9CC"},
+  {"code":"517","name":"Wedgewood Dark","hex":"#3B768F"},
+  {"code":"518","name":"Wedgewood Light","hex":"#4F8DA5"},
+  {"code":"519","name":"Sky Blue","hex":"#88B4C8"},
+  {"code":"520","name":"Fern Green Dark","hex":"#666D56"},
+  {"code":"522","name":"Fern Green","hex":"#96967F"},
+  {"code":"523","name":"Fern Green Light","hex":"#ACB7A5"},
+  {"code":"524","name":"Fern Green Very Light","hex":"#C4CDC1"},
+  {"code":"535","name":"Ash Gray Very Light","hex":"#63645C"},
+  {"code":"543","name":"Beige Brown Ultra Very Light","hex":"#F2E3CE"},
+  {"code":"550","name":"Violet Very Dark","hex":"#501A55"},
+  {"code":"552","name":"Violet Medium","hex":"#804E7D"},
+  {"code":"553","name":"Violet","hex":"#9B6E94"},
+  {"code":"554","name":"Violet Light","hex":"#DBB3CB"},
+  {"code":"561","name":"Jade Very Dark","hex":"#2A5649"},
+  {"code":"562","name":"Jade Medium","hex":"#457D64"},
+  {"code":"563","name":"Jade Light","hex":"#82B39E"},
+  {"code":"564","name":"Jade Very Light","hex":"#AFCBBC"},
+  {"code":"580","name":"Moss Green Dark","hex":"#808300"},
+  {"code":"581","name":"Moss Green","hex":"#A7A757"},
+  {"code":"597","name":"Turquoise","hex":"#539590"},
+  {"code":"598","name":"Turquoise Light","hex":"#86ADAB"},
+  {"code":"600","name":"Cranberry Very Dark","hex":"#D32159"},
+  {"code":"601","name":"Cranberry Dark","hex":"#D63962"},
+  {"code":"602","name":"Cranberry Medium","hex":"#E55F83"},
+  {"code":"603","name":"Cranberry","hex":"#FFA4BE"},
+  {"code":"604","name":"Cranberry Light","hex":"#FFBDCA"},
+  {"code":"605","name":"Cranberry Very Light","hex":"#FFCFD6"},
+  {"code":"606","name":"Bright Orange Red","hex":"#FA2700"},
+  {"code":"608","name":"Bright Orange","hex":"#FD5D00"},
+  {"code":"610","name":"Drab Brown Dark","hex":"#755D43"},
+  {"code":"611","name":"Drab Brown","hex":"#987758"},
+  {"code":"612","name":"Drab Brown Light","hex":"#BC9777"},
+  {"code":"613","name":"Drab Brown Very Light","hex":"#DCC2AA"},
+  {"code":"632","name":"Desert Sand Ultra Very Dark","hex":"#875C4F"},
+  {"code":"640","name":"Beige Gray Very Dark","hex":"#8A7567"},
+  {"code":"642","name":"Beige Gray Dark","hex":"#A49483"},
+  {"code":"644","name":"Beige Gray Medium","hex":"#DDD8CB"},
+  {"code":"645","name":"Beaver Gray Very Dark","hex":"#6E6E6E"},
+  {"code":"646","name":"Beaver Gray Dark","hex":"#878787"},
+  {"code":"647","name":"Beaver Gray Medium","hex":"#B0B0B0"},
+  {"code":"648","name":"Beaver Gray Light","hex":"#BCBCBC"},
+  {"code":"666","name":"Bright Red","hex":"#E31D42"},
+  {"code":"676","name":"Old Gold Light","hex":"#E5BE84"},
+  {"code":"677","name":"Old Gold Very Light","hex":"#F5E2BC"},
+  {"code":"680","name":"Old Gold Dark","hex":"#BC8D0E"},
+  {"code":"699","name":"Christmas Green","hex":"#056533"},
+  {"code":"700","name":"Christmas Green Bright","hex":"#10753D"},
+  {"code":"701","name":"Christmas Green Light","hex":"#4F8958"},
+  {"code":"702","name":"Kelly Green","hex":"#5CA462"},
+  {"code":"703","name":"Chartreuse","hex":"#7BB661"},
+  {"code":"704","name":"Chartreuse Bright","hex":"#9CCB65"},
+  {"code":"718","name":"Plum","hex":"#893456"},
+  {"code":"720","name":"Orange Spice Dark","hex":"#E55B00"},
+  {"code":"721","name":"Orange Spice Medium","hex":"#F27D22"},
+  {"code":"722","name":"Orange Spice Light","hex":"#F68D39"},
+  {"code":"725","name":"Topaz","hex":"#FFC700"},
+  {"code":"726","name":"Topaz Light","hex":"#FDD758"},
+  {"code":"727","name":"Topaz Very Light","hex":"#FFEBA8"},
+  {"code":"729","name":"Old Gold Medium","hex":"#D08900"},
+  {"code":"730","name":"Olive Green Very Dark","hex":"#856F00"},
+  {"code":"731","name":"Olive Green Dark","hex":"#957B00"},
+  {"code":"732","name":"Olive Green","hex":"#9C8643"},
+  {"code":"733","name":"Olive Green Medium","hex":"#BCA76B"},
+  {"code":"734","name":"Olive Green Light","hex":"#C8BA88"},
   {"code":"738","name":"Tan Very Light","hex":"#ECCC9E"},
-  {"code":"414","name":"Steel Gray Dark","hex":"#8C8C8C"}
+  {"code":"739","name":"Tan Ultra Very Light","hex":"#F8E4C8"},
+  {"code":"740","name":"Tangerine","hex":"#FF8B00"},
+  {"code":"741","name":"Tangerine Medium","hex":"#FFA300"},
+  {"code":"742","name":"Tangerine Light","hex":"#FFB755"},
+  {"code":"743","name":"Yellow Medium","hex":"#FED376"},
+  {"code":"744","name":"Yellow Pale","hex":"#FFE793"},
+  {"code":"745","name":"Yellow Light Pale","hex":"#FFEEAD"},
+  {"code":"746","name":"Off White","hex":"#FCFCF6"},
+  {"code":"747","name":"Sky Blue Very Light","hex":"#E1F5FF"},
+  {"code":"754","name":"Peach Light","hex":"#FAD3C3"},
+  {"code":"758","name":"Terra Cotta Very Light","hex":"#EEC3B5"},
+  {"code":"760","name":"Salmon","hex":"#F59B95"},
+  {"code":"761","name":"Salmon Light","hex":"#FFC9C9"},
+  {"code":"762","name":"Pearl Gray Very Light","hex":"#ECECEC"},
+  {"code":"772","name":"Pine Green Light","hex":"#D9EAD3"},
+  {"code":"775","name":"Baby Blue Very Light","hex":"#D9ECF2"},
+  {"code":"776","name":"Pink Medium","hex":"#FAAAB4"},
+  {"code":"777","name":"Raspberry Very Dark","hex":"#912048"},
+  {"code":"778","name":"Antique Mauve Very Light","hex":"#DFB6BD"},
+  {"code":"779","name":"Cocoa Dark","hex":"#634B44"},
+  {"code":"780","name":"Topaz Ultra Very Dark","hex":"#955A00"},
+  {"code":"781","name":"Topaz Very Dark","hex":"#A26700"},
+  {"code":"782","name":"Topaz Dark","hex":"#AE7700"},
+  {"code":"783","name":"Christmas Gold","hex":"#CC8F00"},
+  {"code":"791","name":"Cornflower Blue Very Dark","hex":"#49486A"},
+  {"code":"792","name":"Cornflower Blue Dark","hex":"#6F6C8E"},
+  {"code":"793","name":"Cornflower Blue Medium","hex":"#938BA4"},
+  {"code":"794","name":"Cornflower Blue Light","hex":"#9FB7CF"},
+  {"code":"796","name":"Royal Blue Dark","hex":"#13395F"},
+  {"code":"797","name":"Royal Blue","hex":"#194C7A"},
+  {"code":"798","name":"Delft Blue Dark","hex":"#46698A"},
+  {"code":"799","name":"Delft Blue Medium","hex":"#749BC1"},
+  {"code":"800","name":"Delft Blue Pale","hex":"#C0DAEB"},
+  {"code":"801","name":"Coffee Brown Dark","hex":"#65442A"},
+  {"code":"803","name":"Baby Blue Ultra Very Dark","hex":"#35668C"},
+  {"code":"806","name":"Peacock Blue Dark","hex":"#3C8A96"},
+  {"code":"807","name":"Peacock Blue","hex":"#649BA3"},
+  {"code":"809","name":"Delft Blue","hex":"#94BACB"},
+  {"code":"813","name":"Blue Light","hex":"#A2C2D6"},
+  {"code":"814","name":"Garnet Dark","hex":"#A1002C"},
+  {"code":"815","name":"Garnet Medium","hex":"#B00032"},
+  {"code":"816","name":"Garnet","hex":"#B33B4B"},
+  {"code":"817","name":"Coral Red Very Dark","hex":"#BB3B4A"},
+  {"code":"818","name":"Baby Pink","hex":"#FFDFE5"},
+  {"code":"819","name":"Baby Pink Light","hex":"#FFEFEF"},
+  {"code":"820","name":"Royal Blue Very Dark","hex":"#0D2952"},
+  {"code":"822","name":"Beige Gray Light","hex":"#E7E2D3"},
+  {"code":"823","name":"Navy Blue Dark","hex":"#000049"},
+  {"code":"824","name":"Blue Very Dark","hex":"#3B6482"},
+  {"code":"825","name":"Blue Dark","hex":"#537C9D"},
+  {"code":"826","name":"Blue Medium","hex":"#739EBD"},
+  {"code":"827","name":"Blue Very Light","hex":"#BDDDED"},
+  {"code":"828","name":"Blue Ultra Very Light","hex":"#D3ECF1"},
+  {"code":"829","name":"Golden Olive Very Dark","hex":"#7F6B00"},
+  {"code":"830","name":"Golden Olive Dark","hex":"#8D7500"},
+  {"code":"831","name":"Golden Olive Medium","hex":"#9C8200"},
+  {"code":"832","name":"Golden Olive","hex":"#B48F12"},
+  {"code":"833","name":"Golden Olive Light","hex":"#C6A46F"},
+  {"code":"834","name":"Golden Olive Very Light","hex":"#D4B684"},
+  {"code":"838","name":"Beige Brown Very Dark","hex":"#594937"},
+  {"code":"839","name":"Beige Brown Dark","hex":"#695845"},
+  {"code":"840","name":"Beige Brown Medium","hex":"#9A7C5C"},
+  {"code":"841","name":"Beige Brown Light","hex":"#B69B7E"},
+  {"code":"842","name":"Beige Brown Very Light","hex":"#D1BAA1"},
+  {"code":"844","name":"Beaver Gray Ultra Dark","hex":"#484848"},
+  {"code":"869","name":"Hazelnut Brown Very Dark","hex":"#83593C"},
+  {"code":"890","name":"Pistachio Green Ultra Dark","hex":"#174F42"},
+  {"code":"891","name":"Carnation Dark","hex":"#FF5A73"},
+  {"code":"892","name":"Carnation Medium","hex":"#FF8495"},
+  {"code":"893","name":"Carnation Light","hex":"#FFB7C1"},
+  {"code":"894","name":"Carnation Very Light","hex":"#FFD6DC"},
+  {"code":"895","name":"Hunter Green Very Dark","hex":"#20563B"},
+  {"code":"898","name":"Coffee Brown Very Dark","hex":"#493219"},
+  {"code":"899","name":"Rose Medium","hex":"#F3748E"},
+  {"code":"900","name":"Burnt Orange Dark","hex":"#D15600"},
+  {"code":"902","name":"Garnet Very Dark","hex":"#852032"},
+  {"code":"904","name":"Parrot Green Very Dark","hex":"#637700"},
+  {"code":"905","name":"Parrot Green Dark","hex":"#758E00"},
+  {"code":"906","name":"Parrot Green Medium","hex":"#8EA800"},
+  {"code":"907","name":"Parrot Green Light","hex":"#CDD96D"},
+  {"code":"909","name":"Emerald Green Very Dark","hex":"#12563C"},
+  {"code":"910","name":"Emerald Green Dark","hex":"#196848"},
+  {"code":"911","name":"Emerald Green Medium","hex":"#1E7F55"},
+  {"code":"912","name":"Emerald Green Light","hex":"#1A9560"},
+  {"code":"913","name":"Nile Green Medium","hex":"#99BC95"},
+  {"code":"915","name":"Plum Dark","hex":"#A31855"},
+  {"code":"917","name":"Plum Medium","hex":"#AC1B5A"},
+  {"code":"918","name":"Red Copper Dark","hex":"#834438"},
+  {"code":"919","name":"Red Copper","hex":"#B15942"},
+  {"code":"920","name":"Copper Medium","hex":"#C56D54"},
+  {"code":"921","name":"Copper","hex":"#CB7A5B"},
+  {"code":"922","name":"Copper Light","hex":"#E29268"},
+  {"code":"924","name":"Gray Green Very Dark","hex":"#486359"},
+  {"code":"926","name":"Gray Green Medium","hex":"#7C9A8C"},
+  {"code":"927","name":"Gray Green Light","hex":"#AABDB3"},
+  {"code":"928","name":"Gray Green Very Light","hex":"#CFDAD4"},
+  {"code":"930","name":"Antique Blue Dark","hex":"#466375"},
+  {"code":"931","name":"Antique Blue Medium","hex":"#688694"},
+  {"code":"932","name":"Antique Blue Light","hex":"#99B3BF"},
+  {"code":"934","name":"Avocado Green Black","hex":"#2A3322"},
+  {"code":"935","name":"Avocado Green Dark","hex":"#445031"},
+  {"code":"936","name":"Avocado Green Very Dark","hex":"#4E5E2F"},
+  {"code":"937","name":"Avocado Green Medium","hex":"#617840"},
+  {"code":"938","name":"Coffee Brown Ultra Dark","hex":"#361F00"},
+  {"code":"939","name":"Navy Blue Very Dark","hex":"#002050"},
+  {"code":"943","name":"Aquamarine Medium","hex":"#00AF9B"},
+  {"code":"945","name":"Tawny","hex":"#FBDABB"},
+  {"code":"946","name":"Burnt Orange Medium","hex":"#F26A24"},
+  {"code":"947","name":"Burnt Orange","hex":"#FF7B4D"},
+  {"code":"948","name":"Peach Very Light","hex":"#FFE7D9"},
+  {"code":"950","name":"Desert Sand Light","hex":"#EED6D2"},
+  {"code":"951","name":"Tawny Light","hex":"#FFE7CE"},
+  {"code":"954","name":"Nile Green","hex":"#86B7A0"},
+  {"code":"955","name":"Nile Green Light","hex":"#ACD0BC"},
+  {"code":"956","name":"Geranium","hex":"#FF6D73"},
+  {"code":"957","name":"Geranium Pale","hex":"#FDADAD"},
+  {"code":"958","name":"Sea Green Dark","hex":"#009E89"},
+  {"code":"959","name":"Sea Green Medium","hex":"#66B7A4"},
+  {"code":"961","name":"Dusty Rose Dark","hex":"#C7637D"},
+  {"code":"962","name":"Dusty Rose Medium","hex":"#E68FA3"},
+  {"code":"963","name":"Dusty Rose Ultra Very Light","hex":"#FFCDD2"},
+  {"code":"964","name":"Sea Green Light","hex":"#9DCEC3"},
+  {"code":"966","name":"Baby Green Medium","hex":"#B2C297"},
+  {"code":"970","name":"Pumpkin Light","hex":"#F78B13"},
+  {"code":"971","name":"Pumpkin","hex":"#F78B13"},
+  {"code":"972","name":"Canary Deep","hex":"#FFB515"},
+  {"code":"973","name":"Canary Bright","hex":"#FFE300"},
+  {"code":"975","name":"Golden Brown Dark","hex":"#8B5300"},
+  {"code":"976","name":"Golden Brown Medium","hex":"#F68D39"},
+  {"code":"977","name":"Golden Brown Light","hex":"#FFB066"},
+  {"code":"986","name":"Forest Green Very Dark","hex":"#3D5C49"},
+  {"code":"987","name":"Forest Green Dark","hex":"#597560"},
+  {"code":"988","name":"Forest Green Medium","hex":"#839882"},
+  {"code":"989","name":"Forest Green","hex":"#869E77"},
+  {"code":"991","name":"Aquamarine Dark","hex":"#007C6D"},
+  {"code":"992","name":"Aquamarine","hex":"#6DB0A1"},
+  {"code":"993","name":"Aquamarine Light","hex":"#8EC2B4"},
+  {"code":"995","name":"Electric Blue Dark","hex":"#007BA7"},
+  {"code":"996","name":"Electric Blue Medium","hex":"#00A3DA"},
+  {"code":"3011","name":"Khaki Green Dark","hex":"#77684E"},
+  {"code":"3012","name":"Khaki Green Medium","hex":"#A69776"},
+  {"code":"3013","name":"Khaki Green Light","hex":"#B9AE85"},
+  {"code":"3021","name":"Brown Gray Very Dark","hex":"#4F443A"},
+  {"code":"3022","name":"Brown Gray Medium","hex":"#8E8470"},
+  {"code":"3023","name":"Brown Gray Light","hex":"#B5AE9A"},
+  {"code":"3024","name":"Brown Gray Very Light","hex":"#D3D0CD"},
+  {"code":"3031","name":"Mocha Brown Very Dark","hex":"#483C32"},
+  {"code":"3032","name":"Mocha Brown Medium","hex":"#BC9C78"},
+  {"code":"3033","name":"Mocha Brown Very Light","hex":"#EFDDBE"},
+  {"code":"3041","name":"Antique Violet Medium","hex":"#B79BA7"},
+  {"code":"3042","name":"Antique Violet Light","hex":"#E1CDC8"},
+  {"code":"3045","name":"Yellow Beige Dark","hex":"#BA9167"},
+  {"code":"3046","name":"Yellow Beige Medium","hex":"#E5C18B"},
+  {"code":"3047","name":"Yellow Beige Light","hex":"#FFECD3"},
+  {"code":"3051","name":"Green Gray Dark","hex":"#595F4B"},
+  {"code":"3052","name":"Green Gray Medium","hex":"#889277"},
+  {"code":"3053","name":"Green Gray","hex":"#9CA48F"},
+  {"code":"3064","name":"Desert Sand","hex":"#BF917C"},
+  {"code":"3072","name":"Beaver Gray Very Light","hex":"#E6E8E8"},
+  {"code":"3078","name":"Golden Yellow Very Light","hex":"#FFFCE1"},
+  {"code":"3325","name":"Baby Blue Light","hex":"#B3D1E4"},
+  {"code":"3326","name":"Rose Light","hex":"#FF9D96"},
+  {"code":"3328","name":"Salmon Dark","hex":"#BC4055"},
+  {"code":"3340","name":"Apricot Medium","hex":"#FF7B67"},
+  {"code":"3341","name":"Apricot","hex":"#FFACA2"},
+  {"code":"3345","name":"Hunter Green Dark","hex":"#365647"},
+  {"code":"3346","name":"Hunter Green","hex":"#53705A"},
+  {"code":"3347","name":"Yellow Green Medium","hex":"#708E6B"},
+  {"code":"3348","name":"Yellow Green Light","hex":"#E1F9BE"},
+  {"code":"3350","name":"Dusty Rose Ultra Dark","hex":"#B84F64"},
+  {"code":"3354","name":"Dusty Rose Light","hex":"#FFD6D1"},
+  {"code":"3362","name":"Pine Green Dark","hex":"#61735C"},
+  {"code":"3363","name":"Pine Green Medium","hex":"#73866B"},
+  {"code":"3364","name":"Pine Green","hex":"#869977"},
+  {"code":"3371","name":"Black Brown","hex":"#271C13"},
+  {"code":"3607","name":"Plum Light","hex":"#E74F86"},
+  {"code":"3608","name":"Plum Very Light","hex":"#F798B6"},
+  {"code":"3609","name":"Plum Ultra Light","hex":"#FFC5D5"},
+  {"code":"3685","name":"Mauve Very Dark","hex":"#7F335D"},
+  {"code":"3687","name":"Mauve","hex":"#C15481"},
+  {"code":"3688","name":"Mauve Medium","hex":"#E689AF"},
+  {"code":"3689","name":"Mauve Light","hex":"#FFBACD"},
+  {"code":"3705","name":"Melon Dark","hex":"#FF555B"},
+  {"code":"3706","name":"Melon Medium","hex":"#FF8C8A"},
+  {"code":"3708","name":"Melon Light","hex":"#FED4DB"},
+  {"code":"3712","name":"Salmon Medium","hex":"#E26D76"},
+  {"code":"3713","name":"Salmon Very Light","hex":"#FDE5D9"},
+  {"code":"3716","name":"Dusty Rose Very Light","hex":"#FFBDC1"},
+  {"code":"3721","name":"Shell Pink Dark","hex":"#A9555F"},
+  {"code":"3722","name":"Shell Pink Medium","hex":"#AB6F73"},
+  {"code":"3726","name":"Antique Mauve Dark","hex":"#91636B"},
+  {"code":"3727","name":"Antique Mauve Light","hex":"#FFBDBF"},
+  {"code":"3731","name":"Dusty Rose Very Dark","hex":"#DC677F"},
+  {"code":"3733","name":"Dusty Rose","hex":"#FF9DAE"},
+  {"code":"3740","name":"Antique Violet Dark","hex":"#9C7D85"},
+  {"code":"3743","name":"Antique Violet Very Light","hex":"#EBEBE7"},
+  {"code":"3746","name":"Blue Violet Dark","hex":"#776B98"},
+  {"code":"3747","name":"Blue Violet Very Light","hex":"#E6ECE8"},
+  {"code":"3750","name":"Antique Blue Very Dark","hex":"#355868"},
+  {"code":"3752","name":"Antique Blue Very Light","hex":"#C7D8DC"},
+  {"code":"3753","name":"Antique Blue Ultra Very Light","hex":"#ECF4F4"},
+  {"code":"3755","name":"Baby Blue","hex":"#799EC0"},
+  {"code":"3756","name":"Baby Blue Ultra Very Light","hex":"#F2FAFF"},
+  {"code":"3760","name":"Wedgewood Medium","hex":"#638FA3"},
+  {"code":"3761","name":"Sky Blue Light","hex":"#D3F2F3"},
+  {"code":"3765","name":"Peacock Blue Very Dark","hex":"#007D87"},
+  {"code":"3766","name":"Peacock Blue Light","hex":"#409AA4"},
+  {"code":"3768","name":"Gray Green Dark","hex":"#5C6E6C"},
+  {"code":"3770","name":"Tawny Very Light","hex":"#FFFAE0"},
+  {"code":"3771","name":"Terra Cotta Ultra Very Light","hex":"#F7DACB"},
+  {"code":"3772","name":"Desert Sand Very Dark","hex":"#A07465"},
+  {"code":"3773","name":"Desert Sand Medium","hex":"#C49782"},
+  {"code":"3774","name":"Desert Sand Very Light","hex":"#F3E1D7"},
+  {"code":"3776","name":"Mahogany Light","hex":"#DD9059"},
+  {"code":"3777","name":"Terra Cotta Very Dark","hex":"#863022"},
+  {"code":"3778","name":"Terra Cotta Light","hex":"#D98C73"},
+  {"code":"3779","name":"Terra Cotta Ultra Very Light","hex":"#F8CBBB"},
+  {"code":"3781","name":"Mocha Brown Dark","hex":"#6B5749"},
+  {"code":"3782","name":"Mocha Brown Light","hex":"#CFAB8F"},
+  {"code":"3787","name":"Brown Gray Dark","hex":"#6F675E"},
+  {"code":"3790","name":"Beige Gray Ultra Dark","hex":"#8C756D"},
+  {"code":"3799","name":"Pewter Gray Very Dark","hex":"#424242"},
+  {"code":"3801","name":"Christmas Red Very Dark","hex":"#E50033"},
+  {"code":"3802","name":"Antique Mauve Very Dark","hex":"#714149"},
+  {"code":"3803","name":"Mauve Dark","hex":"#A93C6F"},
+  {"code":"3804","name":"Cyclamen Pink Dark","hex":"#E02876"},
+  {"code":"3805","name":"Cyclamen Pink","hex":"#F3478B"},
+  {"code":"3806","name":"Cyclamen Pink Light","hex":"#FF8CAE"},
+  {"code":"3807","name":"Cornflower Blue","hex":"#667798"},
+  {"code":"3808","name":"Turquoise Ultra Very Dark","hex":"#366970"},
+  {"code":"3809","name":"Turquoise Very Dark","hex":"#3F7C85"},
+  {"code":"3810","name":"Turquoise Dark","hex":"#488E9A"},
+  {"code":"3811","name":"Turquoise Very Light","hex":"#BCE3E6"},
+  {"code":"3812","name":"Sea Green Very Dark","hex":"#2F8C84"},
+  {"code":"3813","name":"Blue Green Light","hex":"#B2D4BD"},
+  {"code":"3814","name":"Aquamarine","hex":"#508B7D"},
+  {"code":"3815","name":"Celadon Green Dark","hex":"#477759"},
+  {"code":"3816","name":"Celadon Green","hex":"#65A57D"},
+  {"code":"3817","name":"Celadon Green Light","hex":"#99C3AA"},
+  {"code":"3818","name":"Emerald Green Ultra Very Dark","hex":"#115A3B"},
+  {"code":"3819","name":"Moss Green Light","hex":"#E0E868"},
+  {"code":"3820","name":"Straw Dark","hex":"#DFB65F"},
+  {"code":"3821","name":"Straw","hex":"#F3CE75"},
+  {"code":"3822","name":"Straw Light","hex":"#F6DC98"},
+  {"code":"3823","name":"Yellow Ultra Pale","hex":"#FFFDE3"},
+  {"code":"3824","name":"Apricot Light","hex":"#FECDC2"},
+  {"code":"3825","name":"Pumpkin Pale","hex":"#FDBD96"},
+  {"code":"3826","name":"Golden Brown","hex":"#AD7239"},
+  {"code":"3827","name":"Golden Brown Pale","hex":"#F7BB77"},
+  {"code":"3828","name":"Hazelnut Brown","hex":"#B78B61"},
+  {"code":"3829","name":"Old Gold Very Dark","hex":"#A98204"},
+  {"code":"3830","name":"Terra Cotta","hex":"#B9644F"},
+  {"code":"3831","name":"Raspberry Dark","hex":"#B32F48"},
+  {"code":"3832","name":"Raspberry Medium","hex":"#DB556E"},
+  {"code":"3833","name":"Raspberry Light","hex":"#EA8699"},
+  {"code":"3834","name":"Grape Dark","hex":"#72375D"},
+  {"code":"3835","name":"Grape Medium","hex":"#946083"},
+  {"code":"3836","name":"Grape Light","hex":"#BA91AA"},
+  {"code":"3837","name":"Lavender Ultra Dark","hex":"#6C3A6E"},
+  {"code":"3838","name":"Lavender Blue Dark","hex":"#5C7294"},
+  {"code":"3839","name":"Lavender Blue Medium","hex":"#7B8EAB"},
+  {"code":"3840","name":"Lavender Blue Light","hex":"#B0C0DA"},
+  {"code":"3841","name":"Baby Blue Pale","hex":"#CDDFED"},
+  {"code":"3842","name":"Wedgewood Very Dark","hex":"#32667C"},
+  {"code":"3843","name":"Electric Blue","hex":"#14AAD0"},
+  {"code":"3844","name":"Bright Turquoise Dark","hex":"#12AEBA"},
+  {"code":"3845","name":"Bright Turquoise Medium","hex":"#04C4CA"},
+  {"code":"3846","name":"Bright Turquoise Light","hex":"#06E3E6"},
+  {"code":"3847","name":"Teal Green Dark","hex":"#347D75"},
+  {"code":"3848","name":"Teal Green Medium","hex":"#559392"},
+  {"code":"3849","name":"Teal Green Light","hex":"#52B3A4"},
+  {"code":"3850","name":"Bright Green Dark","hex":"#378477"},
+  {"code":"3851","name":"Bright Green Light","hex":"#49B3A1"},
+  {"code":"3852","name":"Straw Very Dark","hex":"#CD9D37"},
+  {"code":"3853","name":"Autumn Gold Dark","hex":"#F29746"},
+  {"code":"3854","name":"Autumn Gold Medium","hex":"#F2AF6D"},
+  {"code":"3855","name":"Autumn Gold Light","hex":"#FAD396"},
+  {"code":"3856","name":"Mahogany Ultra Very Light","hex":"#FFD3B5"},
+  {"code":"3857","name":"Rosewood Dark","hex":"#682424"},
+  {"code":"3858","name":"Rosewood Medium","hex":"#964A3F"},
+  {"code":"3859","name":"Rosewood Light","hex":"#BA9189"},
+  {"code":"3860","name":"Cocoa","hex":"#7D5D57"},
+  {"code":"3861","name":"Cocoa Light","hex":"#A68881"},
+  {"code":"3862","name":"Mocha Beige Dark","hex":"#8A6E4E"},
+  {"code":"3863","name":"Mocha Beige Medium","hex":"#A4835C"},
+  {"code":"3864","name":"Mocha Beige Light","hex":"#CBB69C"},
+  {"code":"3865","name":"Winter White","hex":"#F9F7F1"},
+  {"code":"3866","name":"Mocha Brown Ultra Very Light","hex":"#FAF6F0"}
 ];
 
+// Top 20 popular DMC colors (quick-access in sidebar)
+const POPULAR_DMC_CODES = [
+  "310", "321", "blanc", "498", "666", "336", "796", "699", "702", "553",
+  "550", "720", "741", "307", "444", "3846", "3801", "3607", "738", "414"
+];
 
 // Add RGB values to DMC colors (PDF engine needs r,g,b)
 DMC_COLORS.forEach(function(c) {
@@ -4351,7 +4926,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   var currentFontFile = 'GeorgiaPro-Black.ttf';
   var currentFontName = 'GeorgiaPro-Black';
   var currentHeight = 18;
-  var currentColorIndex = 0;
+  var currentColorCode = '310'; // DMC code (robust with 449 colors)
   var currentAida = 14;
   var currentCategoryFilter = 'all';
   var displayUnit = 'metric'; // 'metric' | 'imperial'
@@ -4450,8 +5025,11 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   }
 
   function getCurrentColor() {
-    if (typeof DMC_COLORS === 'undefined' || !DMC_COLORS.length) return { hex: '#b83a2a', code: '321', name: 'Red' };
-    return DMC_COLORS[currentColorIndex] || DMC_COLORS[0];
+    if (typeof DMC_COLORS === 'undefined' || !DMC_COLORS.length) return { hex: '#000000', code: '310', name: 'Black' };
+    for (var i = 0; i < DMC_COLORS.length; i++) {
+      if (DMC_COLORS[i].code === currentColorCode) return DMC_COLORS[i];
+    }
+    return DMC_COLORS[0]; // fallback
   }
 
   function showLoading() {
@@ -4848,39 +5426,168 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
 
 // ui-modules/color-manager.js — DMC color swatch rendering and click handlers
-// renderColors()
+// renderColors(), openColorPopover(), closeColorPopover()
 
-  // -- Color Swatches --
+  // -- Color Swatches (sidebar: popular 20 + "All" button) --
 
   function renderColors() {
     if (typeof DMC_COLORS === 'undefined' || !DMC_COLORS.length) return;
     colorRow.innerHTML = '';
     var fragment = document.createDocumentFragment();
 
-    DMC_COLORS.forEach(function (color, index) {
+    var popularCodes = (typeof POPULAR_DMC_CODES !== 'undefined') ? POPULAR_DMC_CODES : [];
+    var popular = popularCodes.map(function (code) {
+      for (var i = 0; i < DMC_COLORS.length; i++) {
+        if (DMC_COLORS[i].code === code) return DMC_COLORS[i];
+      }
+      return null;
+    }).filter(Boolean);
+
+    // If no popular list, show first 20
+    if (!popular.length) popular = DMC_COLORS.slice(0, 20);
+
+    popular.forEach(function (color) {
       var dot = document.createElement('div');
-      dot.className = 'color-dot' + (index === currentColorIndex ? ' selected' : '');
+      dot.className = 'color-dot' + (color.code === currentColorCode ? ' selected' : '');
       dot.style.backgroundColor = color.hex;
-      dot.dataset.index = index;
+      dot.dataset.code = color.code;
 
       var tip = document.createElement('div');
       tip.className = 'tip';
       tip.textContent = 'DMC ' + color.code + ' \u2014 ' + color.name;
       dot.appendChild(tip);
 
-      dot.addEventListener('click', function () {
-        currentColorIndex = index;
-        colorRow.querySelectorAll('.color-dot').forEach(function (d) {
-          d.classList.toggle('selected', parseInt(d.dataset.index) === index);
-        });
-        syncMobileColorStrip();
-        updatePreview();
+      fragment.appendChild(dot);
+    });
+
+    // "All colors" button
+    var allBtn = document.createElement('button');
+    allBtn.className = 'color-all-btn';
+    allBtn.textContent = 'All\u2026';
+    allBtn.setAttribute('aria-label', 'Show all DMC colors');
+    fragment.appendChild(allBtn);
+
+    colorRow.appendChild(fragment);
+
+    // Delegated click handler for the whole color row
+    colorRow.onclick = function (e) {
+      var dot = e.target.closest('.color-dot');
+      if (dot && dot.dataset.code) {
+        selectColor(dot.dataset.code);
+        return;
+      }
+      if (e.target.closest('.color-all-btn')) {
+        openColorPopover();
+      }
+    };
+  }
+
+  // -- Select color by DMC code --
+
+  function selectColor(code) {
+    currentColorCode = code;
+
+    // Update sidebar dots
+    colorRow.querySelectorAll('.color-dot').forEach(function (d) {
+      d.classList.toggle('selected', d.dataset.code === code);
+    });
+
+    // Update popover selection if open
+    var popGrid = document.getElementById('colorPopoverGrid');
+    if (popGrid) {
+      popGrid.querySelectorAll('.color-dot').forEach(function (d) {
+        d.classList.toggle('selected', d.dataset.code === code);
       });
+    }
+
+    syncMobileColorStrip();
+    updatePreview();
+  }
+
+  // -- Desktop Color Popover --
+
+  function openColorPopover() {
+    var popover = document.getElementById('colorPopover');
+    if (!popover) return;
+    popover.classList.add('open');
+    renderColorPopoverGrid('');
+
+    var searchInput = document.getElementById('colorPopoverSearch');
+    if (searchInput) {
+      searchInput.value = '';
+      searchInput.focus();
+    }
+  }
+
+  function closeColorPopover() {
+    var popover = document.getElementById('colorPopover');
+    if (popover) popover.classList.remove('open');
+  }
+
+  function renderColorPopoverGrid(query) {
+    var grid = document.getElementById('colorPopoverGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    var q = (query || '').toLowerCase().trim();
+    var filtered = DMC_COLORS.filter(function (c) {
+      if (!q) return true;
+      return c.code.toLowerCase().indexOf(q) !== -1 || c.name.toLowerCase().indexOf(q) !== -1;
+    });
+
+    var fragment = document.createDocumentFragment();
+    filtered.forEach(function (color) {
+      var dot = document.createElement('div');
+      dot.className = 'color-dot' + (color.code === currentColorCode ? ' selected' : '');
+      dot.style.backgroundColor = color.hex;
+      dot.dataset.code = color.code;
+
+      var tip = document.createElement('div');
+      tip.className = 'tip';
+      tip.textContent = 'DMC ' + color.code + ' \u2014 ' + color.name;
+      dot.appendChild(tip);
 
       fragment.appendChild(dot);
     });
 
-    colorRow.appendChild(fragment);
+    grid.appendChild(fragment);
+  }
+
+  // Popover event wiring (delegated)
+  var colorPopover = document.getElementById('colorPopover');
+  if (colorPopover) {
+    // Grid click
+    var popGrid = document.getElementById('colorPopoverGrid');
+    if (popGrid) {
+      popGrid.onclick = function (e) {
+        var dot = e.target.closest('.color-dot');
+        if (dot && dot.dataset.code) {
+          selectColor(dot.dataset.code);
+          closeColorPopover();
+        }
+      };
+    }
+
+    // Search input
+    var popSearch = document.getElementById('colorPopoverSearch');
+    if (popSearch) {
+      popSearch.addEventListener('input', function () {
+        renderColorPopoverGrid(this.value);
+      });
+    }
+
+    // Close button
+    var popClose = document.getElementById('colorPopoverClose');
+    if (popClose) {
+      popClose.addEventListener('click', closeColorPopover);
+    }
+
+    // Close on outside click
+    document.addEventListener('click', function (e) {
+      if (colorPopover.classList.contains('open') && !colorPopover.contains(e.target) && !e.target.closest('.color-all-btn')) {
+        closeColorPopover();
+      }
+    });
   }
 
 
@@ -5490,34 +6197,48 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     if (nameEl) nameEl.textContent = color.name;
     if (codeEl) codeEl.textContent = 'DMC ' + color.code;
 
+    var searchInput = document.getElementById('sheetColorSearch');
+    if (searchInput && !searchInput._bound) {
+      searchInput._bound = true;
+      searchInput.addEventListener('input', function () {
+        renderSheetColorGrid(this.value);
+      });
+    }
+
+    renderSheetColorGrid(searchInput ? searchInput.value : '');
+  }
+
+  function renderSheetColorGrid(query) {
     var grid = document.getElementById('sheetColorGrid');
     if (!grid) return;
     grid.innerHTML = '';
 
-    DMC_COLORS.forEach(function (c, index) {
-      var dot = document.createElement('div');
-      dot.className = 'color-dot' + (index === currentColorIndex ? ' selected' : '');
-      dot.style.backgroundColor = c.hex;
-      dot.dataset.index = index;
-
-      dot.addEventListener('click', function () {
-        currentColorIndex = index;
-
-        // Update desktop sidebar
-        colorRow.querySelectorAll('.color-dot').forEach(function (d) {
-          d.classList.toggle('selected', parseInt(d.dataset.index) === index);
-        });
-
-        // Sync mobile color strip
-        syncMobileColorStrip();
-
-        // Update this sheet
-        populateColorSheet();
-        updatePreview();
-      });
-
-      grid.appendChild(dot);
+    var q = (query || '').toLowerCase().trim();
+    var filtered = DMC_COLORS.filter(function (c) {
+      if (!q) return true;
+      return c.code.toLowerCase().indexOf(q) !== -1 || c.name.toLowerCase().indexOf(q) !== -1;
     });
+
+    var fragment = document.createDocumentFragment();
+    filtered.forEach(function (c) {
+      var dot = document.createElement('div');
+      dot.className = 'color-dot' + (c.code === currentColorCode ? ' selected' : '');
+      dot.style.backgroundColor = c.hex;
+      dot.dataset.code = c.code;
+      fragment.appendChild(dot);
+    });
+    grid.appendChild(fragment);
+
+    // Delegated click handler (set once)
+    if (!grid._bound) {
+      grid._bound = true;
+      grid.addEventListener('click', function (e) {
+        var dot = e.target.closest('.color-dot');
+        if (!dot || !dot.dataset.code) return;
+        selectColor(dot.dataset.code);
+        populateColorSheet();
+      });
+    }
   }
 
   // ============================================================

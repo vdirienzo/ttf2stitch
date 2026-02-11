@@ -136,12 +136,20 @@
     </div>
 
     <!-- Color Picker -->
-    <div class="sidebar-section">
+    <div class="sidebar-section sidebar-color-section">
       <div class="section-header">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
         <span data-i18n="section_color">Thread Color</span>
       </div>
       <div class="color-row" id="colorRow"></div>
+      <!-- Desktop color popover (all 449 DMC colors with search) -->
+      <div class="color-popover" id="colorPopover">
+        <div class="color-popover-header">
+          <input type="text" class="color-popover-search" id="colorPopoverSearch" placeholder="Search DMC colors…" autocomplete="off" spellcheck="false" />
+          <button class="color-popover-close" id="colorPopoverClose" aria-label="Close">&times;</button>
+        </div>
+        <div class="color-popover-grid" id="colorPopoverGrid"></div>
+      </div>
     </div>
 
     <!-- Aida Count -->
@@ -344,6 +352,9 @@
         <div class="sheet-color-name" id="sheetColorName">--</div>
         <div class="sheet-color-code" id="sheetColorCode">DMC --</div>
       </div>
+    </div>
+    <div class="sheet-color-search">
+      <input type="text" id="sheetColorSearch" placeholder="Search DMC colors…" autocomplete="off" spellcheck="false" />
     </div>
     <div class="sheet-color-grid" id="sheetColorGrid"></div>
   </div>

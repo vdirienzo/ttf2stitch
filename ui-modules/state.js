@@ -5,7 +5,7 @@
   var currentFontFile = 'GeorgiaPro-Black.ttf';
   var currentFontName = 'GeorgiaPro-Black';
   var currentHeight = 18;
-  var currentColorIndex = 0;
+  var currentColorCode = '310'; // DMC code (robust with 449 colors)
   var currentAida = 14;
   var currentCategoryFilter = 'all';
   var displayUnit = 'metric'; // 'metric' | 'imperial'
@@ -104,8 +104,11 @@
   }
 
   function getCurrentColor() {
-    if (typeof DMC_COLORS === 'undefined' || !DMC_COLORS.length) return { hex: '#b83a2a', code: '321', name: 'Red' };
-    return DMC_COLORS[currentColorIndex] || DMC_COLORS[0];
+    if (typeof DMC_COLORS === 'undefined' || !DMC_COLORS.length) return { hex: '#000000', code: '310', name: 'Black' };
+    for (var i = 0; i < DMC_COLORS.length; i++) {
+      if (DMC_COLORS[i].code === currentColorCode) return DMC_COLORS[i];
+    }
+    return DMC_COLORS[0]; // fallback
   }
 
   function showLoading() {
