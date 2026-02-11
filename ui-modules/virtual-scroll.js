@@ -78,7 +78,11 @@
     var totalItems = filteredFontsCache.length;
 
     if (!totalItems) {
-      viewport.innerHTML = '<div style="padding:40px 20px;color:var(--text-muted);font-size:14px;text-align:center;">' + t('no_matching') + '</div>';
+      viewport.innerHTML = '';
+      var msg = document.createElement('div');
+      msg.style.cssText = 'padding:40px 20px;color:var(--text-muted);font-size:14px;text-align:center';
+      msg.textContent = t('no_matching');
+      viewport.appendChild(msg);
       viewport.style.height = 'auto';
       return;
     }

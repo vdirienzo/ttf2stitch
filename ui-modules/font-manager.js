@@ -46,7 +46,10 @@
     fontList.innerHTML = '';
 
     if (!fontListData.length) {
-      fontList.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:12px;text-align:center;">' + t('no_fonts') + '</div>';
+      var msg = document.createElement('div');
+      msg.style.cssText = 'padding:20px;color:var(--text-muted);font-size:12px;text-align:center';
+      msg.textContent = t('no_fonts');
+      fontList.appendChild(msg);
       return;
     }
 
@@ -100,7 +103,11 @@
     fontList.appendChild(fragment);
 
     if (!displayed) {
-      fontList.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:12px;text-align:center;">' + t('no_matching') + '</div>';
+      fontList.innerHTML = '';
+      var msg = document.createElement('div');
+      msg.style.cssText = 'padding:20px;color:var(--text-muted);font-size:12px;text-align:center';
+      msg.textContent = t('no_matching');
+      fontList.appendChild(msg);
     }
 
     // Queue font previews for visible desktop items

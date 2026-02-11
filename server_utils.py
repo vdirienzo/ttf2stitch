@@ -357,7 +357,11 @@ def json_response(
     handler.send_response(status)
     handler.send_header("Content-Type", "application/json")
     handler.send_header("Content-Length", str(len(body)))
-    handler.send_header("Access-Control-Allow-Origin", "*")
+    origin = handler.headers.get("Origin", "")
+    allowed_origins = {"http://localhost:8042", "http://127.0.0.1:8042"}
+    if origin in allowed_origins:
+        handler.send_header("Access-Control-Allow-Origin", origin)
+        handler.send_header("Vary", "Origin")
     if headers:
         for k, v in headers.items():
             handler.send_header(k, v)
@@ -378,14 +382,21 @@ def read_json_body(handler: BaseHTTPRequestHandler, max_size: int = MAX_BODY_SIZ
     """
     length = int(handler.headers.get("Content-Length", 0))
     if length > max_size:
+        logger.warning(
+            "Rejected request from %s: payload too large (%d bytes)",
+            handler.client_address[0],
+            length,
+        )
         json_error(handler, "Payload too large", 413)
         return None
     if length == 0:
+        logger.warning("Rejected request from %s: empty body", handler.client_address[0])
         json_error(handler, "Empty body", 400)
         return None
 
     try:
         return json.loads(handler.rfile.read(length))
-    except json.JSONDecodeError as e:
-        json_error(handler, f"Invalid JSON: {e}", 400)
+    except json.JSONDecodeError:
+        logger.warning("Rejected request from %s: invalid JSON body", handler.client_address[0])
+        json_error(handler, "Invalid JSON", 400)
         return None

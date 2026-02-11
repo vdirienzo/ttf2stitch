@@ -17,7 +17,11 @@
         }
       })
       .catch(function (err) {
-        fontList.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:12px;text-align:center;">' + t('server_error') + '</div>';
+        fontList.innerHTML = '';
+        var msg = document.createElement('div');
+        msg.style.cssText = 'padding:20px;color:var(--text-muted);font-size:12px;text-align:center';
+        msg.textContent = t('server_error');
+        fontList.appendChild(msg);
         console.error('fetchFontList:', err);
       });
   }

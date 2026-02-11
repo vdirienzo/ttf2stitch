@@ -11,11 +11,14 @@ All other requests (GET, HEAD) are handled by the default static file server.
 
 import contextlib
 import json
+import logging
 import os
 import sys
 import threading
 import time
 from http.server import HTTPServer, SimpleHTTPRequestHandler
+
+logger = logging.getLogger(__name__)
 
 from server_utils import (
     FONT_ID_RE,
@@ -36,8 +39,28 @@ _rasterize_cache: dict[tuple[str, int, int, str], dict] = {}
 _font_categories: dict[str, str] = {}
 
 
+_rasterize_semaphore = threading.Semaphore(3)
+
+
 class FontServerHandler(SimpleHTTPRequestHandler):
     """HTTP handler with font save, list, and rasterization APIs."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            *args,
+            directory=os.path.join(os.path.dirname(os.path.abspath(__file__)), "public"),
+            **kwargs,
+        )
+
+    def list_directory(self, path):
+        self.send_error(403, "Directory listing not allowed")
+        return None
+
+    def end_headers(self):
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "SAMEORIGIN")
+        self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
+        super().end_headers()
 
     def do_GET(self):
         if self.path == "/api/fonts":
@@ -66,9 +89,13 @@ class FontServerHandler(SimpleHTTPRequestHandler):
 
         params, error = validate_rasterize_params(body)
         if error:
+            logger.warning("Rejected rasterize request from %s: %s", self.client_address[0], error)
             json_error(self, error, 400)
             return
 
+        if not _rasterize_semaphore.acquire(timeout=10):
+            json_error(self, "Server busy, try again later", 503)
+            return
         try:
             t0 = time.monotonic()
             font_json = do_rasterize(
@@ -97,10 +124,13 @@ class FontServerHandler(SimpleHTTPRequestHandler):
                     "ETag": f'"{etag_for_json(font_json)}"',
                 },
             )
-        except FileNotFoundError as e:
-            json_error(self, str(e), 404)
-        except Exception as e:
-            json_error(self, f"Rasterization failed: {e}", 500)
+        except FileNotFoundError:
+            json_error(self, "Font not found", 404)
+        except Exception:
+            logger.exception("Rasterization failed for request")
+            json_error(self, "Internal server error", 500)
+        finally:
+            _rasterize_semaphore.release()
 
     def _handle_save(self):
         body = read_json_body(self)
@@ -110,14 +140,21 @@ class FontServerHandler(SimpleHTTPRequestHandler):
         # Validate required fields
         font_id = body.get("id", "")
         if not font_id or not FONT_ID_RE.match(font_id):
-            json_error(self, f"Invalid font id: '{font_id}'", 400)
+            logger.warning("Rejected save request from %s: invalid font id", self.client_address[0])
+            json_error(self, "Invalid font id", 400)
             return
 
         if body.get("version") != 2:
+            logger.warning(
+                "Rejected save request from %s: version must be 2", self.client_address[0]
+            )
             json_error(self, "version must be 2", 400)
             return
 
         if not isinstance(body.get("glyphs"), dict):
+            logger.warning(
+                "Rejected save request from %s: glyphs must be an object", self.client_address[0]
+            )
             json_error(self, "glyphs must be an object", 400)
             return
 
@@ -128,8 +165,9 @@ class FontServerHandler(SimpleHTTPRequestHandler):
         try:
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(body, f, indent=2, ensure_ascii=False)
-        except OSError as e:
-            json_error(self, f"Write failed: {e}", 500)
+        except OSError:
+            logger.exception("Write failed for font id=%s", font_id)
+            json_error(self, "Internal server error", 500)
             return
 
         # Regenerate manifest
@@ -154,7 +192,11 @@ class FontServerHandler(SimpleHTTPRequestHandler):
     def do_OPTIONS(self):
         """Handle CORS preflight requests."""
         self.send_response(204)
-        self.send_header("Access-Control-Allow-Origin", "*")
+        origin = self.headers.get("Origin", "")
+        allowed = {"http://localhost:8042", "http://127.0.0.1:8042"}
+        if origin in allowed:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()

@@ -2165,7 +2165,7 @@
 
 
 <!-- ═══ jsPDF CDN ═══ -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
 
 <!-- ═══ Embedded Font & Color Data ═══ -->
 <script>
@@ -5141,7 +5141,11 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
         }
       })
       .catch(function (err) {
-        fontList.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:12px;text-align:center;">' + t('server_error') + '</div>';
+        fontList.innerHTML = '';
+        var msg = document.createElement('div');
+        msg.style.cssText = 'padding:20px;color:var(--text-muted);font-size:12px;text-align:center';
+        msg.textContent = t('server_error');
+        fontList.appendChild(msg);
         console.error('fetchFontList:', err);
       });
   }
@@ -5343,7 +5347,10 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     fontList.innerHTML = '';
 
     if (!fontListData.length) {
-      fontList.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:12px;text-align:center;">' + t('no_fonts') + '</div>';
+      var msg = document.createElement('div');
+      msg.style.cssText = 'padding:20px;color:var(--text-muted);font-size:12px;text-align:center';
+      msg.textContent = t('no_fonts');
+      fontList.appendChild(msg);
       return;
     }
 
@@ -5397,7 +5404,11 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     fontList.appendChild(fragment);
 
     if (!displayed) {
-      fontList.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:12px;text-align:center;">' + t('no_matching') + '</div>';
+      fontList.innerHTML = '';
+      var msg = document.createElement('div');
+      msg.style.cssText = 'padding:20px;color:var(--text-muted);font-size:12px;text-align:center';
+      msg.textContent = t('no_matching');
+      fontList.appendChild(msg);
     }
 
     // Queue font previews for visible desktop items
@@ -5945,7 +5956,11 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     var totalItems = filteredFontsCache.length;
 
     if (!totalItems) {
-      viewport.innerHTML = '<div style="padding:40px 20px;color:var(--text-muted);font-size:14px;text-align:center;">' + t('no_matching') + '</div>';
+      viewport.innerHTML = '';
+      var msg = document.createElement('div');
+      msg.style.cssText = 'padding:40px 20px;color:var(--text-muted);font-size:14px;text-align:center';
+      msg.textContent = t('no_matching');
+      viewport.appendChild(msg);
       viewport.style.height = 'auto';
       return;
     }
