@@ -2,7 +2,7 @@
 /**
  * Assembles the final index.html from modular source files:
  * 1. ui-shell.html  (HTML-only template, no JS)
- * 2. ui-shell.css   (styles, inlined as <style> block)
+ * 2. css/            (8 @layer CSS files, concatenated and inlined as <style> block)
  * 3. i18n-data.js   (translations, inlined as <script> block)
  * 4. data-fonts.js  (DMC_COLORS)
  * 5. shared.js      (bitmap utilities shared by PDF + UI)
@@ -14,7 +14,13 @@ const path = require('path');
 
 const BASE = __dirname;
 const uiShell = fs.readFileSync(path.join(BASE, 'ui-shell.html'), 'utf-8');
-const uiCss = fs.readFileSync(path.join(BASE, 'ui-shell.css'), 'utf-8');
+// CSS modules (8 files, cascade layers flow top to bottom)
+const cssModules = [
+  '00-layers.css', '01-tokens.css', '02-layout.css', '03-sidebar.css',
+  '04-controls.css', '05-preview.css', '06-sheets.css', '07-responsive.css'
+];
+// nosemgrep: path-join-resolve-traversal — f iterates over hardcoded constant array
+const uiCss = cssModules.map(f => fs.readFileSync(path.join(BASE, 'css', f), 'utf-8')).join('\n\n');
 const i18nData = fs.readFileSync(path.join(BASE, 'i18n-data.js'), 'utf-8');
 const dataFonts = fs.readFileSync(path.join(BASE, 'data-fonts.js'), 'utf-8');
 const sharedJs = fs.readFileSync(path.join(BASE, 'shared.js'), 'utf-8');

@@ -1,0 +1,214 @@
+@layer components {
+  /* -- Preview Area (right) -- */
+  .preview-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    overflow: hidden;
+    padding: 20px;
+    position: relative;
+  }
+
+  .preview-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 15px;
+    text-align: center;
+  }
+  .preview-empty svg {
+    width: 48px;
+    height: 48px;
+    opacity: 0.25;
+    margin-bottom: 4px;
+  }
+  .preview-empty span {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-style: italic;
+  }
+
+  /* -- Loading overlay -- */
+  .preview-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(245, 240, 234, 0.85);
+    z-index: 5;
+    gap: 12px;
+  }
+  .preview-loading.hidden { display: none; }
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-style: italic;
+    color: var(--text-mid);
+  }
+
+  .preview-canvas-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  #mainCanvas {
+    image-rendering: pixelated;
+    max-width: 100%;
+    max-height: calc(100vh - 200px);
+    object-fit: contain;
+    border-radius: 2px;
+  }
+
+  /* -- Stats Bar (below canvas) -- */
+  .stats-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--text-mid);
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s;
+  }
+  .stat-pill strong {
+    color: var(--text);
+    font-weight: 700;
+  }
+  .stat-pill .unit {
+    color: var(--text-muted);
+    font-size: 10px;
+  }
+
+  .stat-pill.size-pill {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .stat-pill.size-pill strong {
+    color: var(--accent);
+    font-size: 13px;
+  }
+
+  .stat-sep {
+    color: var(--border);
+    font-size: 11px;
+    padding: 0 2px;
+  }
+
+  /* -- Ruler visualization -- */
+  .ruler-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .ruler-line {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .ruler-edge {
+    width: 1px;
+    height: 10px;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+  .ruler-bar {
+    flex: 1;
+    height: 1.5px;
+    background: var(--accent);
+    position: relative;
+  }
+  .ruler-label {
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+    font-family: var(--font-body);
+  }
+
+  /* -- Vertical Ruler (left of canvas) -- */
+  .ruler-vertical {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+    position: relative;
+    min-width: 20px;
+    margin-right: 2px;
+  }
+  .ruler-v-edge {
+    height: 1px;
+    width: 7px;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+  .ruler-v-bar {
+    flex: 1;
+    width: 1.5px;
+    background: var(--accent);
+    position: relative;
+    min-height: 10px;
+  }
+  .ruler-v-label {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(-90deg);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+    font-family: var(--font-body);
+    background: var(--bg-main, #faf8f5);
+    padding: 2px 4px;
+    line-height: 1;
+  }
+
+  /* Desktop: flex row so vertical ruler + canvas sit side by side */
+  .canvas-rulers-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    justify-content: center;
+  }
+}

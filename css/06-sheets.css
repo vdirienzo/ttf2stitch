@@ -1,0 +1,350 @@
+@layer sheets {
+  /* ============================================= */
+  /* -- Sheet Backdrop -- */
+  /* ============================================= */
+  .sheet-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    z-index: 55;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .sheet-backdrop.visible {
+    display: block;
+    opacity: 1;
+  }
+
+  /* ============================================= */
+  /* -- Bottom Sheets (generic) -- */
+  /* ============================================= */
+  .bottom-sheet {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--panel);
+    border-radius: 16px 16px 0 0;
+    z-index: 60;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+    overflow: hidden;
+    max-height: 85vh;
+    max-height: 85dvh;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+  @media (max-width: 640px) {
+    .bottom-sheet { display: block; }
+  }
+  .bottom-sheet.open {
+    transform: translateY(0);
+  }
+  .sheet-handle {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0 6px;
+    cursor: grab;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .sheet-handle::after {
+    content: '';
+    width: 40px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+  }
+  .sheet-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--text);
+    padding: 0 16px 12px;
+    border-bottom: 1px solid var(--border-light);
+    text-wrap: balance;
+  }
+  .sheet-body {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* -- Font Sheet -- */
+  .sheet-font { height: 70vh; height: 70dvh; }
+  .sheet-font .sheet-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; height: calc(70vh - 40px - 46px); height: calc(70dvh - 40px - 46px); }
+  .sheet-font-search {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 8px 16px;
+    background: var(--panel);
+  }
+  .sheet-font-search input {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--text);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .sheet-font-search input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .sheet-font-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px 16px 8px;
+    overflow-x: auto;
+    flex-shrink: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .sheet-font-tabs::-webkit-scrollbar { display: none; }
+  .sheet-font-tabs .font-tab {
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .sheet-font-list-wrap {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    position: relative;
+    min-height: 0;
+  }
+  .sheet-font-list-viewport {
+    position: relative;
+  }
+  .sheet-font-item {
+    display: flex;
+    align-items: center;
+    height: 80px;
+    padding: 0 16px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.12s;
+    border-left: 3px solid transparent;
+  }
+  .sheet-font-item:active {
+    background: var(--accent-soft);
+  }
+  .sheet-font-item.selected {
+    background: var(--accent-soft);
+    border-left-color: var(--accent);
+  }
+  .sheet-font-item-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .sheet-font-item-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sheet-font-item-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sheet-font-item-check {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--accent);
+    display: none;
+  }
+  .sheet-font-item.selected .sheet-font-item-check {
+    display: block;
+  }
+  .sheet-font-item-preview {
+    width: 100%;
+    height: 36px;
+    image-rendering: pixelated;
+    margin-top: 4px;
+    border-radius: 3px;
+    background: var(--bg);
+  }
+  .sheet-font-item-preview.loading {
+    background: linear-gradient(90deg, var(--bg) 0%, var(--bg-deep) 50%, var(--bg) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  /* -- Color Sheet -- */
+  .sheet-color .sheet-body { padding: 16px; }
+  .sheet-color-current {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+  }
+  .sheet-color-swatch {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+  }
+  .sheet-color-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .sheet-color-code {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .sheet-color-search {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 0 0 12px;
+    background: var(--panel);
+  }
+  .sheet-color-search input {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--text);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .sheet-color-search input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .sheet-color-grid {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    max-height: 50vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .sheet-color-grid .color-dot {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* -- Settings Sheet -- */
+  .sheet-settings .sheet-body { padding: 16px; }
+  .sheet-settings-group {
+    margin-bottom: 20px;
+  }
+  .sheet-settings-group:last-child { margin-bottom: 0; }
+  .sheet-settings-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .sheet-settings .height-control { margin-bottom: 0; }
+  .sheet-settings .aida-row { flex-wrap: wrap; gap: 8px; }
+  .sheet-settings .aida-chip { min-height: 52px; padding: 12px 8px; flex: 0 0 calc(33.33% - 6px); }
+  .sheet-settings .aida-chip-num { font-size: 22px; }
+  .sheet-settings .custom-stitch-row { margin-top: 12px; }
+  .sheet-settings .custom-count-input { min-height: 44px; font-size: 16px; }
+
+  /* -- Info Sheet -- */
+  .sheet-info .sheet-body { padding: 16px; }
+  .sheet-info-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .sheet-info-card {
+    background: var(--bg);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 12px;
+    text-align: center;
+  }
+  .sheet-info-card-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.2;
+  }
+  .sheet-info-card-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+  }
+  .sheet-info-card.full-width {
+    grid-column: 1 / -1;
+  }
+  .sheet-info-ruler {
+    margin: 16px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .sheet-info-ruler .ruler-line {
+    width: 100%;
+    max-width: 300px;
+  }
+  .sheet-info-lang {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sheet-info-lang label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-mid);
+  }
+  .sheet-info-lang select {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* -- Body scroll lock -- */
+  body.sheet-open {
+    overflow: hidden !important;
+    touch-action: none;
+  }
+}
