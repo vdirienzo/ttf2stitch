@@ -4,6 +4,17 @@
 //  Depends on jsPDF loaded via CDN (window.jspdf.jsPDF)
 // ══════════════════════════════════════════════════════════════════
 
+/**
+ * Get translated string for PDF. Falls back to English default if t() unavailable.
+ */
+function pt(key, fallback) {
+  if (typeof window.t === 'function') {
+    var val = window.t(key);
+    if (val && val !== key) return val;
+  }
+  return fallback;
+}
+
 function getLuminance(color) {
   return (0.299 * color.r + 0.587 * color.g + 0.114 * color.b) / 255;
 }
@@ -270,7 +281,7 @@ function drawGridPage(pdf, bitmap, color, startCol, startRow, colsPerPage, rowsP
   pdf.setFontSize(4.5);
   pdf.setFont('helvetica', 'normal');
   pdf.setTextColor(140, 130, 120);
-  pdf.text('Verify: measure this bar with a ruler. Must be exactly 10 mm.', barX + barLen / 2, barY + 3.5, { align: 'center' });
+  pdf.text(pt('pdf_scale_verify', 'Verify: measure this bar with a ruler. Must be exactly 10 mm.'), barX + barLen / 2, barY + 3.5, { align: 'center' });
 }
 
 /**
@@ -299,11 +310,7 @@ function drawLegend(pdf, color, stitchCount, aidaCount, width, height, fontName,
   pdf.setFontSize(16);
   pdf.setTextColor(184, 58, 42); // accent color
   pdf.setFont('helvetica', 'bold');
-  pdf.text('Thread Legend', margin, y);
-  pdf.setFontSize(10);
-  pdf.setTextColor(120, 120, 120);
-  pdf.setFont('helvetica', 'normal');
-  pdf.text(' / Leyenda de Hilos', margin + 42, y);
+  pdf.text(pt('pdf_thread_legend', 'Thread Legend'), margin, y);
   y += 10;
 
   // Thread calculation: ~0.013m per full cross stitch at Aida 14
@@ -318,7 +325,7 @@ function drawLegend(pdf, color, stitchCount, aidaCount, width, height, fontName,
   const tW = Math.min(contentW, 220);
   const colPcts = [0, 0.10, 0.19, 0.31, 0.52, 0.68, 0.84];
   const colX = colPcts.map(function(p) { return margin + p * tW; });
-  const colLabels = ['Symbol', 'Swatch', 'DMC Code', 'Color Name', 'Stitches', 'Thread', 'Skeins'];
+  const colLabels = [pt('pdf_col_symbol','Symbol'), pt('pdf_col_swatch','Swatch'), pt('pdf_col_dmc_code','DMC Code'), pt('pdf_col_color_name','Color Name'), pt('pdf_col_stitches','Stitches'), pt('pdf_col_thread','Thread'), pt('pdf_col_skeins','Skeins')];
 
   // Table header
   pdf.setFillColor(245, 240, 235);
@@ -376,7 +383,7 @@ function drawLegend(pdf, color, stitchCount, aidaCount, width, height, fontName,
   pdf.setFontSize(13);
   pdf.setTextColor(184, 58, 42);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('Pattern Information', margin, y);
+  pdf.text(pt('pdf_pattern_info', 'Pattern Information'), margin, y);
   y += 9;
 
   pdf.setFont('helvetica', 'normal');
@@ -391,21 +398,21 @@ function drawLegend(pdf, color, stitchCount, aidaCount, width, height, fontName,
 
   var yards = (meters * 1.09361).toFixed(2);
   var finishedSizeNote = preferImperial
-    ? 'Finished size: ' + inchesW + ' \u00D7 ' + inchesH + '" (' + cmW + ' \u00D7 ' + cmH + ' cm)'
-    : 'Finished size: ' + cmW + ' \u00D7 ' + cmH + ' cm (' + inchesW + ' \u00D7 ' + inchesH + '")';
+    ? pt('pdf_info_finished_size', 'Finished size') + ': ' + inchesW + ' \u00D7 ' + inchesH + '" (' + cmW + ' \u00D7 ' + cmH + ' cm)'
+    : pt('pdf_info_finished_size', 'Finished size') + ': ' + cmW + ' \u00D7 ' + cmH + ' cm (' + inchesW + ' \u00D7 ' + inchesH + '")';
   var threadNote = preferImperial
-    ? 'Thread required: ' + yards + ' yd (' + skeins + ' skein' + (skeins !== 1 ? 's' : '') + ')'
-    : 'Thread required: ' + meters.toFixed(2) + ' m (' + skeins + ' skein' + (skeins !== 1 ? 's' : '') + ')';
+    ? pt('pdf_info_thread_required', 'Thread required') + ': ' + yards + ' yd (' + skeins + ' ' + (skeins !== 1 ? pt('pdf_unit_skeins', 'skeins') : pt('pdf_unit_skein', 'skein')) + ')'
+    : pt('pdf_info_thread_required', 'Thread required') + ': ' + meters.toFixed(2) + ' m (' + skeins + ' ' + (skeins !== 1 ? pt('pdf_unit_skeins', 'skeins') : pt('pdf_unit_skein', 'skein')) + ')';
 
   const notes = [
-    'Use 2 strands of DMC thread for cross stitches',
-    'Start from the center of the fabric for best results',
-    'Fabric: Aida ' + aidaCount.toFixed(1) + ' ct \u2014 Each stitch = ' + stitchMm + ' mm',
-    'Pattern size: ' + width + ' \u00D7 ' + height + ' stitches',
+    pt('pdf_note_strands', 'Use 2 strands of DMC thread for cross stitches'),
+    pt('pdf_note_center', 'Start from the center of the fabric for best results'),
+    pt('pdf_info_fabric_aida', 'Fabric: Aida') + ' ' + aidaCount.toFixed(1) + ' ct \u2014 ' + pt('pdf_info_each_stitch', 'Each stitch') + ' = ' + stitchMm + ' mm',
+    pt('pdf_info_pattern_size', 'Pattern size') + ': ' + width + ' \u00D7 ' + height + ' ' + pt('pdf_unit_stitches', 'stitches'),
     finishedSizeNote,
-    'Total crosses: ' + stitchCount,
+    pt('pdf_info_total_crosses', 'Total crosses') + ': ' + stitchCount,
     threadNote,
-    '\u26a0 Print at 100% scale (no fit-to-page) for 1:1 stitch size',
+    pt('pdf_note_print', '\u26a0 Print at 100% scale (no fit-to-page) for 1:1 stitch size'),
   ];
 
   for (const note of notes) {
@@ -425,7 +432,7 @@ function drawLegend(pdf, color, stitchCount, aidaCount, width, height, fontName,
   pdf.setFontSize(9);
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(184, 58, 42);
-  pdf.text('Finished Size', margin + 4, y + 6);
+  pdf.text(pt('pdf_finished_size', 'Finished Size'), margin + 4, y + 6);
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(11);
   pdf.setTextColor(60, 60, 60);
@@ -453,7 +460,7 @@ function drawLegend(pdf, color, stitchCount, aidaCount, width, height, fontName,
   pdf.setFontSize(9);
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(184, 58, 42);
-  pdf.text('Cut Fabric', cutX + 4, y + 6);
+  pdf.text(pt('pdf_cut_fabric', 'Cut Fabric'), cutX + 4, y + 6);
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(11);
   pdf.setTextColor(60, 60, 60);
@@ -461,12 +468,12 @@ function drawLegend(pdf, color, stitchCount, aidaCount, width, height, fontName,
     pdf.text(cutInW + ' \u00D7 ' + cutInH + '"', cutX + 4, y + 13);
     pdf.setFontSize(8);
     pdf.setTextColor(140, 130, 120);
-    pdf.text('(+3" margin each side)', cutX + 4, y + 18);
+    pdf.text(pt('pdf_cut_margin_imperial', '(+3" margin each side)'), cutX + 4, y + 18);
   } else {
     pdf.text(cutCmW + ' \u00D7 ' + cutCmH + ' cm', cutX + 4, y + 13);
     pdf.setFontSize(8);
     pdf.setTextColor(140, 130, 120);
-    pdf.text('(+7.6 cm margin each side)', cutX + 4, y + 18);
+    pdf.text(pt('pdf_cut_margin_metric', '(+7.6 cm margin each side)'), cutX + 4, y + 18);
   }
 
 }
@@ -520,7 +527,7 @@ function drawBrandedFooter(pdf, margin, pageW, pageH) {
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(7);
   pdf.setTextColor(184, 58, 42);
-  pdf.text('\u2715 Word2Stitch \u2014 Cross-Stitch Pattern Generator', margin, footerY + 4);
+  pdf.text('\u2715 Word2Stitch \u2014 ' + pt('pdf_footer_tagline', 'Cross-Stitch Pattern Generator'), margin, footerY + 4);
 
   // Right: date
   pdf.setTextColor(160, 150, 140);
@@ -684,6 +691,13 @@ function _createPrintModal() {
 
   document.head.appendChild(style);
   document.body.appendChild(modal);
+
+  // Apply i18n to modal UI strings
+  modal.querySelector('.pm-title').textContent = '\u2715 ' + pt('pdf_print_preview', 'Print Preview');
+  modal.querySelector('[data-orient="portrait"]').lastChild.textContent = ' ' + pt('pdf_orient_portrait', 'Portrait');
+  modal.querySelector('[data-orient="landscape"]').lastChild.textContent = ' ' + pt('pdf_orient_landscape', 'Landscape');
+  document.getElementById('pmDownload').lastChild.textContent = ' ' + pt('pdf_btn_download', 'Download PDF');
+  document.getElementById('pmPrint').lastChild.textContent = ' ' + pt('pdf_btn_print', 'Print');
 }
 
 /**
@@ -691,9 +705,9 @@ function _createPrintModal() {
  * Generates PDF in chosen orientation and displays in iframe.
  */
 function generatePDF(text, fontData, dmcColor, aidaCount) {
-  if (!text || !text.trim()) { alert('Please enter some text.'); return; }
-  if (!fontData || !fontData.glyphs) { alert('No font selected.'); return; }
-  if (!dmcColor) { alert('No color selected.'); return; }
+  if (!text || !text.trim()) { alert(pt('pdf_alert_no_text', 'Please enter some text.')); return; }
+  if (!fontData || !fontData.glyphs) { alert(pt('pdf_alert_no_font', 'No font selected.')); return; }
+  if (!dmcColor) { alert(pt('pdf_alert_no_color', 'No color selected.')); return; }
 
   _createPrintModal();
 
@@ -705,7 +719,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
   function buildAndShow(orient) {
     var result = buildPDF(text, fontData, dmcColor, aidaCount, orient);
-    if (!result) { alert('Could not render pattern.'); return; }
+    if (!result) { alert(pt('pdf_alert_no_render', 'Could not render pattern.')); return; }
 
     if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
     var blob = result.pdf.output('blob');
@@ -720,8 +734,8 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     var isImperial = (typeof window.getDisplayUnit === 'function' && window.getDisplayUnit() === 'imperial');
     var sizeStr = isImperial ? (inW + ' \u00d7 ' + inH + '"') : (cmW + ' \u00d7 ' + cmH + ' cm');
     info.textContent = result.patternWidth + '\u00d7' + result.patternHeight +
-      ' stitches \u00b7 ' + sizeStr + ' \u00b7 ' +
-      result.pages + ' pages \u00b7 ' + result.stitches + ' crosses';
+      ' ' + pt('pdf_unit_stitches', 'stitches') + ' \u00b7 ' + sizeStr + ' \u00b7 ' +
+      result.pages + ' ' + pt('pdf_unit_pages', 'pages') + ' \u00b7 ' + result.stitches + ' ' + pt('pdf_unit_crosses', 'crosses');
 
     // Store for download/print
     modal._pdfResult = result;
