@@ -81,7 +81,6 @@ class FontV2(BaseModel):
     def model_dump_json_v2(self) -> dict:
         """Dump to dict with camelCase keys matching JSON v2 spec."""
         data = self.model_dump()
-        # Convert snake_case to camelCase for JSON output
         data["letterSpacing"] = data.pop("letter_spacing")
         data["spaceWidth"] = data.pop("space_width")
         return data

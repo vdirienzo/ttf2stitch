@@ -10,6 +10,35 @@ from PIL import Image
 from ttf2stitch.config import DEFAULT_FILL_THRESHOLD, DEFAULT_SAMPLE_PCT
 
 
+def _sample_cell(
+    img: Image.Image,
+    cx: float,
+    cy: float,
+    cell_w: float,
+    cell_h: float,
+    half_sample: float,
+    fill_threshold: float,
+) -> str:
+    """Sample the center region of one cell and return '1' if filled, '0' otherwise."""
+    x1 = max(0, int(cx - cell_w * half_sample))
+    y1 = max(0, int(cy - cell_h * half_sample))
+    x2 = min(img.width, int(cx + cell_w * half_sample))
+    y2 = min(img.height, int(cy + cell_h * half_sample))
+
+    if x2 <= x1 or y2 <= y1:
+        return "0"
+
+    region = img.crop((x1, y1, x2, y2))
+    pixels = list(region.tobytes())
+    total = len(pixels)
+    if total == 0:
+        return "0"
+
+    dark_count = sum(1 for p in pixels if p < 128)
+    fill_ratio = dark_count / total
+    return "1" if fill_ratio > fill_threshold else "0"
+
+
 def sample_bitmap(
     img: Image.Image,
     bbox: tuple[int, int, int, int],
@@ -48,38 +77,9 @@ def sample_bitmap(
     for row in range(num_rows):
         row_str = ""
         for col in range(num_cols):
-            # Cell center coordinates
             cx = left + (col + 0.5) * cell_w
             cy = top + (row + 0.5) * cell_h
-
-            # Sample region: center +/- half_sample of cell size
-            x1 = int(cx - cell_w * half_sample)
-            y1 = int(cy - cell_h * half_sample)
-            x2 = int(cx + cell_w * half_sample)
-            y2 = int(cy + cell_h * half_sample)
-
-            # Clamp to image bounds
-            x1 = max(0, x1)
-            y1 = max(0, y1)
-            x2 = min(img.width, x2)
-            y2 = min(img.height, y2)
-
-            if x2 <= x1 or y2 <= y1:
-                row_str += "0"
-                continue
-
-            # Count dark pixels in sample region
-            region = img.crop((x1, y1, x2, y2))
-            pixels = list(region.tobytes())
-            total = len(pixels)
-            if total == 0:
-                row_str += "0"
-                continue
-
-            dark_count = sum(1 for p in pixels if p < 128)
-            fill_ratio = dark_count / total
-            row_str += "1" if fill_ratio > fill_threshold else "0"
-
+            row_str += _sample_cell(img, cx, cy, cell_w, cell_h, half_sample, fill_threshold)
         bitmap.append(row_str)
 
     return bitmap
@@ -94,18 +94,15 @@ def trim_bitmap(bitmap: list[str]) -> list[str]:
     if not bitmap:
         return bitmap
 
-    # Trim empty top rows
     while bitmap and all(c == "0" for c in bitmap[0]):
         bitmap = bitmap[1:]
 
-    # Trim empty bottom rows
     while bitmap and all(c == "0" for c in bitmap[-1]):
         bitmap = bitmap[:-1]
 
     if not bitmap:
         return bitmap
 
-    # Trim empty left columns
     width = len(bitmap[0])
     left_trim = 0
     for col in range(width):
@@ -114,7 +111,6 @@ def trim_bitmap(bitmap: list[str]) -> list[str]:
         else:
             break
 
-    # Trim empty right columns
     right_trim = 0
     for col in range(width - 1, left_trim - 1, -1):
         if all(row[col] == "0" for row in bitmap):

@@ -46,26 +46,20 @@ def preview_font(font_data: dict[str, Any], chars: str | None = None) -> str:
     return "\n\n".join(sections)
 
 
-def preview_text(font_data: dict[str, Any], text: str) -> str:
-    """Render a line of text with glyphs side by side.
+def _build_glyph_blocks(
+    glyphs: dict[str, Any],
+    text: str,
+    space_width: int,
+) -> tuple[list[list[str]], int]:
+    """Build rendered row blocks for each character in text.
 
-    Glyphs are padded to the same height (bottom-aligned) and joined horizontally
-    with letterSpacing columns of dots between them.
+    Returns (blocks, max_height) where each block is a list of rendered rows.
     """
-    glyphs = font_data.get("glyphs", {})
-    letter_spacing = font_data.get("letterSpacing", 1)
-    space_width = font_data.get("spaceWidth", 3)
-
-    if not text:
-        return ""
-
-    # Build column blocks for each character
     blocks: list[list[str]] = []
     max_height = 0
 
     for char in text:
         if char == " ":
-            # Space: empty columns of space_width
             block = [EMPTY * space_width]
             blocks.append(block)
             max_height = max(max_height, 1)
@@ -73,42 +67,58 @@ def preview_text(font_data: dict[str, Any], text: str) -> str:
 
         glyph = glyphs.get(char)
         if glyph is None:
-            # Unknown char: render as single column of dots
             block = [EMPTY]
             blocks.append(block)
             max_height = max(max_height, 1)
             continue
 
         bitmap = glyph.get("bitmap", [])
-        rendered_rows = []
         width = glyph.get("width", 0)
-        for row in bitmap:
-            rendered_rows.append(
-                "".join(FILLED if c == "1" else EMPTY for c in row.ljust(width, "0"))
-            )
+        rendered_rows = [
+            "".join(FILLED if c == "1" else EMPTY for c in row.ljust(width, "0")) for row in bitmap
+        ]
 
         blocks.append(rendered_rows)
         max_height = max(max_height, len(rendered_rows))
 
-    if max_height == 0:
-        return ""
+    return blocks, max_height
 
-    # Pad all blocks to max_height (bottom-aligned: pad top with empty rows)
+
+def _join_blocks_horizontal(
+    blocks: list[list[str]],
+    max_height: int,
+    letter_spacing: int,
+) -> str:
+    """Pad blocks to max_height (bottom-aligned) and join rows horizontally."""
     padded: list[list[str]] = []
     for block in blocks:
         block_width = len(block[0]) if block else 0
         empty_row = EMPTY * block_width
         top_padding = max_height - len(block)
-        padded_block = [empty_row] * top_padding + block
-        padded.append(padded_block)
+        padded.append([empty_row] * top_padding + block)
 
-    # Build spacing separator
     spacer = EMPTY * letter_spacing
-
-    # Join rows horizontally
-    output_lines: list[str] = []
-    for row_idx in range(max_height):
-        row_parts = [block[row_idx] for block in padded]
-        output_lines.append(spacer.join(row_parts))
-
+    output_lines = [
+        spacer.join(block[row_idx] for block in padded) for row_idx in range(max_height)
+    ]
     return "\n".join(output_lines)
+
+
+def preview_text(font_data: dict[str, Any], text: str) -> str:
+    """Render a line of text with glyphs side by side.
+
+    Glyphs are padded to the same height (bottom-aligned) and joined horizontally
+    with letterSpacing columns of dots between them.
+    """
+    if not text:
+        return ""
+
+    glyphs = font_data.get("glyphs", {})
+    letter_spacing = font_data.get("letterSpacing", 1)
+    space_width = font_data.get("spaceWidth", 3)
+
+    blocks, max_height = _build_glyph_blocks(glyphs, text, space_width)
+    if max_height == 0:
+        return ""
+
+    return _join_blocks_horizontal(blocks, max_height, letter_spacing)

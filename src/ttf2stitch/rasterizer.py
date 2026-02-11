@@ -12,7 +12,10 @@ Usage:
     rasterize_font("chandia.otf", target_height=16, bold=1, threshold=100)
 """
 
+from __future__ import annotations
+
 import logging
+from dataclasses import dataclass, field
 
 from fontTools.ttLib import TTFont
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -20,26 +23,21 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from ttf2stitch.config import DEFAULT_EXCLUDE_CHARS
 from ttf2stitch.filters import filter_glyphs
 from ttf2stitch.sampler import trim_bitmap
-from ttf2stitch.schema import GlyphV2, build_font_v2
+from ttf2stitch.schema import FontV2, GlyphV2, build_font_v2
 from ttf2stitch.utils import FontConversionOptions, resolve_font_metadata
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass
 class RasterResult:
     """Result of rasterizing a font."""
 
-    def __init__(
-        self,
-        font,
-        target_height: int,
-        skipped_chars: list[str],
-    ):
-        self.font = font
-        self.target_height = target_height
-        self.skipped_chars = skipped_chars
-        self.cell_units = 0
-        self.confidence = 1.0
+    font: FontV2
+    target_height: int
+    skipped_chars: list[str]
+    cell_units: int = field(default=0)
+    confidence: float = field(default=1.0)
 
 
 def _dilate_bitmap(bitmap: list[str], radius: int = 1) -> list[str]:
@@ -56,7 +54,6 @@ def _dilate_bitmap(bitmap: list[str], radius: int = 1) -> list[str]:
     if cols == 0:
         return bitmap
 
-    # Parse to 2D grid
     grid = [[c == "1" for c in row] for row in bitmap]
     result = [[False] * cols for _ in range(rows)]
 
@@ -111,6 +108,73 @@ def _auto_threshold(img: Image.Image) -> int:
     return best_threshold
 
 
+def _rasterize_max_ink(
+    content: Image.Image,
+    target_height: int,
+    target_w: int,
+    threshold: int | None,
+) -> list[str]:
+    """Max-ink strategy: mark '1' if darkest pixel in cell < threshold.
+
+    Preserves thin strokes that LANCZOS averaging would destroy.
+    """
+    effective_threshold = threshold if threshold is not None else 200
+    pixels = content.load()
+    content_h, content_w = content.height, content.width
+    cell_h = content_h / target_height
+    cell_w = content_w / target_w
+
+    bitmap: list[str] = []
+    for row in range(target_height):
+        row_str = ""
+        for col in range(target_w):
+            y1 = int(row * cell_h)
+            y2 = min(int((row + 1) * cell_h), content_h)
+            x1 = int(col * cell_w)
+            x2 = min(int((col + 1) * cell_w), content_w)
+
+            min_val = 255
+            for py in range(y1, y2):
+                for px in range(x1, x2):
+                    val = pixels[px, py]
+                    if val < min_val:
+                        min_val = val
+                        if min_val == 0:
+                            break
+                if min_val == 0:
+                    break
+
+            row_str += "1" if min_val < effective_threshold else "0"
+        bitmap.append(row_str)
+    return bitmap
+
+
+def _rasterize_average(
+    content: Image.Image,
+    target_height: int,
+    target_w: int,
+    threshold: int | None,
+    bold: int,
+) -> list[str]:
+    """Average strategy: LANCZOS resize then threshold (standard approach)."""
+    scaled = content.resize((target_w, target_height), Image.LANCZOS)
+
+    if bold > 0:
+        scaled = scaled.filter(ImageFilter.SHARPEN)
+
+    if threshold is None:
+        threshold = _auto_threshold(scaled)
+
+    bitmap: list[str] = []
+    pixels = scaled.load()
+    for y in range(target_height):
+        row_str = ""
+        for x in range(target_w):
+            row_str += "1" if pixels[x, y] < threshold else "0"
+        bitmap.append(row_str)
+    return bitmap
+
+
 def _render_char_bitmap(
     pil_font: ImageFont.FreeTypeFont,
     char: str,
@@ -121,32 +185,19 @@ def _render_char_bitmap(
 ) -> list[str] | None:
     """Render a single character at target_height pixels and binarize.
 
-    Args:
-        pil_font: PIL font loaded at oversized render resolution.
-        char: Single character to render.
-        target_height: Target height in pixels (1px = 1 stitch).
-        threshold: Binarization threshold (0-255). None = auto (Otsu).
-        bold: Dilation radius (0=none, 1=thicken thin strokes, 2=extra bold).
-        strategy: Downsampling strategy:
-            "average" - LANCZOS resize then threshold (good for clean fonts)
-            "max-ink" - min-pool cells: if ANY pixel has ink -> '1' (best for script/thin strokes)
-
-    Returns:
-        List of bitmap strings, or None if empty.
+    Returns list of bitmap strings, or None if empty.
     """
     ascent, descent = pil_font.getmetrics()
     line_height = ascent + descent
     if line_height <= 0:
         return None
 
-    # Render oversized for quality
     render_h = target_height * 20
     canvas_size = render_h * 4
     img = Image.new("L", (canvas_size, canvas_size), 255)
     draw = ImageDraw.Draw(img)
     draw.text((render_h, render_h), char, font=pil_font, fill=0)
 
-    # Get precise bbox from font metrics
     bbox = draw.textbbox((render_h, render_h), char, font=pil_font)
     left, top, right, bottom = bbox
     content_w = right - left
@@ -155,67 +206,41 @@ def _render_char_bitmap(
     if content_w <= 0 or content_h <= 0:
         return None
 
-    # Crop content region
     content = img.crop((left, top, right, bottom))
-
-    # Target width proportional to content
     target_w = max(1, round(content_w * target_height / content_h))
 
     if strategy == "max-ink":
-        # Max-ink: divide high-res image into cells, mark '1' if darkest pixel < threshold
-        # This preserves thin strokes that LANCZOS averaging would destroy
-        effective_threshold = threshold if threshold is not None else 200
-        pixels = content.load()
-        cell_h = content_h / target_height
-        cell_w = content_w / target_w
-
-        bitmap: list[str] = []
-        for row in range(target_height):
-            row_str = ""
-            for col in range(target_w):
-                # Cell boundaries in high-res image
-                y1 = int(row * cell_h)
-                y2 = min(int((row + 1) * cell_h), content_h)
-                x1 = int(col * cell_w)
-                x2 = min(int((col + 1) * cell_w), content_w)
-
-                # Find darkest pixel in cell (min value = most ink)
-                min_val = 255
-                for py in range(y1, y2):
-                    for px in range(x1, x2):
-                        val = pixels[px, py]
-                        if val < min_val:
-                            min_val = val
-                            if min_val == 0:
-                                break
-                    if min_val == 0:
-                        break
-
-                row_str += "1" if min_val < effective_threshold else "0"
-            bitmap.append(row_str)
+        bitmap = _rasterize_max_ink(content, target_height, target_w, threshold)
     else:
-        # Average: LANCZOS resize then threshold (standard approach)
-        scaled = content.resize((target_w, target_height), Image.LANCZOS)
+        bitmap = _rasterize_average(content, target_height, target_w, threshold, bold)
 
-        if bold > 0:
-            scaled = scaled.filter(ImageFilter.SHARPEN)
-
-        if threshold is None:
-            threshold = _auto_threshold(scaled)
-
-        bitmap = []
-        pixels = scaled.load()
-        for y in range(target_height):
-            row_str = ""
-            for x in range(target_w):
-                row_str += "1" if pixels[x, y] < threshold else "0"
-            bitmap.append(row_str)
-
-    # Morphological dilation for bold effect
     if bold > 0:
         bitmap = _dilate_bitmap(bitmap, bold)
 
     return bitmap
+
+
+def _rasterize_single_char(
+    pil_font: ImageFont.FreeTypeFont,
+    char: str,
+    target_height: int,
+    threshold: int | None,
+    bold: int,
+    strategy: str,
+    do_trim: bool,
+) -> GlyphV2 | None:
+    """Rasterize one character and return a GlyphV2, or None if empty."""
+    bitmap = _render_char_bitmap(pil_font, char, target_height, threshold, bold, strategy)
+    if bitmap is None:
+        return None
+
+    if do_trim:
+        bitmap = trim_bitmap(bitmap)
+
+    if not bitmap or not bitmap[0]:
+        return None
+
+    return GlyphV2(width=len(bitmap[0]), bitmap=bitmap)
 
 
 def rasterize_font(
@@ -242,7 +267,6 @@ def rasterize_font(
     if opts is None:
         opts = FontConversionOptions()
 
-    # Metadata inference + cursive logic
     meta = resolve_font_metadata(font_path, opts)
 
     render_size = target_height * 20
@@ -267,25 +291,24 @@ def rasterize_font(
             )
             continue
 
-        bitmap = _render_char_bitmap(pil_font, char, target_height, threshold, bold, strategy)
+        glyph = _rasterize_single_char(
+            pil_font,
+            char,
+            target_height,
+            threshold,
+            bold,
+            strategy,
+            trim,
+        )
 
-        if bitmap is None:
+        if glyph is None:
             skipped.append(char)
             continue
-
-        if trim:
-            bitmap = trim_bitmap(bitmap)
-
-        if not bitmap or not bitmap[0]:
-            skipped.append(char)
-            continue
-
-        width = len(bitmap[0])
 
         if opts.verbose:
-            logger.info("  '%s': %dx%d stitches", char, width, len(bitmap))
+            logger.info("  '%s': %dx%d stitches", char, glyph.width, len(glyph.bitmap))
 
-        glyphs[char] = GlyphV2(width=width, bitmap=bitmap)
+        glyphs[char] = glyph
 
     max_height = max((len(g.bitmap) for g in glyphs.values()), default=target_height)
 

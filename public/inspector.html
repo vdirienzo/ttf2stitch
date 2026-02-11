@@ -280,7 +280,7 @@
 <body>
 
 <div class="sidebar">
-  <div class="sidebar-header" onclick="showOverview()">
+  <div class="sidebar-header" id="sidebarHeader">
     <h1><span class="accent">&#10006;</span> ttf2stitch Inspector</h1>
     <p id="sidebarStatus">Drop TTF/OTF or JSON files</p>
   </div>
@@ -337,8 +337,8 @@
 
   <div class="export-bar" id="exportBar" style="display:none">
     <span id="fontCount">0 fonts</span>
-    <button onclick="exportAllJSON()">Export all JSON</button>
-    <button onclick="copyAllIds()">Copy IDs</button>
+    <button id="exportAllBtn">Export all JSON</button>
+    <button id="copyIdsBtn">Copy IDs</button>
   </div>
 </div>
 
@@ -454,8 +454,8 @@
 
     <div class="progress" id="modalProgress"></div>
     <div class="btn-row" style="margin-top:12px">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-convert" id="modalConvertBtn" onclick="doConvert()" style="padding:10px 28px;font-size:14px">Convert ✨</button>
+      <button class="btn-cancel" id="modalCancelBtn">Cancel</button>
+      <button class="btn-convert" id="modalConvertBtn" style="padding:10px 28px;font-size:14px">Convert ✨</button>
     </div>
   </div>
 </div>
@@ -995,7 +995,7 @@ function renderSidebar() {
   for (const {entry} of filtered) {
     const div = document.createElement('div');
     div.className = 'font-item'+(selectedFontId===entry.id?' selected':'');
-    div.innerHTML = `<div class="font-item-name">${escapeHtml(entry.name)}</div><div class="font-item-meta">${entry.height}px &middot; ${entry.category} &middot; ${entry.glyphCount} glyphs</div>`;
+    div.innerHTML = `<div class="font-item-name">${escapeHtml(entry.name)}</div><div class="font-item-meta">${escapeHtml(String(entry.height))}px &middot; ${escapeHtml(entry.category)} &middot; ${escapeHtml(String(entry.glyphCount))} glyphs</div>`;
     div.addEventListener('click', () => showDetail(entry.id));
     fontListEl.appendChild(div);
   }
@@ -1008,12 +1008,12 @@ function renderOverview() {
   for (const {entry, data} of filtered) {
     const card = document.createElement('div'); card.className = 'font-card';
     card.innerHTML = `
-      <div class="font-card-header"><div class="font-card-title">${escapeHtml(entry.name)}</div><div class="font-card-id">${entry.id}</div></div>
-      <div class="font-card-stats"><span class="stat-badge blue">${entry.height}px</span><span class="stat-badge green">${entry.glyphCount} glyphs</span><span class="stat-badge purple">${entry.category}</span></div>
-      <div class="font-card-canvas" id="cc-${CSS.escape(entry.id)}"></div>`;
+      <div class="font-card-header"><div class="font-card-title">${escapeHtml(entry.name)}</div><div class="font-card-id">${escapeHtml(entry.id)}</div></div>
+      <div class="font-card-stats"><span class="stat-badge blue">${escapeHtml(String(entry.height))}px</span><span class="stat-badge green">${escapeHtml(String(entry.glyphCount))} glyphs</span><span class="stat-badge purple">${escapeHtml(entry.category)}</span></div>
+      <div class="font-card-canvas"></div>`;
     card.addEventListener('click', () => showDetail(entry.id));
     overviewGrid.appendChild(card);
-    const cc = card.querySelector(`#cc-${CSS.escape(entry.id)}`);
+    const cc = card.querySelector('.font-card-canvas');
     const cv = renderTextToCanvas(data, text, Math.min(scale,5), color);
     if (cv) { cv.style.maxWidth='100%'; cv.style.height='auto'; cc.appendChild(cv); }
   }
@@ -1033,11 +1033,11 @@ function showDetail(fontId) {
         <button class="dl-btn" id="detailDownloadBtn">Download JSON</button>
       </h2>
       <div class="detail-info">
-        <span>ID: <strong>${entry.id}</strong></span>
-        <span>Height: <strong>${entry.height}px</strong></span>
-        <span>Category: <strong>${entry.category}</strong></span>
+        <span>ID: <strong>${escapeHtml(entry.id)}</strong></span>
+        <span>Height: <strong>${escapeHtml(String(entry.height))}px</strong></span>
+        <span>Category: <strong>${escapeHtml(entry.category)}</strong></span>
         <span>Glyphs: <strong>${keys.length}</strong></span>
-        <span>Spacing: <strong>${entry.letterSpacing}</strong></span>
+        <span>Spacing: <strong>${escapeHtml(String(entry.letterSpacing))}</strong></span>
         ${entry.source?`<span>Source: <strong>${escapeHtml(entry.source)}</strong></span>`:''}
       </div>
     </div>
@@ -1068,7 +1068,7 @@ function showDetail(fontId) {
     const fitScale = Math.max(2, Math.min(scale, Math.floor(MAX_CELL_PX / Math.max(glyphW, glyphH))));
 
     const cell = document.createElement('div'); cell.className = 'glyph-cell';
-    cell.innerHTML = `<div class="glyph-char">${escapeHtml(char===' '?'␣':char)}</div><div class="glyph-canvas"></div><div class="glyph-meta">${gl.width}×${bm.length}</div><button class="dl-btn" style="margin-top:4px;font-size:10px;padding:2px 8px">Edit</button>`;
+    cell.innerHTML = `<div class="glyph-char">${escapeHtml(char===' '?'␣':char)}</div><div class="glyph-canvas"></div><div class="glyph-meta">${escapeHtml(String(gl.width))}&times;${escapeHtml(String(bm.length))}</div><button class="dl-btn" style="margin-top:4px;font-size:10px;padding:2px 8px">Edit</button>`;
     gg.appendChild(cell);
     const gc = cell.querySelector('.glyph-canvas');
     const cv = renderGlyphToCanvas(gl, fitScale, color);
@@ -1142,7 +1142,7 @@ function renderEditor() {
     <div class="editor-topbar">
       <button class="back-btn" id="editorBack">&#8592; Back</button>
       <div class="editor-char-display">${displayChar}</div>
-      <div class="editor-font-info">${escapeHtml(entry.name)} &middot; ${cols}&times;${rows}</div>
+      <div class="editor-font-info">${escapeHtml(entry.name)} &middot; ${escapeHtml(String(cols))}&times;${escapeHtml(String(rows))}</div>
       <button class="editor-tool-btn" id="editorUndo" ${editorUndoStack.length===0?'disabled':''}>&#8630; Undo</button>
       <button class="editor-tool-btn" id="editorSave">Save</button>
       <button class="editor-tool-btn" id="editorDownload">Download JSON</button>
@@ -1181,8 +1181,8 @@ function renderEditor() {
           <h4>Glyph Info</h4>
           <div class="editor-glyph-info">
             <span>Char: <strong>${displayChar}</strong></span>
-            <span>Width: <strong>${cols}</strong></span>
-            <span>Height: <strong>${rows}</strong></span>
+            <span>Width: <strong>${escapeHtml(String(cols))}</strong></span>
+            <span>Height: <strong>${escapeHtml(String(rows))}</strong></span>
             <span>Filled: <strong>${bm.reduce((s,r) => s + [...r].filter(c=>c==='1').length, 0)}</strong> px</span>
           </div>
         </div>
@@ -1547,6 +1547,13 @@ function debouncedRender() {
 previewText.addEventListener('input', debouncedRender);
 scaleSlider.addEventListener('input', () => { scaleLabel.textContent=scaleSlider.value; debouncedRender(); });
 colorPicker.addEventListener('input', debouncedRender);
+
+// Inline onclick replacements
+document.getElementById('sidebarHeader').addEventListener('click', showOverview);
+document.getElementById('exportAllBtn').addEventListener('click', exportAllJSON);
+document.getElementById('copyIdsBtn').addEventListener('click', copyAllIds);
+document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
+document.getElementById('modalConvertBtn').addEventListener('click', doConvert);
 
 // Drag and drop
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });

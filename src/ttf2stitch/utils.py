@@ -13,7 +13,6 @@ def generate_slug(name: str) -> str:
     "My_Font  Name!" -> "my-font-name"
     """
     slug = name.lower()
-    # Replace spaces and underscores with hyphens
     slug = re.sub(r"[\s_]+", "-", slug)
     # Strip anything that isn't alphanumeric or hyphen
     slug = re.sub(r"[^a-z0-9-]", "", slug)

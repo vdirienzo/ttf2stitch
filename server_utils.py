@@ -5,9 +5,13 @@ validation, rasterization with cache, JSON body reading, and HTTP JSON
 response helpers.
 """
 
+from __future__ import annotations
+
 import json
 import logging
+from http.server import BaseHTTPRequestHandler
 from pathlib import Path
+from typing import Any
 
 from fontTools.ttLib import TTFont
 
@@ -57,6 +61,23 @@ _FAMILY_CLASS_MAP = {
 }
 
 
+def _classify_by_panose(panose) -> str | None:
+    """Classify font by Panose bFamilyType."""
+    ft = panose.bFamilyType
+    if ft == 3:  # Latin Hand Written
+        return "script"
+    if ft in (4, 5):  # Latin Decoratives / Latin Symbol
+        return "decorative"
+    if ft == 2:  # Latin Text -- use bSerifStyle to distinguish
+        serif_style = panose.bSerifStyle
+        if serif_style >= 11:  # 11-15 = sans-serif variants
+            return "sans-serif"
+        if 2 <= serif_style <= 10:  # 2-10 = serif variants
+            return "serif"
+        return "sans-serif"  # 0/1 = any/no-fit
+    return None
+
+
 def classify_font(font_path: str) -> str:
     """Classify a font into a category using OS/2 table + name heuristics.
 
@@ -78,7 +99,7 @@ def classify_font(font_path: str) -> str:
     # Try OS/2 table classification (Panose + sFamilyClass)
     try:
         font = TTFont(str(font_path), fontNumber=0)
-    except Exception:
+    except OSError:
         logger.warning("Could not open font for classification: %s", font_path)
         return "sans-serif"
 
@@ -87,25 +108,16 @@ def classify_font(font_path: str) -> str:
         if os2:
             panose = getattr(os2, "panose", None)
             if panose:
-                ft = panose.bFamilyType
-                if ft == 3:  # Latin Hand Written
-                    return "script"
-                if ft in (4, 5):  # Latin Decoratives / Latin Symbol
-                    return "decorative"
-                if ft == 2:  # Latin Text -- use bSerifStyle to distinguish
-                    serif_style = panose.bSerifStyle
-                    if serif_style >= 11:  # 11-15 = sans-serif variants
-                        return "sans-serif"
-                    if 2 <= serif_style <= 10:  # 2-10 = serif variants
-                        return "serif"
-                    return "sans-serif"  # 0/1 = any/no-fit
+                result = _classify_by_panose(panose)
+                if result:
+                    return result
 
             family_class = getattr(os2, "sFamilyClass", 0)
             high_byte = (family_class >> 8) & 0xFF
             result = _FAMILY_CLASS_MAP.get(high_byte)
             if result:
                 return result
-    except Exception:
+    except (AttributeError, KeyError):
         logger.warning("Error reading OS/2 table from: %s", font_path, exc_info=True)
     finally:
         font.close()
@@ -248,7 +260,7 @@ def do_rasterize(
 # ---------------------------------------------------------------------------
 
 
-def json_response(handler, data, status=200):
+def json_response(handler: BaseHTTPRequestHandler, data: Any, status: int = 200) -> None:
     """Send a JSON response with CORS headers."""
     body = json.dumps(data).encode("utf-8")
     handler.send_response(status)
@@ -259,12 +271,12 @@ def json_response(handler, data, status=200):
     handler.wfile.write(body)
 
 
-def json_error(handler, message, status=400):
+def json_error(handler: BaseHTTPRequestHandler, message: str, status: int = 400) -> None:
     """Send a JSON error response."""
     json_response(handler, {"error": message}, status)
 
 
-def read_json_body(handler, max_size=MAX_BODY_SIZE) -> dict | None:
+def read_json_body(handler: BaseHTTPRequestHandler, max_size: int = MAX_BODY_SIZE) -> dict | None:
     """Read and parse a JSON body from an HTTP request handler.
 
     Returns the parsed dict on success, or None if an error response was
