@@ -1,33 +1,38 @@
 #!/usr/bin/env node
 /**
- * Assembles the final index.html from the three agent outputs:
- * 1. data-fonts.js (DMC_COLORS)
- * 2. ui-shell.html (HTML + CSS + UI JS)
- * 3. pdf-engine.js (PDF generation)
+ * Assembles the final index.html from modular source files:
+ * 1. ui-shell.html  (HTML structure + UI JS, references external CSS & I18N)
+ * 2. ui-shell.css   (styles, inlined back as <style> block)
+ * 3. i18n-data.js   (translations, inlined as <script> block)
+ * 4. data-fonts.js  (DMC_COLORS)
+ * 5. pdf-engine.js  (PDF generation)
  */
 const fs = require('fs');
 const path = require('path');
 
 const BASE = __dirname;
-const dataFonts = fs.readFileSync(path.join(BASE, 'data-fonts.js'), 'utf-8');
 const uiShell = fs.readFileSync(path.join(BASE, 'ui-shell.html'), 'utf-8');
+const uiCss = fs.readFileSync(path.join(BASE, 'ui-shell.css'), 'utf-8');
+const i18nData = fs.readFileSync(path.join(BASE, 'i18n-data.js'), 'utf-8');
+const dataFonts = fs.readFileSync(path.join(BASE, 'data-fonts.js'), 'utf-8');
 const pdfEngine = fs.readFileSync(path.join(BASE, 'pdf-engine.js'), 'utf-8');
 
-// Extract parts from ui-shell.html
-// The structure is: <!DOCTYPE...><html><head><style>...</style></head><body>...HTML...<script>UI JS</script></body></html>
+// Step 1: Inline the CSS — replace <link rel="stylesheet" href="ui-shell.css"> with <style>
+let html = uiShell.replace(
+  '<link rel="stylesheet" href="ui-shell.css">',
+  `<style>\n${uiCss}\n</style>`
+);
 
-// Find the <script> tag in ui-shell (the UI logic)
+// Step 2: Find the UI <script> tag (after the HTML body content)
 const scriptStartTag = '<script>';
 const scriptEndTag = '</script>';
-const bodyEnd = '</body>';
 
-// Split at the first <script> tag after the body content
-const scriptStart = uiShell.indexOf(scriptStartTag, uiShell.indexOf('<div class="main-layout">'));
-const htmlBeforeScript = uiShell.substring(0, scriptStart);
-const uiScript = uiShell.substring(scriptStart, uiShell.lastIndexOf(scriptEndTag) + scriptEndTag.length);
-const htmlAfterScript = uiShell.substring(uiShell.lastIndexOf(scriptEndTag) + scriptEndTag.length);
+const scriptStart = html.indexOf(scriptStartTag, html.indexOf('<div class="main-layout">'));
+const htmlBeforeScript = html.substring(0, scriptStart);
+const uiScript = html.substring(scriptStart, html.lastIndexOf(scriptEndTag) + scriptEndTag.length);
+const htmlAfterScript = html.substring(html.lastIndexOf(scriptEndTag) + scriptEndTag.length);
 
-// Build the final HTML
+// Step 3: Build the final self-contained HTML
 const finalHtml = `${htmlBeforeScript}
 <!-- ═══ jsPDF CDN ═══ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -49,6 +54,11 @@ DMC_COLORS.forEach(function(c) {
 <!-- ═══ PDF Generation Engine ═══ -->
 <script>
 ${pdfEngine}
+</script>
+
+<!-- ═══ I18N Translations ═══ -->
+<script>
+${i18nData}
 </script>
 
 <!-- ═══ UI Application Logic ═══ -->
