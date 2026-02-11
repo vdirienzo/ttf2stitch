@@ -1110,6 +1110,33 @@
     .preview-area { cursor: text; }
   }
 
+  /* -- Keyboard Open Mode: hide toolbar, maximize canvas space -- */
+  @media (max-width: 640px) {
+    body.keyboard-open .mobile-toolbar {
+      transform: translateY(100%);
+      pointer-events: none;
+      opacity: 0;
+      transition: transform 0.2s ease, opacity 0.15s ease;
+    }
+    body.keyboard-open .mobile-input-bar {
+      bottom: env(safe-area-inset-bottom, 0px);
+    }
+    body.keyboard-open .main-layout {
+      padding-bottom: calc(52px + env(safe-area-inset-bottom, 0px));
+    }
+    body.keyboard-open #mainCanvas {
+      max-height: calc(100vh - 48px - 52px - env(safe-area-inset-bottom, 0px) - 80px);
+      max-height: calc(100dvh - 48px - 52px - env(safe-area-inset-bottom, 0px) - 80px);
+    }
+    body.keyboard-open .stats-bar { display: none; }
+    body.keyboard-open .ruler-info { display: none; }
+  }
+
+  /* -- Desktop: cursor hint for canvas tap-to-focus -- */
+  @media (min-width: 641px) {
+    .preview-area { cursor: text; }
+  }
+
   /* ============================================= */
   /* -- Sheet Backdrop -- */
   /* ============================================= */
@@ -5597,7 +5624,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   });
 
 
-// ui-modules/bottom-input.js — Mobile bottom input bar: sync & canvas tap-to-focus
+// ui-modules/bottom-input.js — Mobile bottom input bar: sync, keyboard mode & canvas tap-to-focus
 
   // -- Mobile Input Bar --
 
@@ -5615,26 +5642,40 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
   // Sync desktop input → mobile input (keep in sync when typing on desktop)
   if (textInput && mobileTextInput) {
-    // Patch existing input handler to also sync mobile input
     textInput.addEventListener('input', function () {
       mobileTextInput.value = this.value;
     });
   }
 
-  // -- Canvas / Preview Tap → Focus Mobile Input --
+  // -- Keyboard Mode: hide toolbar when typing on mobile --
 
-  var previewAreaEl = document.getElementById('previewArea');
-  if (previewAreaEl && mobileTextInput) {
-    previewAreaEl.addEventListener('click', function (e) {
-      // Only on mobile, and only if not clicking on an interactive child
-      if (!isMobile()) return;
-      if (e.target.closest('button, a, input, select')) return;
-
-      mobileTextInput.focus();
-      // Scroll into view smoothly to ensure visibility
-      mobileTextInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (mobileTextInput) {
+    mobileTextInput.addEventListener('focus', function () {
+      document.body.classList.add('keyboard-open');
+      // After layout shift, re-check preview fits
+      setTimeout(updatePreview, 100);
     });
 
+    mobileTextInput.addEventListener('blur', function () {
+      document.body.classList.remove('keyboard-open');
+      setTimeout(updatePreview, 100);
+    });
+  }
+
+  // -- Canvas / Preview Tap → Focus Input (mobile + desktop) --
+
+  var previewAreaEl = document.getElementById('previewArea');
+  if (previewAreaEl) {
+    previewAreaEl.addEventListener('click', function (e) {
+      if (e.target.closest('button, a, input, select')) return;
+
+      if (isMobile() && mobileTextInput) {
+        mobileTextInput.focus();
+      } else if (textInput) {
+        textInput.focus();
+        textInput.select();
+      }
+    });
   }
 
   // -- Sync on init: ensure mobile input has current text --

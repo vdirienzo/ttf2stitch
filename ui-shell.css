@@ -1101,6 +1101,33 @@
     .preview-area { cursor: text; }
   }
 
+  /* -- Keyboard Open Mode: hide toolbar, maximize canvas space -- */
+  @media (max-width: 640px) {
+    body.keyboard-open .mobile-toolbar {
+      transform: translateY(100%);
+      pointer-events: none;
+      opacity: 0;
+      transition: transform 0.2s ease, opacity 0.15s ease;
+    }
+    body.keyboard-open .mobile-input-bar {
+      bottom: env(safe-area-inset-bottom, 0px);
+    }
+    body.keyboard-open .main-layout {
+      padding-bottom: calc(52px + env(safe-area-inset-bottom, 0px));
+    }
+    body.keyboard-open #mainCanvas {
+      max-height: calc(100vh - 48px - 52px - env(safe-area-inset-bottom, 0px) - 80px);
+      max-height: calc(100dvh - 48px - 52px - env(safe-area-inset-bottom, 0px) - 80px);
+    }
+    body.keyboard-open .stats-bar { display: none; }
+    body.keyboard-open .ruler-info { display: none; }
+  }
+
+  /* -- Desktop: cursor hint for canvas tap-to-focus -- */
+  @media (min-width: 641px) {
+    .preview-area { cursor: text; }
+  }
+
   /* ============================================= */
   /* -- Sheet Backdrop -- */
   /* ============================================= */

@@ -1,4 +1,4 @@
-// ui-modules/bottom-input.js — Mobile bottom input bar: sync & canvas tap-to-focus
+// ui-modules/bottom-input.js — Mobile bottom input bar: sync, keyboard mode & canvas tap-to-focus
 
   // -- Mobile Input Bar --
 
@@ -16,26 +16,40 @@
 
   // Sync desktop input → mobile input (keep in sync when typing on desktop)
   if (textInput && mobileTextInput) {
-    // Patch existing input handler to also sync mobile input
     textInput.addEventListener('input', function () {
       mobileTextInput.value = this.value;
     });
   }
 
-  // -- Canvas / Preview Tap → Focus Mobile Input --
+  // -- Keyboard Mode: hide toolbar when typing on mobile --
 
-  var previewAreaEl = document.getElementById('previewArea');
-  if (previewAreaEl && mobileTextInput) {
-    previewAreaEl.addEventListener('click', function (e) {
-      // Only on mobile, and only if not clicking on an interactive child
-      if (!isMobile()) return;
-      if (e.target.closest('button, a, input, select')) return;
-
-      mobileTextInput.focus();
-      // Scroll into view smoothly to ensure visibility
-      mobileTextInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (mobileTextInput) {
+    mobileTextInput.addEventListener('focus', function () {
+      document.body.classList.add('keyboard-open');
+      // After layout shift, re-check preview fits
+      setTimeout(updatePreview, 100);
     });
 
+    mobileTextInput.addEventListener('blur', function () {
+      document.body.classList.remove('keyboard-open');
+      setTimeout(updatePreview, 100);
+    });
+  }
+
+  // -- Canvas / Preview Tap → Focus Input (mobile + desktop) --
+
+  var previewAreaEl = document.getElementById('previewArea');
+  if (previewAreaEl) {
+    previewAreaEl.addEventListener('click', function (e) {
+      if (e.target.closest('button, a, input, select')) return;
+
+      if (isMobile() && mobileTextInput) {
+        mobileTextInput.focus();
+      } else if (textInput) {
+        textInput.focus();
+        textInput.select();
+      }
+    });
   }
 
   // -- Sync on init: ensure mobile input has current text --
