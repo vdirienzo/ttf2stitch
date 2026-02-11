@@ -232,7 +232,8 @@
   }
 
   function renderFontPreviewCanvas(canvas, fontData) {
-    var text = currentText || 'Abc';
+    // Use only first line for compact previews in font picker
+    var text = (currentText || 'Abc').split('\n')[0] || 'Abc';
     var color = getCurrentColor().hex;
     renderPreview(canvas, text, fontData, color, { cellSize: 2, maxWidth: 260 });
   }
