@@ -21,7 +21,8 @@
 
     var result = renderPreview(mainCanvas, currentText, currentFontData, color.hex, {
       cellSize: 16,
-      maxWidth: maxW
+      maxWidth: maxW,
+      textAlign: currentAlign
     });
 
     if (result.width === 0) {
@@ -87,9 +88,12 @@
 
   // -- Text Input --
 
+  var desktopInputDebounce = null;
   textInput.addEventListener('input', function () {
     currentText = this.value;
-    updatePreview();
-    // Re-render font sheet previews with new text
-    renderVirtualFontList();
+    clearTimeout(desktopInputDebounce);
+    desktopInputDebounce = setTimeout(function () {
+      updatePreview();
+      renderVirtualFontList();
+    }, 300);
   });

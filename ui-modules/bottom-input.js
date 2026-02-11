@@ -4,17 +4,21 @@
 
   var mobileTextInput = document.getElementById('mobileTextInput');
 
-  // Sync mobile input → state + desktop input + preview
+  // Sync mobile input → state + desktop input + preview (debounced)
+  var mobileInputDebounce = null;
   if (mobileTextInput) {
     mobileTextInput.addEventListener('input', function () {
       currentText = this.value;
       textInput.value = currentText;
-      updatePreview();
-      renderVirtualFontList();
+      clearTimeout(mobileInputDebounce);
+      mobileInputDebounce = setTimeout(function () {
+        updatePreview();
+        renderVirtualFontList();
+      }, 300);
     });
   }
 
-  // Sync desktop input → mobile input (keep in sync when typing on desktop)
+  // Sync desktop input → mobile input
   if (textInput && mobileTextInput) {
     textInput.addEventListener('input', function () {
       mobileTextInput.value = this.value;
@@ -26,7 +30,6 @@
   if (mobileTextInput) {
     mobileTextInput.addEventListener('focus', function () {
       document.body.classList.add('keyboard-open');
-      // After layout shift, re-check preview fits
       setTimeout(updatePreview, 100);
     });
 
@@ -41,7 +44,7 @@
   var previewAreaEl = document.getElementById('previewArea');
   if (previewAreaEl) {
     previewAreaEl.addEventListener('click', function (e) {
-      if (e.target.closest('button, a, input, select')) return;
+      if (e.target.closest('button, a, input, select, textarea')) return;
 
       if (isMobile() && mobileTextInput) {
         mobileTextInput.focus();
@@ -52,7 +55,38 @@
     });
   }
 
-  // -- Sync on init: ensure mobile input has current text --
+  // -- Alignment Buttons (desktop + mobile) --
+
+  function setAlignment(align) {
+    currentAlign = align;
+    // Sync all alignment button groups
+    document.querySelectorAll('.align-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.align === align);
+    });
+    updatePreview();
+  }
+
+  // Desktop sidebar alignment
+  var alignRow = document.getElementById('alignRow');
+  if (alignRow) {
+    alignRow.addEventListener('click', function (e) {
+      var btn = e.target.closest('.align-btn');
+      if (!btn) return;
+      setAlignment(btn.dataset.align);
+    });
+  }
+
+  // Mobile toolbar alignment
+  var mobileAlignRow = document.getElementById('mobileAlignRow');
+  if (mobileAlignRow) {
+    mobileAlignRow.addEventListener('click', function (e) {
+      var btn = e.target.closest('.align-btn');
+      if (!btn) return;
+      setAlignment(btn.dataset.align);
+    });
+  }
+
+  // -- Sync on init --
 
   function syncMobileTextInput() {
     if (mobileTextInput) {

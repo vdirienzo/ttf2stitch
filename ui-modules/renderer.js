@@ -10,7 +10,7 @@
       return { width: 0, height: 0, stitches: 0 };
     }
 
-    var result = getTextBitmap(text, fontData);
+    var result = getTextBitmap(text, fontData, { textAlign: options.textAlign || 'left' });
     var bitmap = result.bitmap;
     var width = result.width;
     var height = result.height;

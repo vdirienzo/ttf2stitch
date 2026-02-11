@@ -9,6 +9,7 @@
   var currentAida = 14;
   var currentCategoryFilter = 'all';
   var displayUnit = 'metric'; // 'metric' | 'imperial'
+  var currentAlign = 'center'; // 'left' | 'center' | 'right'
 
   // -- Unit detection & formatting --
 

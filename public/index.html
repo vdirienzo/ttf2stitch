@@ -119,6 +119,12 @@
     background: #fff;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
+    resize: none;
+    overflow: hidden;
+    line-height: 1.3;
+    field-sizing: content;
+    min-height: 42px;
+    max-height: 120px;
   }
   .text-input::placeholder {
     color: var(--text-muted);
@@ -564,6 +570,43 @@
     color: var(--text-muted);
     text-align: center;
   }
+  /* -- Alignment Buttons -- */
+  .align-row, .mobile-align-row {
+    display: flex;
+    gap: 5px;
+  }
+  .align-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 0;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-mid);
+    background: transparent;
+    transition: border-color 0.12s, background 0.12s, color 0.12s;
+  }
+  .align-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+  .align-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .align-btn.active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .align-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
   /* -- Global Unit Toggle (topbar cm/in) -- */
   .unit-toggle {
     display: flex;
@@ -860,7 +903,7 @@
       overflow: hidden;
       min-height: 0;
       flex: 1;
-      padding-bottom: calc(178px + env(safe-area-inset-bottom, 0px));
+      padding-bottom: calc(228px + env(safe-area-inset-bottom, 0px));
     }
 
     .sidebar { display: none !important; }
@@ -878,8 +921,8 @@
 
     #mainCanvas {
       /* 48px header + 126px toolbar + safe-area + 100px stats(2rows)/rulers/gaps + 28px padding */
-      max-height: calc(100vh - 48px - 178px - env(safe-area-inset-bottom, 0px) - 128px);
-      max-height: calc(100dvh - 48px - 178px - env(safe-area-inset-bottom, 0px) - 128px);
+      max-height: calc(100vh - 48px - 228px - env(safe-area-inset-bottom, 0px) - 128px);
+      max-height: calc(100dvh - 48px - 228px - env(safe-area-inset-bottom, 0px) - 128px);
     }
 
     /* Stats: responsive wrap on mobile */
@@ -1057,6 +1100,16 @@
     opacity: 0.4;
   }
 
+  /* Mobile alignment row */
+  .mobile-align-row {
+    padding: 4px 12px 6px;
+    gap: 8px;
+  }
+  .mobile-align-row .align-btn {
+    min-height: 40px;
+    border-radius: 10px;
+  }
+
   /* Color button swatch */
   .mobile-color-swatch {
     width: 26px;
@@ -1075,7 +1128,7 @@
     .mobile-input-bar {
       display: flex;
       position: fixed;
-      bottom: calc(126px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(176px + env(safe-area-inset-bottom, 0px));
       left: 0;
       right: 0;
       padding: 8px 12px;
@@ -1097,6 +1150,11 @@
       transition: border-color 0.2s, box-shadow 0.2s;
       touch-action: manipulation;
       min-height: 44px;
+      max-height: 100px;
+      resize: none;
+      overflow-y: auto;
+      line-height: 1.3;
+      field-sizing: content;
     }
     .mobile-text-input::placeholder {
       color: var(--text-muted);
@@ -1529,18 +1587,17 @@
   <div class="topbar-sep"></div>
 
   <div class="text-input-area">
-    <input
-      type="text"
+    <textarea
       class="text-input"
       id="textInput"
       aria-label="Text to render"
       placeholder="Type your text here…"
       data-i18n-placeholder="placeholder_text"
-      value="Welcome"
-      maxlength="40"
+      maxlength="200"
       autocomplete="off"
       spellcheck="false"
-    />
+      rows="1"
+    >Welcome</textarea>
   </div>
 
   <select class="lang-select" id="langSelect" aria-label="Language">
@@ -1620,6 +1677,28 @@
           <span class="height-value" id="heightValue">18</span>
           <span class="height-unit" data-i18n="unit_px">st</span>
         </div>
+      </div>
+    </div>
+
+    <!-- Text Alignment -->
+    <div class="sidebar-section">
+      <div class="section-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <span data-i18n="section_align">Alignment</span>
+      </div>
+      <div class="align-row" id="alignRow">
+        <button class="align-btn" data-align="left" aria-label="Align left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+          <span data-i18n="align_left">Left</span>
+        </button>
+        <button class="align-btn active" data-align="center" aria-label="Align center">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+          <span data-i18n="align_center">Center</span>
+        </button>
+        <button class="align-btn" data-align="right" aria-label="Align right">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg>
+          <span data-i18n="align_right">Right</span>
+        </button>
       </div>
     </div>
 
@@ -1749,18 +1828,17 @@
 
 <!-- -- Mobile Input Bar -- -->
 <div class="mobile-input-bar" id="mobileInputBar">
-  <input
-    type="text"
+  <textarea
     class="mobile-text-input"
     id="mobileTextInput"
     aria-label="Text to render"
     placeholder="Type your text here…"
     data-i18n-placeholder="placeholder_text"
-    value="Welcome"
-    maxlength="40"
+    maxlength="200"
     autocomplete="off"
     spellcheck="false"
-  />
+    rows="2"
+  >Welcome</textarea>
 </div>
 
 <!-- -- Mobile Toolbar (Slider + 3 Buttons) -- -->
@@ -1772,7 +1850,19 @@
     <span class="mobile-slider-value" id="mobileHeightValue">18</span>
     <span class="mobile-slider-unit">st</span>
   </div>
-  <!-- Row 2: Aida + Font + Color buttons -->
+  <!-- Row 2: Text alignment -->
+  <div class="mobile-align-row" id="mobileAlignRow">
+    <button class="align-btn" data-align="left" aria-label="Align left">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+    </button>
+    <button class="align-btn active" data-align="center" aria-label="Align center">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+    </button>
+    <button class="align-btn" data-align="right" aria-label="Align right">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
+  <!-- Row 3: Aida + Font + Color buttons -->
   <div class="mobile-buttons-row">
     <button class="mobile-tb-btn" id="mobileAidaBtn" aria-label="Fabric settings">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
@@ -1997,26 +2087,20 @@ function getEffectiveBitmap(glyph) {
 }
 
 /**
- * Convert a text string to a 2D bitmap using bitmap font glyph data.
- * Supports both UI (top-aligned, boolean) and PDF (bottom-aligned, boolean) use cases.
+ * Render a single line of text to a 2D bitmap.
+ * This is the core single-line logic extracted from getTextBitmap.
  *
- * @param {string} text - The text to render
+ * @param {string} lineText - Single line of text (no newlines)
  * @param {object} fontData - Font object with glyphs, height, letterSpacing, spaceWidth
- * @param {object} [options] - Rendering options
- * @param {string} [options.align='bottom'] - Vertical glyph alignment:
- *   'bottom' (default): glyph rows start at top of cell, empty space at bottom
- *   'top': glyph rows pushed to bottom of cell, empty space at top
- * @param {string} [options.format='boolean'] - Cell value format:
- *   'boolean' (default): cells are true/false
- *   'string': cells are '1'/'0'
+ * @param {object} [options] - Rendering options (align, format)
  * @returns {{ bitmap: Array[], width: number, height: number }}
  */
-function getTextBitmap(text, fontData, options) {
+function getLineBitmap(lineText, fontData, options) {
   options = options || {};
   var align = options.align || 'bottom';
   var format = options.format || 'boolean';
 
-  if (!text || !fontData || !fontData.glyphs) return { bitmap: [], width: 0, height: 0 };
+  if (!lineText || !fontData || !fontData.glyphs) return { bitmap: [], width: 0, height: 0 };
 
   var glyphs = fontData.glyphs;
   var height = fontData.height || 9;
@@ -2027,8 +2111,8 @@ function getTextBitmap(text, fontData, options) {
   var falseVal = (format === 'string') ? '0' : false;
   var trueVal = (format === 'string') ? '1' : true;
 
-  for (var ci = 0; ci < text.length; ci++) {
-    var ch = text[ci];
+  for (var ci = 0; ci < lineText.length; ci++) {
+    var ch = lineText[ci];
 
     // Letter spacing between characters (not before the first)
     if (ci > 0 && letterSpacing > 0) {
@@ -2072,6 +2156,100 @@ function getTextBitmap(text, fontData, options) {
     bitmap.push(row);
   }
   return { bitmap: bitmap, width: width, height: height };
+}
+
+/**
+ * Convert a text string to a 2D bitmap using bitmap font glyph data.
+ * Supports multi-line text (split by \n) with horizontal alignment.
+ * Supports both UI (top-aligned, boolean) and PDF (bottom-aligned, boolean) use cases.
+ *
+ * @param {string} text - The text to render (may contain \n for multi-line)
+ * @param {object} fontData - Font object with glyphs, height, letterSpacing, spaceWidth
+ * @param {object} [options] - Rendering options
+ * @param {string} [options.align='bottom'] - Vertical glyph alignment:
+ *   'bottom' (default): glyph rows start at top of cell, empty space at bottom
+ *   'top': glyph rows pushed to bottom of cell, empty space at top
+ * @param {string} [options.format='boolean'] - Cell value format:
+ *   'boolean' (default): cells are true/false
+ *   'string': cells are '1'/'0'
+ * @param {string} [options.textAlign='left'] - Horizontal text alignment:
+ *   'left' (default), 'center', 'right'
+ * @returns {{ bitmap: Array[], width: number, height: number }}
+ */
+function getTextBitmap(text, fontData, options) {
+  options = options || {};
+  var textAlign = options.textAlign || 'left';
+  var format = options.format || 'boolean';
+
+  if (!text || !fontData || !fontData.glyphs) return { bitmap: [], width: 0, height: 0 };
+
+  var height = fontData.height || 9;
+  var falseVal = (format === 'string') ? '0' : false;
+
+  var lines = text.split('\n');
+  var lineBitmaps = [];
+  var maxWidth = 0;
+
+  for (var i = 0; i < lines.length; i++) {
+    if (!lines[i].trim()) {
+      // Empty line: push empty bitmap with just the font height
+      lineBitmaps.push({ bitmap: [], width: 0, height: height });
+      continue;
+    }
+    var lb = getLineBitmap(lines[i], fontData, options);
+    lineBitmaps.push(lb);
+    if (lb.width > maxWidth) maxWidth = lb.width;
+  }
+
+  if (maxWidth === 0) return { bitmap: [], width: 0, height: 0 };
+
+  var lineGap = Math.max(2, Math.round(height * 0.15));
+  var totalHeight = 0;
+  var finalBitmap = [];
+
+  for (var i = 0; i < lineBitmaps.length; i++) {
+    var lb = lineBitmaps[i];
+    var padLeft = 0;
+
+    if (textAlign === 'center') {
+      padLeft = Math.floor((maxWidth - lb.width) / 2);
+    } else if (textAlign === 'right') {
+      padLeft = maxWidth - lb.width;
+    }
+    var padRight = maxWidth - lb.width - padLeft;
+
+    // If line has actual bitmap rows, pad them
+    if (lb.bitmap.length > 0) {
+      for (var y = 0; y < lb.bitmap.length; y++) {
+        var row = [];
+        for (var p = 0; p < padLeft; p++) row.push(falseVal);
+        for (var x = 0; x < lb.bitmap[y].length; x++) row.push(lb.bitmap[y][x]);
+        for (var p2 = 0; p2 < padRight; p2++) row.push(falseVal);
+        finalBitmap.push(row);
+      }
+      totalHeight += lb.bitmap.length;
+    } else {
+      // Empty line: add empty rows for the font height
+      for (var y = 0; y < height; y++) {
+        var emptyRow = [];
+        for (var x = 0; x < maxWidth; x++) emptyRow.push(falseVal);
+        finalBitmap.push(emptyRow);
+      }
+      totalHeight += height;
+    }
+
+    // Line gap (not after last line)
+    if (i < lineBitmaps.length - 1) {
+      for (var g = 0; g < lineGap; g++) {
+        var gapRow = [];
+        for (var x = 0; x < maxWidth; x++) gapRow.push(falseVal);
+        finalBitmap.push(gapRow);
+      }
+      totalHeight += lineGap;
+    }
+  }
+
+  return { bitmap: finalBitmap, width: maxWidth, height: totalHeight };
 }
 
 function newEmptyCol(height, fillValue) {
@@ -4177,6 +4355,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   var currentAida = 14;
   var currentCategoryFilter = 'all';
   var displayUnit = 'metric'; // 'metric' | 'imperial'
+  var currentAlign = 'center'; // 'left' | 'center' | 'right'
 
   // -- Unit detection & formatting --
 
@@ -4296,7 +4475,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       return { width: 0, height: 0, stitches: 0 };
     }
 
-    var result = getTextBitmap(text, fontData);
+    var result = getTextBitmap(text, fontData, { textAlign: options.textAlign || 'left' });
     var bitmap = result.bitmap;
     var width = result.width;
     var height = result.height;
@@ -4460,7 +4639,8 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
     var result = renderPreview(mainCanvas, currentText, currentFontData, color.hex, {
       cellSize: 16,
-      maxWidth: maxW
+      maxWidth: maxW,
+      textAlign: currentAlign
     });
 
     if (result.width === 0) {
@@ -4526,11 +4706,14 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
   // -- Text Input --
 
+  var desktopInputDebounce = null;
   textInput.addEventListener('input', function () {
     currentText = this.value;
-    updatePreview();
-    // Re-render font sheet previews with new text
-    renderVirtualFontList();
+    clearTimeout(desktopInputDebounce);
+    desktopInputDebounce = setTimeout(function () {
+      updatePreview();
+      renderVirtualFontList();
+    }, 300);
   });
 
 
@@ -5630,17 +5813,21 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
   var mobileTextInput = document.getElementById('mobileTextInput');
 
-  // Sync mobile input → state + desktop input + preview
+  // Sync mobile input → state + desktop input + preview (debounced)
+  var mobileInputDebounce = null;
   if (mobileTextInput) {
     mobileTextInput.addEventListener('input', function () {
       currentText = this.value;
       textInput.value = currentText;
-      updatePreview();
-      renderVirtualFontList();
+      clearTimeout(mobileInputDebounce);
+      mobileInputDebounce = setTimeout(function () {
+        updatePreview();
+        renderVirtualFontList();
+      }, 300);
     });
   }
 
-  // Sync desktop input → mobile input (keep in sync when typing on desktop)
+  // Sync desktop input → mobile input
   if (textInput && mobileTextInput) {
     textInput.addEventListener('input', function () {
       mobileTextInput.value = this.value;
@@ -5652,7 +5839,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   if (mobileTextInput) {
     mobileTextInput.addEventListener('focus', function () {
       document.body.classList.add('keyboard-open');
-      // After layout shift, re-check preview fits
       setTimeout(updatePreview, 100);
     });
 
@@ -5667,7 +5853,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   var previewAreaEl = document.getElementById('previewArea');
   if (previewAreaEl) {
     previewAreaEl.addEventListener('click', function (e) {
-      if (e.target.closest('button, a, input, select')) return;
+      if (e.target.closest('button, a, input, select, textarea')) return;
 
       if (isMobile() && mobileTextInput) {
         mobileTextInput.focus();
@@ -5678,7 +5864,38 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     });
   }
 
-  // -- Sync on init: ensure mobile input has current text --
+  // -- Alignment Buttons (desktop + mobile) --
+
+  function setAlignment(align) {
+    currentAlign = align;
+    // Sync all alignment button groups
+    document.querySelectorAll('.align-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.align === align);
+    });
+    updatePreview();
+  }
+
+  // Desktop sidebar alignment
+  var alignRow = document.getElementById('alignRow');
+  if (alignRow) {
+    alignRow.addEventListener('click', function (e) {
+      var btn = e.target.closest('.align-btn');
+      if (!btn) return;
+      setAlignment(btn.dataset.align);
+    });
+  }
+
+  // Mobile toolbar alignment
+  var mobileAlignRow = document.getElementById('mobileAlignRow');
+  if (mobileAlignRow) {
+    mobileAlignRow.addEventListener('click', function (e) {
+      var btn = e.target.closest('.align-btn');
+      if (!btn) return;
+      setAlignment(btn.dataset.align);
+    });
+  }
+
+  // -- Sync on init --
 
   function syncMobileTextInput() {
     if (mobileTextInput) {

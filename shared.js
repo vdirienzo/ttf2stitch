@@ -20,26 +20,20 @@ function getEffectiveBitmap(glyph) {
 }
 
 /**
- * Convert a text string to a 2D bitmap using bitmap font glyph data.
- * Supports both UI (top-aligned, boolean) and PDF (bottom-aligned, boolean) use cases.
+ * Render a single line of text to a 2D bitmap.
+ * This is the core single-line logic extracted from getTextBitmap.
  *
- * @param {string} text - The text to render
+ * @param {string} lineText - Single line of text (no newlines)
  * @param {object} fontData - Font object with glyphs, height, letterSpacing, spaceWidth
- * @param {object} [options] - Rendering options
- * @param {string} [options.align='bottom'] - Vertical glyph alignment:
- *   'bottom' (default): glyph rows start at top of cell, empty space at bottom
- *   'top': glyph rows pushed to bottom of cell, empty space at top
- * @param {string} [options.format='boolean'] - Cell value format:
- *   'boolean' (default): cells are true/false
- *   'string': cells are '1'/'0'
+ * @param {object} [options] - Rendering options (align, format)
  * @returns {{ bitmap: Array[], width: number, height: number }}
  */
-function getTextBitmap(text, fontData, options) {
+function getLineBitmap(lineText, fontData, options) {
   options = options || {};
   var align = options.align || 'bottom';
   var format = options.format || 'boolean';
 
-  if (!text || !fontData || !fontData.glyphs) return { bitmap: [], width: 0, height: 0 };
+  if (!lineText || !fontData || !fontData.glyphs) return { bitmap: [], width: 0, height: 0 };
 
   var glyphs = fontData.glyphs;
   var height = fontData.height || 9;
@@ -50,8 +44,8 @@ function getTextBitmap(text, fontData, options) {
   var falseVal = (format === 'string') ? '0' : false;
   var trueVal = (format === 'string') ? '1' : true;
 
-  for (var ci = 0; ci < text.length; ci++) {
-    var ch = text[ci];
+  for (var ci = 0; ci < lineText.length; ci++) {
+    var ch = lineText[ci];
 
     // Letter spacing between characters (not before the first)
     if (ci > 0 && letterSpacing > 0) {
@@ -95,6 +89,100 @@ function getTextBitmap(text, fontData, options) {
     bitmap.push(row);
   }
   return { bitmap: bitmap, width: width, height: height };
+}
+
+/**
+ * Convert a text string to a 2D bitmap using bitmap font glyph data.
+ * Supports multi-line text (split by \n) with horizontal alignment.
+ * Supports both UI (top-aligned, boolean) and PDF (bottom-aligned, boolean) use cases.
+ *
+ * @param {string} text - The text to render (may contain \n for multi-line)
+ * @param {object} fontData - Font object with glyphs, height, letterSpacing, spaceWidth
+ * @param {object} [options] - Rendering options
+ * @param {string} [options.align='bottom'] - Vertical glyph alignment:
+ *   'bottom' (default): glyph rows start at top of cell, empty space at bottom
+ *   'top': glyph rows pushed to bottom of cell, empty space at top
+ * @param {string} [options.format='boolean'] - Cell value format:
+ *   'boolean' (default): cells are true/false
+ *   'string': cells are '1'/'0'
+ * @param {string} [options.textAlign='left'] - Horizontal text alignment:
+ *   'left' (default), 'center', 'right'
+ * @returns {{ bitmap: Array[], width: number, height: number }}
+ */
+function getTextBitmap(text, fontData, options) {
+  options = options || {};
+  var textAlign = options.textAlign || 'left';
+  var format = options.format || 'boolean';
+
+  if (!text || !fontData || !fontData.glyphs) return { bitmap: [], width: 0, height: 0 };
+
+  var height = fontData.height || 9;
+  var falseVal = (format === 'string') ? '0' : false;
+
+  var lines = text.split('\n');
+  var lineBitmaps = [];
+  var maxWidth = 0;
+
+  for (var i = 0; i < lines.length; i++) {
+    if (!lines[i].trim()) {
+      // Empty line: push empty bitmap with just the font height
+      lineBitmaps.push({ bitmap: [], width: 0, height: height });
+      continue;
+    }
+    var lb = getLineBitmap(lines[i], fontData, options);
+    lineBitmaps.push(lb);
+    if (lb.width > maxWidth) maxWidth = lb.width;
+  }
+
+  if (maxWidth === 0) return { bitmap: [], width: 0, height: 0 };
+
+  var lineGap = Math.max(2, Math.round(height * 0.15));
+  var totalHeight = 0;
+  var finalBitmap = [];
+
+  for (var i = 0; i < lineBitmaps.length; i++) {
+    var lb = lineBitmaps[i];
+    var padLeft = 0;
+
+    if (textAlign === 'center') {
+      padLeft = Math.floor((maxWidth - lb.width) / 2);
+    } else if (textAlign === 'right') {
+      padLeft = maxWidth - lb.width;
+    }
+    var padRight = maxWidth - lb.width - padLeft;
+
+    // If line has actual bitmap rows, pad them
+    if (lb.bitmap.length > 0) {
+      for (var y = 0; y < lb.bitmap.length; y++) {
+        var row = [];
+        for (var p = 0; p < padLeft; p++) row.push(falseVal);
+        for (var x = 0; x < lb.bitmap[y].length; x++) row.push(lb.bitmap[y][x]);
+        for (var p2 = 0; p2 < padRight; p2++) row.push(falseVal);
+        finalBitmap.push(row);
+      }
+      totalHeight += lb.bitmap.length;
+    } else {
+      // Empty line: add empty rows for the font height
+      for (var y = 0; y < height; y++) {
+        var emptyRow = [];
+        for (var x = 0; x < maxWidth; x++) emptyRow.push(falseVal);
+        finalBitmap.push(emptyRow);
+      }
+      totalHeight += height;
+    }
+
+    // Line gap (not after last line)
+    if (i < lineBitmaps.length - 1) {
+      for (var g = 0; g < lineGap; g++) {
+        var gapRow = [];
+        for (var x = 0; x < maxWidth; x++) gapRow.push(falseVal);
+        finalBitmap.push(gapRow);
+      }
+      totalHeight += lineGap;
+    }
+  }
+
+  return { bitmap: finalBitmap, width: maxWidth, height: totalHeight };
 }
 
 function newEmptyCol(height, fillValue) {
