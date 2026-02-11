@@ -14,6 +14,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from server_utils import (  # noqa: E402
     do_rasterize,
+    etag_for_json,
     json_error,
     json_response,
     read_json_body,
@@ -46,7 +47,14 @@ class handler(BaseHTTPRequestHandler):
                 fonts_dir=FONTS_DIR,
                 cache=_rasterize_cache,
             )
-            json_response(self, font_json)
+            json_response(
+                self,
+                font_json,
+                headers={
+                    "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=3600",
+                    "ETag": f'"{etag_for_json(font_json)}"',
+                },
+            )
         except FileNotFoundError as e:
             json_error(self, str(e), 404)
         except Exception as e:

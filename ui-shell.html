@@ -517,6 +517,12 @@
   // Key format: "filename.ttf_height"
   var fontCache = new Map();
 
+  // In-flight request deduplication: Map<cacheKey, Promise>
+  var inFlightRequests = new Map();
+
+  // AbortControllers for preview requests: Map<cacheKey, AbortController>
+  var previewAbortControllers = new Map();
+
   // Currently loaded font data (from cache or API)
   var currentFontData = null;
 
@@ -715,14 +721,19 @@
   function rasterizeFont(fontFile, height) {
     var key = getCacheKey(fontFile, height);
 
-    // Return cached data if available
+    // L1: Memory cache
     if (fontCache.has(key)) {
       return Promise.resolve(fontCache.get(key));
     }
 
+    // Dedup: return existing in-flight promise
+    if (inFlightRequests.has(key)) {
+      return inFlightRequests.get(key);
+    }
+
     showLoading();
 
-    return fetch('/api/rasterize', {
+    var promise = fetch('/api/rasterize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -745,7 +756,13 @@
       hideLoading();
       console.error('rasterizeFont:', err);
       return null;
+    })
+    .finally(function () {
+      inFlightRequests.delete(key);
     });
+
+    inFlightRequests.set(key, promise);
+    return promise;
   }
 
   // -- Update Preview (main function) --
@@ -975,11 +992,18 @@
     var val = parseInt(this.value);
     heightValue.textContent = val;
     syncMobileHeightValue(val);
+    currentHeight = val;
 
+    // Cancel stale preview requests immediately
+    cancelAllPreviews();
+
+    // Priority: re-rasterize selected font immediately
+    loadAndRender();
+
+    // Debounced: re-render sidebar previews (300ms)
     clearTimeout(heightDebounceTimer);
     heightDebounceTimer = setTimeout(function () {
-      currentHeight = val;
-      loadAndRender();
+      renderFontListUI();
     }, 300);
   });
 
@@ -1474,6 +1498,13 @@
   var activePreviewRequests = 0;
   var MAX_PREVIEW_CONCURRENT = 3;
 
+  function cancelAllPreviews() {
+    previewAbortControllers.forEach(function (ctrl) { ctrl.abort(); });
+    previewAbortControllers.clear();
+    previewQueue = [];
+    activePreviewRequests = 0;
+  }
+
   function queueFontPreview(fontFile, canvasEl) {
     var cacheKey = getCacheKey(fontFile, currentHeight);
     if (fontCache.has(cacheKey)) {
@@ -1502,10 +1533,14 @@
 
   function rasterizeFontForPreview(job) {
     var cacheKey = getCacheKey(job.fontFile, job.height);
+    var controller = new AbortController();
+    previewAbortControllers.set(cacheKey, controller);
+
     fetch('/api/rasterize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ font: job.fontFile, height: job.height, bold: 0, strategy: 'average' })
+      body: JSON.stringify({ font: job.fontFile, height: job.height, bold: 0, strategy: 'average' }),
+      signal: controller.signal
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
@@ -1515,10 +1550,12 @@
         job.canvas.classList.remove('loading');
       }
     })
-    .catch(function() {
+    .catch(function(err) {
+      if (err.name === 'AbortError') return; // Silently ignore aborted requests
       if (document.contains(job.canvas)) job.canvas.classList.remove('loading');
     })
     .finally(function() {
+      previewAbortControllers.delete(cacheKey);
       activePreviewRequests--;
       processPreviewQueue();
     });
@@ -1703,10 +1740,18 @@
       heightValue.textContent = val;
       syncMobileHeightValue(val);
 
+      currentHeight = val;
+
+      // Cancel stale preview requests immediately
+      cancelAllPreviews();
+
+      // Priority: re-rasterize selected font immediately
+      loadAndRender();
+
+      // Debounced: re-render sidebar previews (300ms)
       clearTimeout(sheetHeightDebounce);
       sheetHeightDebounce = setTimeout(function () {
-        currentHeight = val;
-        loadAndRender();
+        renderFontListUI();
       }, 300);
     });
   }
@@ -1809,10 +1854,18 @@
       if (sheetSlider) sheetSlider.value = val;
       if (sheetValue) sheetValue.textContent = val;
 
+      currentHeight = val;
+
+      // Cancel stale preview requests immediately
+      cancelAllPreviews();
+
+      // Priority: re-rasterize selected font immediately
+      loadAndRender();
+
+      // Debounced: re-render sidebar previews (300ms)
       clearTimeout(mobileSliderDebounce);
       mobileSliderDebounce = setTimeout(function () {
-        currentHeight = val;
-        loadAndRender();
+        renderFontListUI();
       }, 300);
     });
   }

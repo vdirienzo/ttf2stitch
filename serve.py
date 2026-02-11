@@ -9,15 +9,18 @@ Extends SimpleHTTPRequestHandler to add:
 All other requests (GET, HEAD) are handled by the default static file server.
 """
 
+import contextlib
 import json
 import os
 import sys
+import threading
 import time
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 from server_utils import (
     FONT_ID_RE,
     do_rasterize,
+    etag_for_json,
     json_error,
     json_response,
     list_fonts,
@@ -86,7 +89,14 @@ class FontServerHandler(SimpleHTTPRequestHandler):
                 elapsed,
                 len(font_json.get("glyphs", {})),
             )
-            json_response(self, font_json)
+            json_response(
+                self,
+                font_json,
+                headers={
+                    "Cache-Control": "public, max-age=86400",
+                    "ETag": f'"{etag_for_json(font_json)}"',
+                },
+            )
         except FileNotFoundError as e:
             json_error(self, str(e), 404)
         except Exception as e:
@@ -153,6 +163,30 @@ class FontServerHandler(SimpleHTTPRequestHandler):
         sys.stderr.write(f"[serve] {fmt % args}\n")
 
 
+def _warmup_cache():
+    """Pre-rasterize all fonts at default height (18) in background.
+
+    On first run, this populates the disk cache. On subsequent server
+    starts, disk cache hits make this nearly instant — each font just
+    reads a JSON file instead of rendering.
+    """
+    fonts = list_fonts(FONTS_DIR, category_cache=_font_categories)
+    total = len(fonts)
+    for i, font_info in enumerate(fonts):
+        with contextlib.suppress(Exception):
+            do_rasterize(
+                font_info["file"],
+                18,
+                0,
+                "average",
+                fonts_dir=FONTS_DIR,
+                cache=_rasterize_cache,
+            )
+        if (i + 1) % 50 == 0:
+            print(f"[warmup] {i + 1}/{total} fonts pre-cached at h=18")
+    print(f"[warmup] Complete: {total} fonts cached")
+
+
 def main():
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8042
     server = HTTPServer(("127.0.0.1", port), FontServerHandler)
@@ -162,6 +196,10 @@ def main():
     font_count = len(list_fonts(FONTS_DIR, category_cache=_font_categories))
     print(f"Fonts dir:   {os.path.abspath(FONTS_DIR)}/ ({font_count} fonts)")
     print("Press Ctrl+C to stop\n")
+
+    # Background warmup: pre-rasterize all fonts at default height
+    threading.Thread(target=_warmup_cache, daemon=True).start()
+
     try:
         server.serve_forever()
     except KeyboardInterrupt:
