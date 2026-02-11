@@ -29,6 +29,7 @@ const uiModules = [
   'preview.js', 'font-manager.js', 'color-manager.js', 'settings.js',
   'pdf-integration.js',
   'sheet-system.js', 'virtual-scroll.js', 'sheet-content.js', 'mobile-toolbar.js',
+  'bottom-input.js',
   'init.js'
 ];
 const uiJs = uiModules.map(f => fs.readFileSync(path.join(BASE, 'ui-modules', f), 'utf-8')).join('\n\n');

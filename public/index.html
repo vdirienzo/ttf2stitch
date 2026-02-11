@@ -850,6 +850,7 @@
     .unit-toggle { border-radius: var(--radius-sm); }
     .unit-toggle-btn { padding: 6px 12px; min-height: 36px; min-width: 36px; font-size: 12px; }
 
+    .text-input-area { display: none; }
     .text-input { font-size: 16px; min-height: 36px; padding: 6px 12px; }
     .btn-download { padding: 8px; min-height: 36px; min-width: 36px; }
     .btn-download .dl-label { display: none; }
@@ -859,7 +860,7 @@
       overflow: hidden;
       min-height: 0;
       flex: 1;
-      padding-bottom: calc(126px + env(safe-area-inset-bottom, 0px));
+      padding-bottom: calc(178px + env(safe-area-inset-bottom, 0px));
     }
 
     .sidebar { display: none !important; }
@@ -877,8 +878,8 @@
 
     #mainCanvas {
       /* 48px header + 126px toolbar + safe-area + 100px stats(2rows)/rulers/gaps + 28px padding */
-      max-height: calc(100vh - 48px - 126px - env(safe-area-inset-bottom, 0px) - 128px);
-      max-height: calc(100dvh - 48px - 126px - env(safe-area-inset-bottom, 0px) - 128px);
+      max-height: calc(100vh - 48px - 178px - env(safe-area-inset-bottom, 0px) - 128px);
+      max-height: calc(100dvh - 48px - 178px - env(safe-area-inset-bottom, 0px) - 128px);
     }
 
     /* Stats: responsive wrap on mobile */
@@ -1064,6 +1065,49 @@
     border-radius: 50%;
     border: 2.5px solid var(--border);
     flex-shrink: 0;
+  }
+
+  /* -- Mobile Input Bar (above toolbar) -- */
+  .mobile-input-bar {
+    display: none;
+  }
+  @media (max-width: 640px) {
+    .mobile-input-bar {
+      display: flex;
+      position: fixed;
+      bottom: calc(126px + env(safe-area-inset-bottom, 0px));
+      left: 0;
+      right: 0;
+      padding: 8px 12px;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      z-index: 49;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+    }
+    .mobile-text-input {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-family: var(--font-display);
+      font-size: 18px;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      touch-action: manipulation;
+      min-height: 44px;
+    }
+    .mobile-text-input::placeholder {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    .mobile-text-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    /* Hint: tapping canvas focuses the input */
+    .preview-area { cursor: text; }
   }
 
   /* ============================================= */
@@ -1675,6 +1719,22 @@
   </div>
 
 </main>
+
+<!-- -- Mobile Input Bar -- -->
+<div class="mobile-input-bar" id="mobileInputBar">
+  <input
+    type="text"
+    class="mobile-text-input"
+    id="mobileTextInput"
+    aria-label="Text to render"
+    placeholder="Type your text here…"
+    data-i18n-placeholder="placeholder_text"
+    value="Welcome"
+    maxlength="40"
+    autocomplete="off"
+    spellcheck="false"
+  />
+</div>
 
 <!-- -- Mobile Toolbar (Slider + 3 Buttons) -- -->
 <div class="mobile-toolbar" id="mobileToolbar">
@@ -5537,6 +5597,55 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   });
 
 
+// ui-modules/bottom-input.js — Mobile bottom input bar: sync & canvas tap-to-focus
+
+  // -- Mobile Input Bar --
+
+  var mobileTextInput = document.getElementById('mobileTextInput');
+
+  // Sync mobile input → state + desktop input + preview
+  if (mobileTextInput) {
+    mobileTextInput.addEventListener('input', function () {
+      currentText = this.value;
+      textInput.value = currentText;
+      updatePreview();
+      renderVirtualFontList();
+    });
+  }
+
+  // Sync desktop input → mobile input (keep in sync when typing on desktop)
+  if (textInput && mobileTextInput) {
+    // Patch existing input handler to also sync mobile input
+    textInput.addEventListener('input', function () {
+      mobileTextInput.value = this.value;
+    });
+  }
+
+  // -- Canvas / Preview Tap → Focus Mobile Input --
+
+  var previewAreaEl = document.getElementById('previewArea');
+  if (previewAreaEl && mobileTextInput) {
+    previewAreaEl.addEventListener('click', function (e) {
+      // Only on mobile, and only if not clicking on an interactive child
+      if (!isMobile()) return;
+      if (e.target.closest('button, a, input, select')) return;
+
+      mobileTextInput.focus();
+      // Scroll into view smoothly to ensure visibility
+      mobileTextInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+  }
+
+  // -- Sync on init: ensure mobile input has current text --
+
+  function syncMobileTextInput() {
+    if (mobileTextInput) {
+      mobileTextInput.value = currentText || '';
+    }
+  }
+
+
 // ui-modules/init.js — Resize handling, init function, window exposures, DOMContentLoaded
 
   // -- Resize handling --
@@ -5563,6 +5672,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
     renderColors();
     initMobileToolbar();
+    syncMobileTextInput();
     fetchFontList();
     updatePreview();
   }

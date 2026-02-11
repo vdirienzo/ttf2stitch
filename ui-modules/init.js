@@ -24,6 +24,7 @@
 
     renderColors();
     initMobileToolbar();
+    syncMobileTextInput();
     fetchFontList();
     updatePreview();
   }
