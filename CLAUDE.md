@@ -36,7 +36,7 @@ uv run ttf2stitch preview output.json --text "Hello"
 # Convenience script (alternative to uv run)
 ./run.sh test | lint | convert | rasterize | serve | demo
 
-# Assemble frontend (combines data-fonts.js + ui-shell.html + pdf-engine.js)
+# Assemble frontend (ui-shell.html + ui-modules/ + pdf-modules/ + shared.js → index.html)
 node assemble.js
 
 # Start dev server with font inspector (port 8042)
@@ -84,7 +84,7 @@ Any TTF → render@20x → resize (LANCZOS or max-ink) → binarize (threshold/O
 ### Web Stack
 
 - `serve.py`: Python HTTP server (:8042) with `/api/rasterize`, `/api/fonts`, `/api/save`, `/api/manifest` endpoints + in-memory rasterization cache
-- `assemble.js`: Node script that concatenates `data-fonts.js` + `ui-shell.html` + `pdf-engine.js` → `public/index.html` (single self-contained 460KB file)
+- `assemble.js`: Node script that assembles `ui-shell.html` (HTML template) + `ui-shell.css` + `i18n-data.js` + `data-fonts.js` + `shared.js` + `pdf-modules/` (5 files) + `ui-modules/` (14 files) → `public/index.html` (single self-contained ~195KB file)
 
 ## Conventions
 
