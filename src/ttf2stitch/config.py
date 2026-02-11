@@ -1,5 +1,11 @@
 """Constants and configuration for ttf2stitch."""
 
+import re
+
+# Font ID pattern: lowercase alphanumeric segments joined by single hyphens.
+# Used by validator.py and server_utils.py to ensure consistent ID validation.
+FONT_ID_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+
 # Known CELL_UNITS for font families (stitch cell size in font units)
 # ACSF fonts use 57 units per cell: 44 stitch area + 13 gap between cells
 KNOWN_CELL_UNITS: dict[str, int] = {

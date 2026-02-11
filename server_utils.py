@@ -1,7 +1,8 @@
 """Shared utilities for serve.py and Vercel serverless API handlers.
 
-Consolidates duplicated logic: font classification, rasterization with cache,
-JSON body reading, and HTTP JSON response helpers.
+Consolidates duplicated logic: font classification, font listing, request
+validation, rasterization with cache, JSON body reading, and HTTP JSON
+response helpers.
 """
 
 import json
@@ -10,10 +11,15 @@ from pathlib import Path
 
 from fontTools.ttLib import TTFont
 
+from ttf2stitch.config import FONT_ID_PATTERN
+
 logger = logging.getLogger("ttf2stitch.server")
 
 FONT_EXTENSIONS = {".ttf", ".otf"}
 MAX_BODY_SIZE = 2 * 1024 * 1024  # 2MB
+
+# Re-export so serve.py and api/ handlers can import from server_utils.
+FONT_ID_RE = FONT_ID_PATTERN
 
 
 # ---------------------------------------------------------------------------
@@ -114,6 +120,76 @@ def classify_font(font_path: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Font listing
+# ---------------------------------------------------------------------------
+
+
+def list_fonts(fonts_dir: str, *, category_cache: dict[str, str] | None = None) -> list[dict]:
+    """List available TTF/OTF fonts with classification metadata.
+
+    Parameters
+    ----------
+    fonts_dir:        Path to the directory containing font files.
+    category_cache:   Optional mutable dict for caching category lookups.
+    """
+    fonts: list[dict] = []
+    fonts_path = Path(fonts_dir)
+    if not fonts_path.is_dir():
+        return fonts
+
+    for entry in sorted(fonts_path.iterdir()):
+        if entry.suffix.lower() in FONT_EXTENSIONS and entry.is_file():
+            path_str = str(entry)
+            if category_cache is not None and path_str in category_cache:
+                category = category_cache[path_str]
+            else:
+                category = classify_font(path_str)
+                if category_cache is not None:
+                    category_cache[path_str] = category
+
+            fonts.append(
+                {
+                    "file": entry.name,
+                    "name": entry.stem,
+                    "size": entry.stat().st_size,
+                    "category": category,
+                }
+            )
+
+    return fonts
+
+
+# ---------------------------------------------------------------------------
+# Request validation
+# ---------------------------------------------------------------------------
+
+
+def validate_rasterize_params(body: dict) -> tuple[dict | None, str | None]:
+    """Validate rasterize request parameters.
+
+    Returns (params_dict, None) on success or (None, error_message) on failure.
+    The params_dict contains keys: font, height, bold, strategy.
+    """
+    font_file = body.get("font", "")
+    if not font_file or ".." in font_file or "/" in font_file:
+        return None, f"Invalid font filename: '{font_file}'"
+
+    height = body.get("height", 12)
+    if not isinstance(height, int) or height < 4 or height > 60:
+        return None, "height must be an integer between 4 and 60"
+
+    bold = body.get("bold", 0)
+    if not isinstance(bold, int) or bold < 0 or bold > 3:
+        return None, "bold must be 0, 1, 2, or 3"
+
+    strategy = body.get("strategy", "average")
+    if strategy not in ("average", "max-ink"):
+        return None, "strategy must be 'average' or 'max-ink'"
+
+    return {"font": font_file, "height": height, "bold": bold, "strategy": strategy}, None
+
+
+# ---------------------------------------------------------------------------
 # Rasterization with cache
 # ---------------------------------------------------------------------------
 
@@ -152,8 +228,11 @@ def do_rasterize(
     if ext not in FONT_EXTENSIONS:
         raise ValueError(f"Invalid font extension: {ext}")
 
+    from ttf2stitch.utils import FontConversionOptions
+
     result = rasterize_font(
         str(font_path),
+        opts=FontConversionOptions(),
         target_height=height,
         bold=bold,
         strategy=strategy,

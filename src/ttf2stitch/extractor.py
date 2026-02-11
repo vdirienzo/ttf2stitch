@@ -13,10 +13,8 @@ from ttf2stitch.cell_detector import detect_cell_units
 from ttf2stitch.config import (
     DEFAULT_EXCLUDE_CHARS,
     DEFAULT_FILL_THRESHOLD,
-    DEFAULT_LETTER_SPACING,
     DEFAULT_RENDER_SIZE,
     DEFAULT_SAMPLE_PCT,
-    DEFAULT_SPACE_WIDTH,
 )
 from ttf2stitch.filters import filter_glyphs
 from ttf2stitch.renderer import render_glyph
@@ -47,27 +45,24 @@ def extract_font(
     font_path: str,
     *,
     opts: FontConversionOptions | None = None,
-    name: str | None = None,
-    font_id: str | None = None,
-    cell_units_override: int | None = None,
+    cell_units: int | None = None,
     render_size: int = DEFAULT_RENDER_SIZE,
     sample_pct: float = DEFAULT_SAMPLE_PCT,
     fill_threshold: float = DEFAULT_FILL_THRESHOLD,
-    letter_spacing: int = DEFAULT_LETTER_SPACING,
-    space_width: int = DEFAULT_SPACE_WIDTH,
-    charset: str = "basic",
-    category: str | None = None,
-    source: str | None = None,
-    license_str: str | None = None,
-    tags: list[str] | None = None,
-    exclude_chars: set[str] | None = None,
-    is_cursive: bool = False,
-    verbose: bool = False,
+    preview: bool = False,
+    validate: bool = False,
 ) -> ExtractionResult:
     """Main extraction pipeline.
 
-    Accepts either a FontConversionOptions via `opts` or individual keyword args
-    for backward compatibility. If `opts` is provided, shared params are taken from it.
+    Args:
+        font_path: Path to TTF/OTF file.
+        opts: Shared conversion options (metadata, charset, spacing, etc.).
+        cell_units: Override CELL_UNITS detection.
+        render_size: PIL render height in pixels.
+        sample_pct: Center sampling percentage.
+        fill_threshold: Minimum fill ratio for a cell to be considered filled.
+        preview: Unused here, kept for CLI pass-through compatibility.
+        validate: Unused here, kept for CLI pass-through compatibility.
 
     Steps:
     1. Detect/use CELL_UNITS
@@ -80,25 +75,11 @@ def extract_font(
     4. Compute max height across all glyphs
     5. Assemble FontV2 output
     """
-    # Build opts from individual kwargs if not provided
     if opts is None:
-        opts = FontConversionOptions(
-            name=name,
-            font_id=font_id,
-            letter_spacing=letter_spacing,
-            space_width=space_width,
-            charset=charset,
-            category=category,
-            source=source,
-            license_str=license_str,
-            tags=tags,
-            exclude_chars=exclude_chars,
-            is_cursive=is_cursive,
-            verbose=verbose,
-        )
+        opts = FontConversionOptions()
 
     # Step 1: Cell units
-    units, confidence = detect_cell_units(font_path, cell_units_override)
+    units, confidence = detect_cell_units(font_path, cell_units)
     if opts.verbose:
         logger.info("CELL_UNITS: %d (confidence: %.2f)", units, confidence)
 

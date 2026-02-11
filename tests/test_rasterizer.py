@@ -9,6 +9,7 @@ from click.testing import CliRunner
 
 from ttf2stitch.rasterizer import RasterResult, _render_char_bitmap, rasterize_font
 from ttf2stitch.schema import FontV2
+from ttf2stitch.utils import FontConversionOptions
 
 # System font for testing (DejaVu Sans is available on most Linux systems)
 SYSTEM_FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
@@ -79,13 +80,19 @@ class TestRasterizeFont:
 
     @skip_no_font
     def test_cursive_sets_spacing_zero(self):
-        result = rasterize_font(SYSTEM_FONT, target_height=8, is_cursive=True)
+        result = rasterize_font(
+            SYSTEM_FONT, target_height=8, opts=FontConversionOptions(is_cursive=True)
+        )
         assert result.font.letter_spacing == 0
         assert result.font.category == "script"
 
     @skip_no_font
     def test_name_override(self):
-        result = rasterize_font(SYSTEM_FONT, target_height=8, name="My Font", font_id="my-font")
+        result = rasterize_font(
+            SYSTEM_FONT,
+            target_height=8,
+            opts=FontConversionOptions(name="My Font", font_id="my-font"),
+        )
         assert result.font.name == "My Font"
         assert result.font.id == "my-font"
 

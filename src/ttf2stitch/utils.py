@@ -151,8 +151,7 @@ def resolve_font_metadata(font_path: str, opts: FontConversionOptions) -> Resolv
 
     if opts.is_cursive:
         letter_spacing = 0
-        if font_category != "script":
-            font_category = "script"
+        font_category = "script"
 
     return ResolvedMetadata(
         display_name=display_name,

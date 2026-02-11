@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 from typing import Any
 
-from ttf2stitch.config import VALID_CATEGORIES
+from ttf2stitch.config import FONT_ID_PATTERN, VALID_CATEGORIES
 
 REQUIRED_FIELDS = ("version", "id", "name", "height", "glyphs", "letterSpacing", "spaceWidth")
-ID_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+ID_PATTERN = FONT_ID_PATTERN
 
 
 def validate_font(data: dict[str, Any]) -> list[str]:

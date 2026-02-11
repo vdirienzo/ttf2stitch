@@ -1027,10 +1027,10 @@ function showDetail(fontId) {
   const scale = parseInt(scaleSlider.value), color = colorPicker.value, text = previewText.value||'ABCabc 123';
 
   detailView.innerHTML = `
-    <button class="detail-back" onclick="showOverview()">&#8592; Back</button>
+    <button class="detail-back" id="detailBackBtn">&#8592; Back</button>
     <div class="detail-header">
       <h2>${escapeHtml(entry.name)}
-        <button class="dl-btn" onclick="downloadJSON('${entry.id}')">Download JSON</button>
+        <button class="dl-btn" id="detailDownloadBtn">Download JSON</button>
       </h2>
       <div class="detail-info">
         <span>ID: <strong>${entry.id}</strong></span>
@@ -1044,6 +1044,9 @@ function showDetail(fontId) {
     <div class="detail-section"><h3>Preview</h3><div class="detail-sample" id="ds"></div></div>
     <div class="detail-section"><h3>Full Alphabet</h3><div class="detail-sample" id="da"></div></div>
     <div class="detail-section"><h3>All Glyphs (${keys.length})</h3><div class="glyph-grid" id="gg"></div></div>`;
+
+  document.getElementById('detailBackBtn').addEventListener('click', () => showOverview());
+  document.getElementById('detailDownloadBtn').addEventListener('click', () => downloadJSON(fontId));
 
   const ds = document.getElementById('ds');
   const c1 = renderTextToCanvas(data, text, scale, color);

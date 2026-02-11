@@ -17,7 +17,7 @@ import logging
 from fontTools.ttLib import TTFont
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-from ttf2stitch.config import DEFAULT_EXCLUDE_CHARS, DEFAULT_LETTER_SPACING, DEFAULT_SPACE_WIDTH
+from ttf2stitch.config import DEFAULT_EXCLUDE_CHARS
 from ttf2stitch.filters import filter_glyphs
 from ttf2stitch.sampler import trim_bitmap
 from ttf2stitch.schema import GlyphV2, build_font_v2
@@ -226,62 +226,21 @@ def rasterize_font(
     threshold: int | None = 128,
     bold: int = 0,
     strategy: str = "average",
-    name: str | None = None,
-    font_id: str | None = None,
-    letter_spacing: int = DEFAULT_LETTER_SPACING,
-    space_width: int = DEFAULT_SPACE_WIDTH,
-    charset: str = "basic",
-    category: str | None = None,
-    source: str | None = None,
-    license_str: str | None = None,
-    tags: list[str] | None = None,
-    exclude_chars: set[str] | None = None,
-    is_cursive: bool = False,
     trim: bool = True,
-    verbose: bool = False,
 ) -> RasterResult:
     """Rasterize any TTF/OTF font at a fixed stitch height.
 
-    Accepts either a FontConversionOptions via `opts` or individual keyword args
-    for backward compatibility. If `opts` is provided, shared params are taken from it.
-
     Args:
         font_path: Path to TTF/OTF file.
-        opts: Shared conversion options (replaces individual shared kwargs).
+        opts: Shared conversion options (metadata, charset, spacing, etc.).
         target_height: Desired height in stitches.
         threshold: Pixel threshold (0-255). None = auto (Otsu's method).
         bold: Dilation radius (0=none, 1=thicken, 2=extra bold).
-        strategy: Downsampling strategy.
-        name: Display name override (ignored if opts provided).
-        font_id: Font ID override (ignored if opts provided).
-        letter_spacing: Space between letters (ignored if opts provided).
-        space_width: Width of space character (ignored if opts provided).
-        charset: Character set (ignored if opts provided).
-        category: Font category (ignored if opts provided).
-        source: Attribution text (ignored if opts provided).
-        license_str: License identifier (ignored if opts provided).
-        tags: Tags list (ignored if opts provided).
-        exclude_chars: Characters to exclude (ignored if opts provided).
-        is_cursive: Shorthand for spacing=0, category=script (ignored if opts provided).
+        strategy: Downsampling strategy ("average" or "max-ink").
         trim: Whether to trim empty border rows/columns.
-        verbose: Enable logging (ignored if opts provided).
     """
-    # Build opts from individual kwargs if not provided
     if opts is None:
-        opts = FontConversionOptions(
-            name=name,
-            font_id=font_id,
-            letter_spacing=letter_spacing,
-            space_width=space_width,
-            charset=charset,
-            category=category,
-            source=source,
-            license_str=license_str,
-            tags=tags,
-            exclude_chars=exclude_chars,
-            is_cursive=is_cursive,
-            verbose=verbose,
-        )
+        opts = FontConversionOptions()
 
     # Metadata inference + cursive logic
     meta = resolve_font_metadata(font_path, opts)

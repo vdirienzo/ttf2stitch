@@ -239,7 +239,7 @@
   .font-tabs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
   .font-tab {
     flex-shrink: 0;
-    padding: 3px 7px;
+    padding: 4px 8px;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: transparent;
@@ -251,7 +251,6 @@
     transition: background 0.12s, border-color 0.12s, color 0.12s;
     white-space: nowrap;
     line-height: 1.3;
-    min-height: 44px;
   }
   .font-tab:hover {
     border-color: var(--accent);
@@ -343,8 +342,8 @@
     flex: 1;
     -webkit-appearance: none;
     appearance: none;
-    height: 8px;
-    border-radius: 4px;
+    height: 6px;
+    border-radius: 3px;
     background: var(--border);
     outline: none;
     transition: background 0.2s;
@@ -352,8 +351,8 @@
   .height-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 28px;
-    height: 28px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: var(--accent);
     cursor: pointer;
@@ -365,8 +364,8 @@
     transform: scale(1.15);
   }
   .height-slider::-moz-range-thumb {
-    width: 28px;
-    height: 28px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: var(--accent);
     cursor: pointer;
@@ -493,12 +492,9 @@
   .custom-stitch-row {
     display: none;
     flex-direction: column;
-    gap: 8px;
-    margin-top: 12px;
-    padding: 12px;
-    background: var(--surface);
-    border-radius: var(--radius);
-    border: 1px solid var(--border-light);
+    gap: 4px;
+    margin-top: 8px;
+    padding: 0;
   }
   .custom-stitch-row.visible { display: flex; }
   .custom-stitch-header {
@@ -519,7 +515,7 @@
     gap: 3px;
   }
   .custom-stitch-header .stitch-value-num {
-    font-size: 22px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--accent);
     font-family: var(--font-body);
@@ -534,30 +530,30 @@
     -webkit-appearance: none;
     appearance: none;
     width: 100%;
-    height: 8px;
-    border-radius: 4px;
+    height: 6px;
+    border-radius: 3px;
     background: var(--border);
     outline: none;
   }
   .custom-stitch-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 28px;
-    height: 28px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: var(--accent);
     cursor: pointer;
-    border: 3px solid #fff;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.2);
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
   }
   .custom-stitch-slider::-moz-range-thumb {
-    width: 28px;
-    height: 28px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: var(--accent);
     cursor: pointer;
-    border: 3px solid #fff;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.2);
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
   }
   .custom-stitch-slider:focus-visible {
     outline: 2px solid var(--accent);
@@ -868,29 +864,6 @@
     display: contents;
   }
 
-  /* -- Sidebar toggle & drawer backdrop (disabled - no longer used) -- */
-  .sidebar-toggle {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    background: #fff;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: border-color 0.15s, background 0.15s;
-    position: relative;
-  }
-  .sidebar-toggle:hover { border-color: var(--accent); }
-  .sidebar-toggle.active { border-color: var(--accent); background: var(--accent-soft); }
-  .sidebar-toggle svg { width: 18px; height: 18px; color: var(--text-mid); }
-  .sidebar-toggle.active svg { color: var(--accent); }
-
-  .drawer-backdrop {
-    display: none !important;
-  }
 
   /* ============================================= */
   /* -- Responsive: Mobile (<=640px) -- */
@@ -915,7 +888,6 @@
       background-position: right 4px center;
       opacity: 0.7;
     }
-    .sidebar-toggle { display: none; }
     .unit-toggle { border-radius: var(--radius-sm); }
     .unit-toggle-btn { padding: 6px 12px; min-height: 36px; min-width: 36px; font-size: 12px; }
 
@@ -983,8 +955,6 @@
       min-height: 0;
       justify-content: center;
     }
-
-    .drawer-backdrop { display: none !important; }
   }
 
   /* ============================================= */
@@ -1473,7 +1443,6 @@
   /* ============================================= */
   @media (min-width: 641px) and (max-width: 1024px) {
     .sidebar { width: 250px; }
-    .sidebar-toggle { display: none; }
     .text-input { font-size: 18px; }
   }
 
@@ -1482,7 +1451,6 @@
   /* ============================================= */
   @media (min-width: 1025px) {
     .sidebar { width: 300px; }
-    .sidebar-toggle { display: none; }
   }
 
   /* -- Language selector -- */
@@ -1569,14 +1537,6 @@
     <button class="unit-toggle-btn" data-unit="imperial" aria-pressed="false" aria-label="Inches">in</button>
   </div>
 
-  <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle controls" data-i18n-aria="toggle_controls">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <line x1="3" y1="6" x2="21" y2="6"/>
-      <line x1="3" y1="12" x2="21" y2="12"/>
-      <line x1="3" y1="18" x2="21" y2="18"/>
-    </svg>
-  </button>
-
   <button class="btn-download" id="btnDownload" aria-label="Download PDF">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -1586,9 +1546,6 @@
     <span class="dl-label">PDF</span>
   </button>
 </header>
-
-<!-- Drawer backdrop (mobile) -->
-<div class="drawer-backdrop" id="drawerBackdrop"></div>
 
 <!-- -- Main Split Layout -- -->
 <main class="main-layout">
@@ -1630,7 +1587,7 @@
         <input type="range" class="height-slider" id="heightSlider" min="8" max="30" value="18" step="1" aria-label="Stitch height" />
         <div>
           <span class="height-value" id="heightValue">18</span>
-          <span class="height-unit" data-i18n="unit_px">px</span>
+          <span class="height-unit" data-i18n="unit_px">st</span>
         </div>
       </div>
     </div>
@@ -1766,7 +1723,7 @@
     <span class="mobile-slider-label">H</span>
     <input type="range" class="height-slider" id="mobileHeightSlider" min="8" max="30" value="18" step="1" />
     <span class="mobile-slider-value" id="mobileHeightValue">18</span>
-    <span class="mobile-slider-unit">px</span>
+    <span class="mobile-slider-unit">st</span>
   </div>
   <!-- Row 2: Aida + Font + Color buttons -->
   <div class="mobile-buttons-row">
@@ -1836,7 +1793,7 @@
         <input type="range" class="height-slider" id="sheetHeightSlider" min="8" max="30" value="18" step="1" aria-label="Stitch height" />
         <div>
           <span class="height-value" id="sheetHeightValue">18</span>
-          <span class="height-unit" data-i18n="unit_px">px</span>
+          <span class="height-unit" data-i18n="unit_px">st</span>
         </div>
       </div>
     </div>
@@ -1941,7 +1898,7 @@
       search_fonts: "Search fonts…",
       tab_all: "All",
       section_height: "Stitch Height",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "Thread Color",
       section_fabric: "Fabric",
       label_aida: "Aida",
@@ -1972,7 +1929,7 @@
       search_fonts: "Buscar fuentes…",
       tab_all: "Todas",
       section_height: "Altura de Puntada",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "Color de Hilo",
       section_fabric: "Tela",
       label_aida: "Aida",
@@ -2003,7 +1960,7 @@
       search_fonts: "Rechercher des polices…",
       tab_all: "Toutes",
       section_height: "Hauteur de Point",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "Couleur du Fil",
       section_fabric: "Tissu",
       label_aida: "Aida",
@@ -2027,7 +1984,7 @@
       search_fonts: "Schriftarten suchen…",
       tab_all: "Alle",
       section_height: "Stichhöhe",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "Garnfarbe",
       section_fabric: "Stoff",
       label_aida: "Aida",
@@ -2051,7 +2008,7 @@
       search_fonts: "Cerca font…",
       tab_all: "Tutti",
       section_height: "Altezza Punto",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "Colore Filo",
       section_fabric: "Tessuto",
       label_aida: "Aida",
@@ -2075,7 +2032,7 @@
       search_fonts: "Buscar fontes…",
       tab_all: "Todas",
       section_height: "Altura do Ponto",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "Cor da Linha",
       section_fabric: "Tecido",
       label_aida: "Aida",
@@ -2099,7 +2056,7 @@
       search_fonts: "Lettertypen zoeken…",
       tab_all: "Alle",
       section_height: "Steekhoogte",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "Draadkleur",
       section_fabric: "Stof",
       label_aida: "Aida",
@@ -2123,7 +2080,7 @@
       search_fonts: "フォントを検索…",
       tab_all: "すべて",
       section_height: "ステッチ高さ",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "糸の色",
       section_fabric: "布地",
       label_aida: "アイーダ",
@@ -2147,7 +2104,7 @@
       search_fonts: "글꼴 검색…",
       tab_all: "전체",
       section_height: "스티치 높이",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "실 색상",
       section_fabric: "원단",
       label_aida: "아이다",
@@ -2171,7 +2128,7 @@
       search_fonts: "搜索字体…",
       tab_all: "全部",
       section_height: "针高",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "线色",
       section_fabric: "布料",
       label_aida: "Aida",
@@ -2195,7 +2152,7 @@
       search_fonts: "Поиск шрифтов…",
       tab_all: "Все",
       section_height: "Высота стежка",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "Цвет нити",
       section_fabric: "Ткань",
       label_aida: "Аида",
@@ -2219,7 +2176,7 @@
       search_fonts: "Szukaj czcionek…",
       tab_all: "Wszystkie",
       section_height: "Wysokość Ściegu",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "Kolor Nici",
       section_fabric: "Tkanina",
       label_aida: "Aida",
@@ -2243,7 +2200,7 @@
       search_fonts: "Sök typsnitt…",
       tab_all: "Alla",
       section_height: "Stygnh\u00f6jd",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "Trådfärg",
       section_fabric: "Tyg",
       label_aida: "Aida",
@@ -2267,7 +2224,7 @@
       search_fonts: "Søg skrifttyper…",
       tab_all: "Alle",
       section_height: "Stinghøjde",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "Trådfarve",
       section_fabric: "Stof",
       label_aida: "Aida",
@@ -2291,7 +2248,7 @@
       search_fonts: "Etsi fontteja…",
       tab_all: "Kaikki",
       section_height: "Pistonkorkeus",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "Langan Väri",
       section_fabric: "Kangas",
       label_aida: "Aida",
@@ -2315,7 +2272,7 @@
       search_fonts: "Пошук шрифтів…",
       tab_all: "Усі",
       section_height: "Висота стібка",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "Колір нитки",
       section_fabric: "Тканина",
       label_aida: "Аїда",
@@ -2339,7 +2296,7 @@
       search_fonts: "Betűtípusok keresése…",
       tab_all: "Összes",
       section_height: "Öltésmagasság",
-      unit_px: "px",
+      unit_px: "st",
       section_color: "Fonalszín",
       section_fabric: "Szövet",
       label_aida: "Aida",
@@ -3034,9 +2991,14 @@
     chip.classList.add('selected');
 
     if (countVal === 'custom') {
-      isCustomAida = true;
-      if (customStitchRow) customStitchRow.classList.add('visible');
-      updateCustomStitch(currentStitchMm, 'init');
+      if (isCustomAida) {
+        // Already custom — toggle slider visibility
+        if (customStitchRow) customStitchRow.classList.toggle('visible');
+      } else {
+        isCustomAida = true;
+        if (customStitchRow) customStitchRow.classList.add('visible');
+        updateCustomStitch(currentStitchMm, 'init');
+      }
     } else {
       isCustomAida = false;
       if (customStitchRow) customStitchRow.classList.remove('visible');

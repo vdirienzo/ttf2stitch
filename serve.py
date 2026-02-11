@@ -11,57 +11,26 @@ All other requests (GET, HEAD) are handled by the default static file server.
 
 import json
 import os
-import re
 import sys
 import time
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-from pathlib import Path
 
 from server_utils import (
-    FONT_EXTENSIONS,
-    classify_font,
+    FONT_ID_RE,
     do_rasterize,
     json_error,
     json_response,
+    list_fonts,
     read_json_body,
+    validate_rasterize_params,
 )
 
 OUTPUT_DIR = "output"
 FONTS_DIR = "fonts"
-SAFE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$")
 
 # In-memory caches
 _rasterize_cache: dict[tuple[str, int, int, str], dict] = {}
 _font_categories: dict[str, str] = {}
-
-
-def _get_category(font_path: str) -> str:
-    """Get font category, using cache to avoid re-reading font files."""
-    if font_path not in _font_categories:
-        _font_categories[font_path] = classify_font(font_path)
-    return _font_categories[font_path]
-
-
-def _list_fonts() -> list[dict]:
-    """List available TTF/OTF fonts from the fonts directory."""
-    fonts = []
-    fonts_path = Path(FONTS_DIR)
-    if not fonts_path.is_dir():
-        return fonts
-
-    for entry in sorted(fonts_path.iterdir()):
-        if entry.suffix.lower() in FONT_EXTENSIONS and entry.is_file():
-            name = entry.stem  # filename without extension
-            fonts.append(
-                {
-                    "file": entry.name,
-                    "name": name,
-                    "size": entry.stat().st_size,
-                    "category": _get_category(str(entry)),
-                }
-            )
-
-    return fonts
 
 
 class FontServerHandler(SimpleHTTPRequestHandler):
@@ -84,7 +53,7 @@ class FontServerHandler(SimpleHTTPRequestHandler):
             self.send_error(404, "Not Found")
 
     def _handle_list_fonts(self):
-        fonts = _list_fonts()
+        fonts = list_fonts(FONTS_DIR, category_cache=_font_categories)
         json_response(self, fonts)
 
     def _handle_rasterize(self):
@@ -92,44 +61,28 @@ class FontServerHandler(SimpleHTTPRequestHandler):
         if body is None:
             return
 
-        # Extract and validate parameters
-        font_file = body.get("font", "")
-        if not font_file or ".." in font_file or "/" in font_file:
-            json_error(self, f"Invalid font filename: '{font_file}'", 400)
-            return
-
-        height = body.get("height", 12)
-        if not isinstance(height, int) or height < 4 or height > 60:
-            json_error(self, "height must be an integer between 4 and 60", 400)
-            return
-
-        bold = body.get("bold", 0)
-        if not isinstance(bold, int) or bold < 0 or bold > 3:
-            json_error(self, "bold must be 0, 1, 2, or 3", 400)
-            return
-
-        strategy = body.get("strategy", "average")
-        if strategy not in ("average", "max-ink"):
-            json_error(self, "strategy must be 'average' or 'max-ink'", 400)
+        params, error = validate_rasterize_params(body)
+        if error:
+            json_error(self, error, 400)
             return
 
         try:
             t0 = time.monotonic()
             font_json = do_rasterize(
-                font_file,
-                height,
-                bold,
-                strategy,
+                params["font"],
+                params["height"],
+                params["bold"],
+                params["strategy"],
                 fonts_dir=FONTS_DIR,
                 cache=_rasterize_cache,
             )
             elapsed = time.monotonic() - t0
             self.log_message(
                 "Rasterized: %s h=%d bold=%d %s (%.1fs, %d glyphs)",
-                font_file,
-                height,
-                bold,
-                strategy,
+                params["font"],
+                params["height"],
+                params["bold"],
+                params["strategy"],
                 elapsed,
                 len(font_json.get("glyphs", {})),
             )
@@ -146,7 +99,7 @@ class FontServerHandler(SimpleHTTPRequestHandler):
 
         # Validate required fields
         font_id = body.get("id", "")
-        if not font_id or not SAFE_ID_RE.match(font_id):
+        if not font_id or not FONT_ID_RE.match(font_id):
             json_error(self, f"Invalid font id: '{font_id}'", 400)
             return
 
@@ -206,7 +159,8 @@ def main():
     print(f"ttf2stitch server on http://127.0.0.1:{port}")
     print(f"Word2Stitch: http://127.0.0.1:{port}/public/index.html")
     print(f"Inspector:   http://127.0.0.1:{port}/public/inspector.html")
-    print(f"Fonts dir:   {os.path.abspath(FONTS_DIR)}/ ({len(_list_fonts())} fonts)")
+    font_count = len(list_fonts(FONTS_DIR, category_cache=_font_categories))
+    print(f"Fonts dir:   {os.path.abspath(FONTS_DIR)}/ ({font_count} fonts)")
     print("Press Ctrl+C to stop\n")
     try:
         server.serve_forever()

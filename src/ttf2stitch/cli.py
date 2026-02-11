@@ -139,54 +139,62 @@ def shared_rasterize_options(func):
 
 def _build_extract_kwargs(opts: dict) -> dict:
     """Convert CLI option dict into kwargs for extract_font()."""
+    from ttf2stitch.utils import FontConversionOptions
+
     tags_raw = opts.get("tags")
     tag_list = [t.strip() for t in tags_raw.split(",")] if tags_raw else None
     exclude = set(opts["exclude_chars"]) if opts.get("exclude_chars") else set()
 
     return {
-        "name": opts["name"],
-        "font_id": opts["font_id"],
-        "cell_units_override": opts["cell_units"],
+        "opts": FontConversionOptions(
+            name=opts["name"],
+            font_id=opts["font_id"],
+            letter_spacing=opts["letter_spacing"],
+            space_width=opts["space_width"],
+            charset=opts["charset"],
+            category=opts["category"],
+            source=opts["source"],
+            license_str=opts["license_str"],
+            tags=tag_list,
+            exclude_chars=exclude,
+            is_cursive=opts["cursive"],
+            verbose=opts["verbose"],
+        ),
+        "cell_units": opts["cell_units"],
         "render_size": opts["render_size"],
         "sample_pct": opts["sample_pct"],
         "fill_threshold": opts["fill_threshold"],
-        "letter_spacing": opts["letter_spacing"],
-        "space_width": opts["space_width"],
-        "charset": opts["charset"],
-        "category": opts["category"],
-        "source": opts["source"],
-        "license_str": opts["license_str"],
-        "tags": tag_list,
-        "exclude_chars": exclude,
-        "is_cursive": opts["cursive"],
-        "verbose": opts["verbose"],
     }
 
 
 def _build_rasterize_kwargs(opts: dict) -> dict:
     """Convert CLI option dict into kwargs for rasterize_font()."""
+    from ttf2stitch.utils import FontConversionOptions
+
     tags_raw = opts.get("tags")
     tag_list = [t.strip() for t in tags_raw.split(",")] if tags_raw else None
     exclude = set(opts["exclude_chars"]) if opts.get("exclude_chars") else set()
 
     return {
+        "opts": FontConversionOptions(
+            name=opts["name"],
+            font_id=opts["font_id"],
+            letter_spacing=opts["letter_spacing"],
+            space_width=opts["space_width"],
+            charset=opts["charset"],
+            category=opts["category"],
+            source=opts["source"],
+            license_str=opts["license_str"],
+            tags=tag_list,
+            exclude_chars=exclude,
+            is_cursive=opts["cursive"],
+            verbose=opts["verbose"],
+        ),
         "target_height": opts["height"],
         "threshold": None if opts["auto_threshold"] else opts["threshold"],
         "bold": opts["bold"],
         "strategy": opts["strategy"],
-        "name": opts["name"],
-        "font_id": opts["font_id"],
-        "letter_spacing": opts["letter_spacing"],
-        "space_width": opts["space_width"],
-        "charset": opts["charset"],
-        "category": opts["category"],
-        "source": opts["source"],
-        "license_str": opts["license_str"],
-        "tags": tag_list,
-        "exclude_chars": exclude,
-        "is_cursive": opts["cursive"],
         "trim": not opts["no_trim"],
-        "verbose": opts["verbose"],
     }
 
 

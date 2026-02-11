@@ -12,7 +12,13 @@ PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from server_utils import do_rasterize, json_error, json_response, read_json_body  # noqa: E402
+from server_utils import (  # noqa: E402
+    do_rasterize,
+    json_error,
+    json_response,
+    read_json_body,
+    validate_rasterize_params,
+)
 
 FONTS_DIR = str(PROJECT_ROOT / "fonts")
 
@@ -26,32 +32,17 @@ class handler(BaseHTTPRequestHandler):
         if body is None:
             return
 
-        font_file = body.get("font", "")
-        if not font_file or ".." in font_file or "/" in font_file:
-            json_error(self, f"Invalid font filename: '{font_file}'", 400)
-            return
-
-        height = body.get("height", 12)
-        if not isinstance(height, int) or height < 4 or height > 60:
-            json_error(self, "height must be an integer between 4 and 60", 400)
-            return
-
-        bold = body.get("bold", 0)
-        if not isinstance(bold, int) or bold < 0 or bold > 3:
-            json_error(self, "bold must be 0, 1, 2, or 3", 400)
-            return
-
-        strategy = body.get("strategy", "average")
-        if strategy not in ("average", "max-ink"):
-            json_error(self, "strategy must be 'average' or 'max-ink'", 400)
+        params, error = validate_rasterize_params(body)
+        if error:
+            json_error(self, error, 400)
             return
 
         try:
             font_json = do_rasterize(
-                font_file,
-                height,
-                bold,
-                strategy,
+                params["font"],
+                params["height"],
+                params["bold"],
+                params["strategy"],
                 fonts_dir=FONTS_DIR,
                 cache=_rasterize_cache,
             )
