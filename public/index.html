@@ -1843,9 +1843,8 @@
   </div>
 </div>
 
-<!-- ================================================ -->
-<!-- ==  JavaScript                                 == -->
-<!-- ================================================ -->
+<!-- JS loaded via assemble.js from ui-modules/ -->
+
 
 <!-- ═══ jsPDF CDN ═══ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -4008,6 +4007,8 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 (function () {
   'use strict';
 
+// ui-modules/i18n.js — I18N functions (t, applyLang, setLanguage)
+
   // I18N data loaded from i18n-data.js
 
   var currentLang = 'en';
@@ -4040,6 +4041,9 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     applyLang();
     if (typeof renderFontListUI === 'function') renderFontListUI();
   }
+
+
+// ui-modules/state.js — State variables, DOM refs, and helpers
 
   // -- State --
   var currentText = 'Welcome';
@@ -4156,6 +4160,9 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     previewLoading.classList.add('hidden');
   }
 
+
+// ui-modules/bitmap.js — Bitmap functions (getEffectiveBitmap, getTextBitmap)
+
   // -- Bitmap --
 
   function getEffectiveBitmap(glyph) {
@@ -4213,6 +4220,9 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     }
     return { bitmap: bitmap, width: width, height: height };
   }
+
+
+// ui-modules/renderer.js — Canvas rendering (renderPreview)
 
   // -- Render --
 
@@ -4292,6 +4302,9 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     return { width: width, height: height, stitches: stitchCount };
   }
 
+
+// ui-modules/api.js — API calls (fetchFontList, rasterizeFont)
+
   // -- API calls --
 
   function fetchFontList() {
@@ -4360,6 +4373,10 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     inFlightRequests.set(key, promise);
     return promise;
   }
+
+
+// ui-modules/preview.js — Preview orchestration
+// updatePreview(), loadAndRender(), text input handler
 
   // -- Update Preview (main function) --
 
@@ -4453,6 +4470,10 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     // Re-render font sheet previews with new text
     renderVirtualFontList();
   });
+
+
+// ui-modules/font-manager.js — Font list rendering, search, category tabs
+// renderFontListUI(), font search handler, category tab click handler
 
   // -- Font List UI --
 
@@ -4580,28 +4601,9 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     renderFontListUI();
   });
 
-  // -- Height Slider --
 
-  var heightDebounceTimer = null;
-
-  heightSlider.addEventListener('input', function () {
-    var val = parseInt(this.value);
-    heightValue.textContent = val;
-    syncMobileHeightValue(val);
-    currentHeight = val;
-
-    // Cancel stale preview requests immediately
-    cancelAllPreviews();
-
-    // Priority: re-rasterize selected font immediately
-    loadAndRender();
-
-    // Debounced: re-render sidebar previews (300ms)
-    clearTimeout(heightDebounceTimer);
-    heightDebounceTimer = setTimeout(function () {
-      renderFontListUI();
-    }, 300);
-  });
+// ui-modules/color-manager.js — DMC color swatch rendering and click handlers
+// renderColors()
 
   // -- Color Swatches --
 
@@ -4635,6 +4637,33 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
     colorRow.appendChild(fragment);
   }
+
+
+// ui-modules/settings.js — Stitch/aida/height/unit handlers and custom stitch variables
+// Height slider, aida count buttons, custom stitch slider, unit toggle
+
+  // -- Height Slider --
+
+  var heightDebounceTimer = null;
+
+  heightSlider.addEventListener('input', function () {
+    var val = parseInt(this.value);
+    heightValue.textContent = val;
+    syncMobileHeightValue(val);
+    currentHeight = val;
+
+    // Cancel stale preview requests immediately
+    cancelAllPreviews();
+
+    // Priority: re-rasterize selected font immediately
+    loadAndRender();
+
+    // Debounced: re-render sidebar previews (300ms)
+    clearTimeout(heightDebounceTimer);
+    heightDebounceTimer = setTimeout(function () {
+      renderFontListUI();
+    }, 300);
+  });
 
   // -- Aida Count --
 
@@ -4740,6 +4769,10 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     setDisplayUnit(btn.dataset.unit);
   });
 
+
+// ui-modules/pdf-integration.js — Download PDF button handler
+// Calls generatePDF from pdf-engine
+
   // -- Download PDF --
 
   btnDownload.addEventListener('click', function () {
@@ -4764,55 +4797,8 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     }
   });
 
-  // -- Resize handling --
 
-  var resizeTimer;
-  window.addEventListener('resize', function () {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(updatePreview, 150);
-  });
-
-  // -- Initialize --
-
-  function init() {
-    // Detect language
-    var savedLang = null;
-    try { savedLang = localStorage.getItem('w2s_lang'); } catch(e) {}
-    var browserLang = (navigator.language || '').split('-')[0];
-    setLanguage(savedLang || (I18N[browserLang] ? browserLang : 'en'));
-
-    // Detect unit preference
-    var savedUnit = null;
-    try { savedUnit = localStorage.getItem('w2s_unit'); } catch(e) {}
-    setDisplayUnit(savedUnit || detectDefaultUnit());
-
-    renderColors();
-    initMobileToolbar();
-    fetchFontList();
-    updatePreview();
-  }
-
-  // Expose for pdf-engine
-  window.getTextBitmap = getTextBitmap;
-  window.getEffectiveBitmap = getEffectiveBitmap;
-  window.renderPreview = renderPreview;
-  window.getDisplayUnit = function() { return displayUnit; };
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-
-  // Wait for DMC_COLORS if loaded late
-  var _colorsInterval = setInterval(function () {
-    if (typeof DMC_COLORS !== 'undefined') {
-      clearInterval(_colorsInterval);
-      renderColors();
-      populateMobileColorStrip();
-    }
-  }, 200);
-  setTimeout(function () { clearInterval(_colorsInterval); }, 10000);
+// ui-modules/mobile-ui.js — Mobile sheets, virtual scroll, toolbar
 
   // ============================================================
   // == Mobile Canvas First: Bottom Sheets & Virtual Scroll     ==
@@ -5566,10 +5552,62 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     }, 150);
   });
 
+
+// ui-modules/init.js — Resize handling, init function, window exposures, DOMContentLoaded
+
+  // -- Resize handling --
+
+  var resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(updatePreview, 150);
+  });
+
+  // -- Initialize --
+
+  function init() {
+    // Detect language
+    var savedLang = null;
+    try { savedLang = localStorage.getItem('w2s_lang'); } catch(e) {}
+    var browserLang = (navigator.language || '').split('-')[0];
+    setLanguage(savedLang || (I18N[browserLang] ? browserLang : 'en'));
+
+    // Detect unit preference
+    var savedUnit = null;
+    try { savedUnit = localStorage.getItem('w2s_unit'); } catch(e) {}
+    setDisplayUnit(savedUnit || detectDefaultUnit());
+
+    renderColors();
+    initMobileToolbar();
+    fetchFontList();
+    updatePreview();
+  }
+
+  // Expose for pdf-engine
+  window.getTextBitmap = getTextBitmap;
+  window.getEffectiveBitmap = getEffectiveBitmap;
+  window.renderPreview = renderPreview;
+  window.getDisplayUnit = function() { return displayUnit; };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  // Wait for DMC_COLORS if loaded late
+  var _colorsInterval = setInterval(function () {
+    if (typeof DMC_COLORS !== 'undefined') {
+      clearInterval(_colorsInterval);
+      renderColors();
+      populateMobileColorStrip();
+    }
+  }, 200);
+  setTimeout(function () { clearInterval(_colorsInterval); }, 10000);
+
+
 })();
 </script>
-
-
 
 </body>
 </html>

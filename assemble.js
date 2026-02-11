@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
  * Assembles the final index.html from modular source files:
- * 1. ui-shell.html  (HTML structure + UI JS, references external CSS & I18N)
- * 2. ui-shell.css   (styles, inlined back as <style> block)
+ * 1. ui-shell.html  (HTML-only template, no JS)
+ * 2. ui-shell.css   (styles, inlined as <style> block)
  * 3. i18n-data.js   (translations, inlined as <script> block)
  * 4. data-fonts.js  (DMC_COLORS)
- * 5. pdf-modules/   (PDF generation, split into 4 files)
+ * 5. pdf-modules/   (PDF generation, 4 files concatenated)
+ * 6. ui-modules/    (UI logic, 12 files concatenated into IIFE)
  */
 const fs = require('fs');
 const path = require('path');
@@ -15,26 +16,27 @@ const uiShell = fs.readFileSync(path.join(BASE, 'ui-shell.html'), 'utf-8');
 const uiCss = fs.readFileSync(path.join(BASE, 'ui-shell.css'), 'utf-8');
 const i18nData = fs.readFileSync(path.join(BASE, 'i18n-data.js'), 'utf-8');
 const dataFonts = fs.readFileSync(path.join(BASE, 'data-fonts.js'), 'utf-8');
+
+// PDF modules (4 files)
 const pdfModules = ['pdf-helpers.js', 'pdf-bitmap.js', 'pdf-renderer.js', 'pdf-modal.js'];
 const pdfEngine = pdfModules.map(f => fs.readFileSync(path.join(BASE, 'pdf-modules', f), 'utf-8')).join('\n\n');
 
-// Step 1: Inline the CSS — replace <link rel="stylesheet" href="ui-shell.css"> with <style>
+// UI modules (12 files, order matters — dependencies flow top to bottom)
+const uiModules = [
+  'i18n.js', 'state.js', 'bitmap.js', 'renderer.js', 'api.js',
+  'preview.js', 'font-manager.js', 'color-manager.js', 'settings.js',
+  'pdf-integration.js', 'mobile-ui.js', 'init.js'
+];
+const uiJs = uiModules.map(f => fs.readFileSync(path.join(BASE, 'ui-modules', f), 'utf-8')).join('\n\n');
+
+// Step 1: Inline the CSS — replace <link> with <style>
 let html = uiShell.replace(
   '<link rel="stylesheet" href="ui-shell.css">',
   `<style>\n${uiCss}\n</style>`
 );
 
-// Step 2: Find the UI <script> tag (after the HTML body content)
-const scriptStartTag = '<script>';
-const scriptEndTag = '</script>';
-
-const scriptStart = html.indexOf(scriptStartTag, html.indexOf('<div class="main-layout">'));
-const htmlBeforeScript = html.substring(0, scriptStart);
-const uiScript = html.substring(scriptStart, html.lastIndexOf(scriptEndTag) + scriptEndTag.length);
-const htmlAfterScript = html.substring(html.lastIndexOf(scriptEndTag) + scriptEndTag.length);
-
-// Step 3: Build the final self-contained HTML
-const finalHtml = `${htmlBeforeScript}
+// Step 2: Insert all scripts before </body>
+const scriptsBlock = `
 <!-- ═══ jsPDF CDN ═══ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -63,9 +65,17 @@ ${i18nData}
 </script>
 
 <!-- ═══ UI Application Logic ═══ -->
-${uiScript}
+<script>
+(function () {
+  'use strict';
 
-${htmlAfterScript}`;
+${uiJs}
+
+})();
+</script>
+`;
+
+const finalHtml = html.replace('</body>', scriptsBlock + '\n</body>');
 
 // Write output
 const outDir = path.join(BASE, 'public');
