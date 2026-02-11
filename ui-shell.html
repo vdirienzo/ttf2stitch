@@ -1626,12 +1626,12 @@
         </button>
         <button class="aida-chip" data-count="custom" id="aidaCustomChip">
           <span class="aida-chip-num">✎</span>
-          <span class="aida-chip-label">Custom</span>
+          <span class="aida-chip-label" data-i18n="label_custom">Custom</span>
         </button>
       </div>
       <div class="custom-stitch-row" id="customStitchRow">
         <div class="custom-stitch-header">
-          <span class="stitch-label">Stitch length</span>
+          <span class="stitch-label" data-i18n="label_stitch_length">Stitch length</span>
           <div class="stitch-value-display">
             <span class="stitch-value-num" id="customStitchValue">3.0</span>
             <span class="stitch-value-unit" id="customStitchUnit">mm</span>
@@ -1782,7 +1782,7 @@
 <!-- -- Settings Bottom Sheet -- -->
 <div class="bottom-sheet sheet-settings" id="sheetSettings" role="dialog" aria-modal="true" aria-label="Fabric & Stitch">
   <div class="sheet-handle" id="sheetSettingsHandle"></div>
-  <div class="sheet-title">Fabric & Stitch</div>
+  <div class="sheet-title" data-i18n="sheet_fabric">Fabric &amp; Stitch</div>
   <div class="sheet-body">
     <div class="sheet-settings-group">
       <div class="sheet-settings-label">
@@ -1807,11 +1807,11 @@
         <button class="aida-chip selected" data-count="14"><span class="aida-chip-num">14</span><span class="aida-chip-label" data-i18n="label_aida">Aida</span></button>
         <button class="aida-chip" data-count="16"><span class="aida-chip-num">16</span><span class="aida-chip-label" data-i18n="label_aida">Aida</span></button>
         <button class="aida-chip" data-count="18"><span class="aida-chip-num">18</span><span class="aida-chip-label" data-i18n="label_aida">Aida</span></button>
-        <button class="aida-chip" data-count="custom"><span class="aida-chip-num">&#9998;</span><span class="aida-chip-label">Custom</span></button>
+        <button class="aida-chip" data-count="custom"><span class="aida-chip-num">&#9998;</span><span class="aida-chip-label" data-i18n="label_custom">Custom</span></button>
       </div>
       <div class="custom-stitch-row" id="sheetCustomStitchRow">
         <div class="custom-stitch-header">
-          <span class="stitch-label">Stitch length</span>
+          <span class="stitch-label" data-i18n="label_stitch_length">Stitch length</span>
           <div class="stitch-value-display">
             <span class="stitch-value-num" id="sheetCustomStitchValue">3.0</span>
             <span class="stitch-value-unit" id="sheetCustomStitchUnit">mm</span>
@@ -1827,7 +1827,7 @@
 <!-- -- Info Bottom Sheet -- -->
 <div class="bottom-sheet sheet-info" id="sheetInfo" role="dialog" aria-modal="true" aria-label="Pattern info">
   <div class="sheet-handle" id="sheetInfoHandle"></div>
-  <div class="sheet-title">Pattern Info</div>
+  <div class="sheet-title" data-i18n="sheet_info">Pattern Info</div>
   <div class="sheet-body">
     <div class="sheet-info-cards">
       <div class="sheet-info-card full-width">
@@ -1844,11 +1844,11 @@
       </div>
       <div class="sheet-info-card">
         <div class="sheet-info-card-value" id="infoDmc">--</div>
-        <div class="sheet-info-card-label">DMC</div>
+        <div class="sheet-info-card-label" data-i18n="label_dmc">DMC</div>
       </div>
       <div class="sheet-info-card">
         <div class="sheet-info-card-value" id="infoThread">--</div>
-        <div class="sheet-info-card-label">Thread</div>
+        <div class="sheet-info-card-label" data-i18n="label_thread">Thread</div>
       </div>
     </div>
     <div class="sheet-info-ruler" id="infoRuler">
@@ -1859,7 +1859,7 @@
       </div>
     </div>
     <div class="sheet-info-lang">
-      <label>Language</label>
+      <label data-i18n="label_language">Language</label>
       <select id="sheetLangSelect">
         <option value="en">EN English</option>
         <option value="es">ES Español</option>
@@ -1976,7 +1976,14 @@
       alert_no_text: "Tapez du texte et sélectionnez une police d'abord.",
       alert_no_pdf: "Moteur PDF non chargé. Rechargez la page.",
       alert_no_jspdf: "Bibliothèque jsPDF non chargée. Vérifiez votre connexion et rechargez.",
-      alert_pdf_fail: "Échec de la génération du PDF : "
+      alert_pdf_fail: "Échec de la génération du PDF : ",
+      label_custom: "Personnalisé",
+      label_stitch_length: "Longueur de point",
+      sheet_fabric: "Tissu et Point",
+      sheet_info: "Info du Patron",
+      label_dmc: "DMC",
+      label_thread: "Fil",
+      label_language: "Langue"
     },
     de: {
       placeholder_text: "Gib deinen Text ein…",
@@ -2000,7 +2007,14 @@
       alert_no_text: "Gib einen Text ein und wähle eine Schriftart.",
       alert_no_pdf: "PDF-Engine nicht geladen. Seite neu laden.",
       alert_no_jspdf: "jsPDF nicht geladen. Prüfe deine Internetverbindung und lade neu.",
-      alert_pdf_fail: "PDF-Erzeugung fehlgeschlagen: "
+      alert_pdf_fail: "PDF-Erzeugung fehlgeschlagen: ",
+      label_custom: "Benutzerdefiniert",
+      label_stitch_length: "Stichlänge",
+      sheet_fabric: "Stoff und Stich",
+      sheet_info: "Musterinfo",
+      label_dmc: "DMC",
+      label_thread: "Faden",
+      label_language: "Sprache"
     },
     it: {
       placeholder_text: "Scrivi il tuo testo qui…",
@@ -2024,7 +2038,14 @@
       alert_no_text: "Scrivi un testo e seleziona un font prima.",
       alert_no_pdf: "Motore PDF non caricato. Ricarica la pagina.",
       alert_no_jspdf: "Libreria jsPDF non caricata. Controlla la connessione e ricarica.",
-      alert_pdf_fail: "Generazione PDF fallita: "
+      alert_pdf_fail: "Generazione PDF fallita: ",
+      label_custom: "Personalizzato",
+      label_stitch_length: "Lunghezza punto",
+      sheet_fabric: "Tessuto e Punto",
+      sheet_info: "Info Modello",
+      label_dmc: "DMC",
+      label_thread: "Filo",
+      label_language: "Lingua"
     },
     pt: {
       placeholder_text: "Digite seu texto aqui…",
@@ -2048,7 +2069,14 @@
       alert_no_text: "Digite um texto e selecione uma fonte primeiro.",
       alert_no_pdf: "Motor PDF não carregado. Recarregue a página.",
       alert_no_jspdf: "Biblioteca jsPDF não carregada. Verifique sua conexão e recarregue.",
-      alert_pdf_fail: "Falha na geração do PDF: "
+      alert_pdf_fail: "Falha na geração do PDF: ",
+      label_custom: "Personalizado",
+      label_stitch_length: "Comprimento do ponto",
+      sheet_fabric: "Tecido e Ponto",
+      sheet_info: "Info do Padrão",
+      label_dmc: "DMC",
+      label_thread: "Linha",
+      label_language: "Idioma"
     },
     nl: {
       placeholder_text: "Typ je tekst hier…",
@@ -2072,7 +2100,14 @@
       alert_no_text: "Typ tekst en selecteer een lettertype.",
       alert_no_pdf: "PDF-engine niet geladen. Herlaad de pagina.",
       alert_no_jspdf: "jsPDF-bibliotheek niet geladen. Controleer je verbinding en herlaad.",
-      alert_pdf_fail: "PDF genereren mislukt: "
+      alert_pdf_fail: "PDF genereren mislukt: ",
+      label_custom: "Aangepast",
+      label_stitch_length: "Steeklengte",
+      sheet_fabric: "Stof en Steek",
+      sheet_info: "Patrooninfo",
+      label_dmc: "DMC",
+      label_thread: "Draad",
+      label_language: "Taal"
     },
     ja: {
       placeholder_text: "テキストを入力…",
@@ -2096,7 +2131,14 @@
       alert_no_text: "テキストを入力してフォントを選択してください。",
       alert_no_pdf: "PDFエンジンが読み込まれていません。ページを再読み込みしてください。",
       alert_no_jspdf: "jsPDFが読み込まれていません。接続を確認して再読み込みしてください。",
-      alert_pdf_fail: "PDF生成に失敗しました: "
+      alert_pdf_fail: "PDF生成に失敗しました: ",
+      label_custom: "カスタム",
+      label_stitch_length: "ステッチの長さ",
+      sheet_fabric: "布とステッチ",
+      sheet_info: "パターン情報",
+      label_dmc: "DMC",
+      label_thread: "糸",
+      label_language: "言語"
     },
     ko: {
       placeholder_text: "텍스트를 입력하세요…",
@@ -2120,7 +2162,14 @@
       alert_no_text: "텍스트를 입력하고 글꼴을 선택하세요.",
       alert_no_pdf: "PDF 엔진이 로드되지 않았습니다. 페이지를 새로고침하세요.",
       alert_no_jspdf: "jsPDF가 로드되지 않았습니다. 연결을 확인하고 새로고침하세요.",
-      alert_pdf_fail: "PDF 생성 실패: "
+      alert_pdf_fail: "PDF 생성 실패: ",
+      label_custom: "사용자 정의",
+      label_stitch_length: "스티치 길이",
+      sheet_fabric: "원단과 스티치",
+      sheet_info: "패턴 정보",
+      label_dmc: "DMC",
+      label_thread: "실",
+      label_language: "언어"
     },
     zh: {
       placeholder_text: "在此输入文字…",
@@ -2144,7 +2193,14 @@
       alert_no_text: "请输入文字并选择字体。",
       alert_no_pdf: "PDF引擎未加载。请刷新页面。",
       alert_no_jspdf: "jsPDF库未加载。请检查网络连接并刷新。",
-      alert_pdf_fail: "PDF生成失败: "
+      alert_pdf_fail: "PDF生成失败: ",
+      label_custom: "自定义",
+      label_stitch_length: "针距长度",
+      sheet_fabric: "布料与针法",
+      sheet_info: "图案信息",
+      label_dmc: "DMC",
+      label_thread: "线",
+      label_language: "语言"
     },
     ru: {
       placeholder_text: "Введите текст…",
@@ -2168,7 +2224,14 @@
       alert_no_text: "Введите текст и выберите шрифт.",
       alert_no_pdf: "PDF-движок не загружен. Перезагрузите страницу.",
       alert_no_jspdf: "Библиотека jsPDF не загружена. Проверьте подключение и перезагрузите.",
-      alert_pdf_fail: "Ошибка генерации PDF: "
+      alert_pdf_fail: "Ошибка генерации PDF: ",
+      label_custom: "Свой",
+      label_stitch_length: "Длина стежка",
+      sheet_fabric: "Ткань и Стежок",
+      sheet_info: "Информация",
+      label_dmc: "DMC",
+      label_thread: "Нить",
+      label_language: "Язык"
     },
     pl: {
       placeholder_text: "Wpisz swój tekst…",
@@ -2192,7 +2255,14 @@
       alert_no_text: "Wpisz tekst i wybierz czcionkę.",
       alert_no_pdf: "Silnik PDF nie załadowany. Odśwież stronę.",
       alert_no_jspdf: "Biblioteka jsPDF nie załadowana. Sprawdź połączenie i odśwież.",
-      alert_pdf_fail: "Błąd generowania PDF: "
+      alert_pdf_fail: "Błąd generowania PDF: ",
+      label_custom: "Własny",
+      label_stitch_length: "Długość ściegu",
+      sheet_fabric: "Tkanina i Ścieg",
+      sheet_info: "Info Wzoru",
+      label_dmc: "DMC",
+      label_thread: "Nici",
+      label_language: "Język"
     },
     sv: {
       placeholder_text: "Skriv din text här…",
@@ -2216,7 +2286,14 @@
       alert_no_text: "Skriv text och välj ett typsnitt först.",
       alert_no_pdf: "PDF-motor inte laddad. Ladda om sidan.",
       alert_no_jspdf: "jsPDF inte laddat. Kontrollera din anslutning och ladda om.",
-      alert_pdf_fail: "PDF-generering misslyckades: "
+      alert_pdf_fail: "PDF-generering misslyckades: ",
+      label_custom: "Anpassad",
+      label_stitch_length: "Stygnlängd",
+      sheet_fabric: "Tyg och Stygn",
+      sheet_info: "Mönsterinfo",
+      label_dmc: "DMC",
+      label_thread: "Tråd",
+      label_language: "Språk"
     },
     da: {
       placeholder_text: "Skriv din tekst her…",
@@ -2240,7 +2317,14 @@
       alert_no_text: "Skriv tekst og vælg en skrifttype først.",
       alert_no_pdf: "PDF-motor ikke indlæst. Genindlæs siden.",
       alert_no_jspdf: "jsPDF ikke indlæst. Kontrollér din forbindelse og genindlæs.",
-      alert_pdf_fail: "PDF-generering mislykkedes: "
+      alert_pdf_fail: "PDF-generering mislykkedes: ",
+      label_custom: "Brugerdefineret",
+      label_stitch_length: "Stinglængde",
+      sheet_fabric: "Stof og Sting",
+      sheet_info: "Mønsterinfo",
+      label_dmc: "DMC",
+      label_thread: "Tråd",
+      label_language: "Sprog"
     },
     fi: {
       placeholder_text: "Kirjoita tekstisi tähän…",
@@ -2264,7 +2348,14 @@
       alert_no_text: "Kirjoita teksti ja valitse fontti ensin.",
       alert_no_pdf: "PDF-moottori ei latautunut. Lataa sivu uudelleen.",
       alert_no_jspdf: "jsPDF ei latautunut. Tarkista yhteys ja lataa uudelleen.",
-      alert_pdf_fail: "PDF:n luonti epäonnistui: "
+      alert_pdf_fail: "PDF:n luonti epäonnistui: ",
+      label_custom: "Mukautettu",
+      label_stitch_length: "Pistonpituus",
+      sheet_fabric: "Kangas ja Pisto",
+      sheet_info: "Kuviotiedot",
+      label_dmc: "DMC",
+      label_thread: "Lanka",
+      label_language: "Kieli"
     },
     uk: {
       placeholder_text: "Введіть текст…",
@@ -2288,7 +2379,14 @@
       alert_no_text: "Введіть текст і виберіть шрифт.",
       alert_no_pdf: "PDF-рушій не завантажено. Перезавантажте сторінку.",
       alert_no_jspdf: "Бібліотеку jsPDF не завантажено. Перевірте з'єднання і перезавантажте.",
-      alert_pdf_fail: "Помилка генерації PDF: "
+      alert_pdf_fail: "Помилка генерації PDF: ",
+      label_custom: "Власний",
+      label_stitch_length: "Довжина стібка",
+      sheet_fabric: "Тканина і Стібок",
+      sheet_info: "Інформація",
+      label_dmc: "DMC",
+      label_thread: "Нитка",
+      label_language: "Мова"
     },
     hu: {
       placeholder_text: "Írd be a szöveged…",
@@ -2312,7 +2410,14 @@
       alert_no_text: "Írj szöveget és válassz betűtípust.",
       alert_no_pdf: "PDF-motor nincs betöltve. Töltsd újra az oldalt.",
       alert_no_jspdf: "jsPDF nincs betöltve. Ellenőrizd a kapcsolatot és töltsd újra.",
-      alert_pdf_fail: "PDF létrehozás sikertelen: "
+      alert_pdf_fail: "PDF létrehozás sikertelen: ",
+      label_custom: "Egyéni",
+      label_stitch_length: "Öltéshossz",
+      sheet_fabric: "Szövet és Öltés",
+      sheet_info: "Minta Info",
+      label_dmc: "DMC",
+      label_thread: "Fonal",
+      label_language: "Nyelv"
     }
   };
 
