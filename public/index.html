@@ -602,39 +602,6 @@
     outline-offset: 2px;
   }
 
-  .custom-unit-toggle {
-    display: flex;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-  }
-  .custom-unit-btn {
-    padding: 5px 8px;
-    border: none;
-    background: transparent;
-    font-family: var(--font-body);
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: background 0.12s, color 0.12s;
-    text-transform: uppercase;
-  }
-  .custom-unit-btn.active {
-    background: var(--accent);
-    color: #fff;
-  }
-  .custom-unit-btn:not(.active):hover {
-    background: var(--accent-soft);
-    color: var(--accent);
-  }
-  .custom-count-label {
-    font-size: 10px;
-    color: var(--text-muted);
-    font-weight: 500;
-    white-space: nowrap;
-  }
-
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
@@ -807,21 +774,6 @@
     color: var(--accent);
     white-space: nowrap;
     font-family: var(--font-body);
-  }
-
-  .ruler-height-wrap {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .ruler-height-label {
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-  .ruler-height-val {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--accent);
   }
 
   /* -- Vertical Ruler (left of canvas) -- */
@@ -1938,9 +1890,8 @@ DMC_COLORS.forEach(function(c) {
 <!-- ═══ PDF Generation Engine ═══ -->
 <script>
 // ══════════════════════════════════════════════════════════════════
-//  Word2Stitch — PDF Generation Engine
-//  Generates cross-stitch pattern PDFs from bitmap font data
-//  Depends on jsPDF loaded via CDN (window.jspdf.jsPDF)
+//  Word2Stitch — PDF Helpers
+//  Utility functions shared across PDF modules
 // ══════════════════════════════════════════════════════════════════
 
 /**
@@ -1957,6 +1908,21 @@ function pt(key, fallback) {
 function getLuminance(color) {
   return (0.299 * color.r + 0.587 * color.g + 0.114 * color.b) / 255;
 }
+
+/**
+ * Truncate a string to maxLen characters, adding ellipsis if needed.
+ */
+function truncate(str, maxLen) {
+  if (!str) return '';
+  if (str.length <= maxLen) return str;
+  return str.substring(0, maxLen - 1) + '\u2026';
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+//  Word2Stitch — PDF Bitmap
+//  Converts text strings to 2D boolean bitmaps using font glyph data
+// ══════════════════════════════════════════════════════════════════
 
 /**
  * Convert text string to a 2D boolean bitmap using bitmap font glyph data.
@@ -2039,6 +2005,13 @@ function getTextBitmapForPDF(text, fontData) {
   return result;
 }
 
+
+// ══════════════════════════════════════════════════════════════════
+//  Word2Stitch — PDF Renderer
+//  Layout calculation, grid drawing, legend, headers/footers, and
+//  PDF document assembly. Depends on pdf-helpers and pdf-bitmap.
+// ══════════════════════════════════════════════════════════════════
+
 /**
  * Calculate multi-page layout for the pattern grid.
  *
@@ -2078,17 +2051,28 @@ function calculatePDFLayout(width, height, cellSize, pageW, pageH) {
  * Draw one page section of the pattern grid.
  *
  * @param {jsPDF} pdf - jsPDF instance
- * @param {boolean[][]} bitmap - Full 2D bitmap
- * @param {object} color - { r, g, b } thread color
- * @param {number} startCol - First column index for this page
- * @param {number} startRow - First row index for this page
- * @param {number} colsPerPage - Max columns that fit on one page
- * @param {number} rowsPerPage - Max rows that fit on one page
- * @param {number} cellSize - Cell size in mm
- * @param {object} margins - { left, top } in mm
- * @param {object} layout - Layout info from calculatePDFLayout
+ * @param {object} opts - Grid page options
+ * @param {boolean[][]} opts.bitmap - Full 2D bitmap
+ * @param {object} opts.color - { r, g, b } thread color
+ * @param {number} opts.startCol - First column index for this page
+ * @param {number} opts.startRow - First row index for this page
+ * @param {number} opts.colsPerPage - Max columns that fit on one page
+ * @param {number} opts.rowsPerPage - Max rows that fit on one page
+ * @param {number} opts.cellSize - Cell size in mm
+ * @param {object} opts.margins - { left, top } in mm
+ * @param {object} opts.layout - Layout info from calculatePDFLayout
  */
-function drawGridPage(pdf, bitmap, color, startCol, startRow, colsPerPage, rowsPerPage, cellSize, margins, layout) {
+function drawGridPage(pdf, opts) {
+  var bitmap = opts.bitmap;
+  var color = opts.color;
+  var startCol = opts.startCol;
+  var startRow = opts.startRow;
+  var colsPerPage = opts.colsPerPage;
+  var rowsPerPage = opts.rowsPerPage;
+  var cellSize = opts.cellSize;
+  var margins = opts.margins;
+  var layout = opts.layout;
+
   const totalWidth = bitmap[0] ? bitmap[0].length : 0;
   const totalHeight = bitmap.length;
 
@@ -2188,7 +2172,7 @@ function drawGridPage(pdf, bitmap, color, startCol, startRow, colsPerPage, rowsP
     }
   }
 
-  // Left edge labels (rotated 90° for compact width)
+  // Left edge labels (rotated 90 for compact width)
   for (let row = 0; row <= drawRows; row++) {
     const absRow = startRow + row;
     if (absRow % 10 === 0 && absRow > 0) {
@@ -2224,36 +2208,22 @@ function drawGridPage(pdf, bitmap, color, startCol, startRow, colsPerPage, rowsP
 }
 
 /**
- * Draw the legend/materials page.
+ * Draw the thread table section of the legend page.
  *
  * @param {jsPDF} pdf - jsPDF instance
- * @param {object} color - { code, name, hex, r, g, b }
- * @param {number} stitchCount - Total filled stitches
- * @param {number} aidaCount - Fabric count (11, 14, 16, 18)
- * @param {number} width - Pattern width in stitches
- * @param {number} height - Pattern height in stitches
- * @param {string} fontName - Name of the font used
+ * @param {object} opts - Legend options
+ * @param {number} y - Current Y position
+ * @returns {number} Updated Y position after drawing
  */
-function drawLegend(pdf, color, stitchCount, aidaCount, width, height, fontName, text, pageNum, totalPages, pageW, pageH) {
-  const margin = 15;
-  pageW = pageW || 210;
-  pageH = pageH || 297;
-
-  // Branded header + footer
-  drawBrandedHeader(pdf, text || '', fontName, width, height, pageNum, totalPages, margin, pageW);
-  drawBrandedFooter(pdf, margin, pageW, pageH);
-
-  let y = margin + 18; // after branded header bar
-
-  // Title
-  pdf.setFontSize(16);
-  pdf.setTextColor(184, 58, 42); // accent color
-  pdf.setFont('helvetica', 'bold');
-  pdf.text(pt('pdf_thread_legend', 'Thread Legend'), margin, y);
-  y += 10;
+function drawThreadTable(pdf, opts, y) {
+  var color = opts.color;
+  var stitchCount = opts.stitchCount;
+  var aidaCount = opts.aidaCount;
+  var margin = opts.margin;
+  var pageW = opts.pageW;
 
   // Thread calculation: ~0.013m per full cross stitch at Aida 14
-  // (4 diagonal passes × stitch_size × √2 + 20% waste), scaled by fabric count
+  // (4 diagonal passes x stitch_size x sqrt(2) + 20% waste), scaled by fabric count
   const metersPerStitch = 0.013 * (14 / aidaCount);
   const meters = stitchCount * metersPerStitch;
   const skeins = Math.ceil(meters / 8);
@@ -2318,7 +2288,28 @@ function drawLegend(pdf, color, stitchCount, aidaCount, width, height, fontName,
   pdf.line(margin, y - 3, margin + tW, y - 3);
   y += 8;
 
-  // ── Pattern Information ──
+  return { y: y, meters: meters, skeins: skeins, preferImperial: preferImperial };
+}
+
+/**
+ * Draw the pattern information section of the legend page.
+ *
+ * @param {jsPDF} pdf - jsPDF instance
+ * @param {object} opts - Legend options
+ * @param {number} y - Current Y position
+ * @param {object} threadInfo - { meters, skeins, preferImperial } from drawThreadTable
+ * @returns {number} Updated Y position after drawing
+ */
+function drawPatternInfo(pdf, opts, y, threadInfo) {
+  var stitchCount = opts.stitchCount;
+  var aidaCount = opts.aidaCount;
+  var width = opts.width;
+  var height = opts.height;
+  var margin = opts.margin;
+  var meters = threadInfo.meters;
+  var skeins = threadInfo.skeins;
+  var preferImperial = threadInfo.preferImperial;
+
   pdf.setFontSize(13);
   pdf.setTextColor(184, 58, 42);
   pdf.setFont('helvetica', 'bold');
@@ -2360,7 +2351,29 @@ function drawLegend(pdf, color, stitchCount, aidaCount, width, height, fontName,
   }
   y += 6;
 
-  // ── Finished Size / Cut Fabric boxes ──
+  return { y: y, inchesW: inchesW, inchesH: inchesH, cmW: cmW, cmH: cmH };
+}
+
+/**
+ * Draw the finished size and cut fabric boxes on the legend page.
+ *
+ * @param {jsPDF} pdf - jsPDF instance
+ * @param {object} opts - Legend options
+ * @param {number} y - Current Y position
+ * @param {object} sizeInfo - { inchesW, inchesH, cmW, cmH } from drawPatternInfo
+ * @param {boolean} preferImperial - Whether to show imperial units first
+ */
+function drawSizeBoxes(pdf, opts, y, sizeInfo, preferImperial) {
+  var margin = opts.margin;
+  var pageW = opts.pageW;
+  var contentW = pageW - margin * 2;
+  var tW = Math.min(contentW, 220);
+
+  var inchesW = sizeInfo.inchesW;
+  var inchesH = sizeInfo.inchesH;
+  var cmW = sizeInfo.cmW;
+  var cmH = sizeInfo.cmH;
+
   pdf.setDrawColor(184, 58, 42);
   pdf.setLineWidth(0.4);
   pdf.setFillColor(253, 248, 244);
@@ -2414,7 +2427,64 @@ function drawLegend(pdf, color, stitchCount, aidaCount, width, height, fontName,
     pdf.setTextColor(140, 130, 120);
     pdf.text(pt('pdf_cut_margin_metric', '(+7.6 cm margin each side)'), cutX + 4, y + 18);
   }
+}
 
+/**
+ * Draw the legend/materials page.
+ *
+ * @param {jsPDF} pdf - jsPDF instance
+ * @param {object} opts - Legend options
+ * @param {object} opts.color - { code, name, hex, r, g, b }
+ * @param {number} opts.stitchCount - Total filled stitches
+ * @param {number} opts.aidaCount - Fabric count (11, 14, 16, 18)
+ * @param {number} opts.width - Pattern width in stitches
+ * @param {number} opts.height - Pattern height in stitches
+ * @param {string} opts.fontName - Name of the font used
+ * @param {string} opts.text - Pattern text
+ * @param {number} opts.pageNum - Current page number
+ * @param {number} opts.totalPages - Total page count
+ * @param {number} opts.pageW - Page width in mm
+ * @param {number} opts.pageH - Page height in mm
+ */
+function drawLegend(pdf, opts) {
+  var color = opts.color;
+  var stitchCount = opts.stitchCount;
+  var aidaCount = opts.aidaCount;
+  var width = opts.width;
+  var height = opts.height;
+  var fontName = opts.fontName;
+  var text = opts.text;
+  var pageNum = opts.pageNum;
+  var totalPages = opts.totalPages;
+  var pageW = opts.pageW || 210;
+  var pageH = opts.pageH || 297;
+  const margin = 15;
+
+  // Branded header + footer
+  drawBrandedHeader(pdf, text || '', fontName, width, height, pageNum, totalPages, margin, pageW);
+  drawBrandedFooter(pdf, margin, pageW, pageH);
+
+  let y = margin + 18; // after branded header bar
+
+  // Title
+  pdf.setFontSize(16);
+  pdf.setTextColor(184, 58, 42); // accent color
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(pt('pdf_thread_legend', 'Thread Legend'), margin, y);
+  y += 10;
+
+  var legendOpts = { color: color, stitchCount: stitchCount, aidaCount: aidaCount, width: width, height: height, margin: margin, pageW: pageW };
+
+  // Thread table
+  var threadResult = drawThreadTable(pdf, legendOpts, y);
+  y = threadResult.y;
+
+  // Pattern information
+  var patternResult = drawPatternInfo(pdf, legendOpts, y, threadResult);
+  y = patternResult.y;
+
+  // Size boxes
+  drawSizeBoxes(pdf, legendOpts, y, patternResult, threadResult.preferImperial);
 }
 
 /**
@@ -2429,7 +2499,7 @@ function drawBrandedHeader(pdf, text, fontName, patternWidth, patternHeight, pag
   pdf.setFillColor(184, 58, 42); // var(--accent) #b83a2a
   pdf.rect(margin, barY, pageW - margin * 2, barH, 'F');
 
-  // Logo: ✕ Word2Stitch
+  // Logo: X Word2Stitch
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(9);
   pdf.setTextColor(255, 255, 255);
@@ -2535,23 +2605,34 @@ function buildPDF(text, fontData, dmcColor, aidaCount, orientation) {
       drawBrandedHeader(pdf, text, fontName, patternWidth, patternHeight, pageNum, totalPagesWithLegend, margin, pageW);
       drawBrandedFooter(pdf, margin, pageW, pageH);
 
-      drawGridPage(
-        pdf,
-        bitmap,
-        { r: dmcColor.r, g: dmcColor.g, b: dmcColor.b },
-        startCol,
-        startRow,
-        layout.colsPerPage,
-        layout.rowsPerPage,
-        cellSize,
-        { left: margin, top: margin + headerHeight },
-        layout
-      );
+      drawGridPage(pdf, {
+        bitmap: bitmap,
+        color: { r: dmcColor.r, g: dmcColor.g, b: dmcColor.b },
+        startCol: startCol,
+        startRow: startRow,
+        colsPerPage: layout.colsPerPage,
+        rowsPerPage: layout.rowsPerPage,
+        cellSize: cellSize,
+        margins: { left: margin, top: margin + headerHeight },
+        layout: layout,
+      });
     }
   }
 
   pdf.addPage();
-  drawLegend(pdf, dmcColor, stitchCount, aidaCount, patternWidth, patternHeight, fontName, text, totalPagesWithLegend, totalPagesWithLegend, pageW, pageH);
+  drawLegend(pdf, {
+    color: dmcColor,
+    stitchCount: stitchCount,
+    aidaCount: aidaCount,
+    width: patternWidth,
+    height: patternHeight,
+    fontName: fontName,
+    text: text,
+    pageNum: totalPagesWithLegend,
+    totalPages: totalPagesWithLegend,
+    pageW: pageW,
+    pageH: pageH,
+  });
 
   const safeText = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').substring(0, 40);
   const safeId = (fontData.id || 'font').replace(/[^a-z0-9-]/g, '');
@@ -2559,6 +2640,12 @@ function buildPDF(text, fontData, dmcColor, aidaCount, orientation) {
 
   return { pdf, filename, pages: totalPagesWithLegend, stitches: stitchCount, patternWidth, patternHeight };
 }
+
+
+// ══════════════════════════════════════════════════════════════════
+//  Word2Stitch — PDF Modal
+//  Print preview modal UI and PDF generation entry point
+// ══════════════════════════════════════════════════════════════════
 
 /**
  * Create and show the print preview modal.
@@ -2728,15 +2815,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       }
     }
   };
-}
-
-/**
- * Truncate a string to maxLen characters, adding ellipsis if needed.
- */
-function truncate(str, maxLen) {
-  if (!str) return '';
-  if (str.length <= maxLen) return str;
-  return str.substring(0, maxLen - 1) + '\u2026';
 }
 
 </script>

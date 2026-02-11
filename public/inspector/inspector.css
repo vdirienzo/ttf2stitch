@@ -127,7 +127,6 @@ body {
 .stat-badge.blue { background: #eff6ff; color: #2563eb; }
 .stat-badge.green { background: #f0fdf4; color: #16a34a; }
 .stat-badge.purple { background: #faf5ff; color: #9333ea; }
-.stat-badge.orange { background: #fff7ed; color: #ea580c; }
 .font-card-canvas { background: #fff; border: 1px solid #f5ede5; border-radius: 8px; padding: 8px; display: flex; justify-content: center; image-rendering: pixelated; overflow: hidden; }
 .font-card-canvas canvas { image-rendering: pixelated; }
 
@@ -355,3 +354,8 @@ body {
 
 .modal__btn-row--tight { margin-top: 12px; }
 .modal__convert-btn--large { padding: 10px 28px; font-size: 14px; }
+
+/* ── Slim-template helpers ── */
+.font-list__empty { padding: 20px; text-align: center; color: #b0a090; }
+.action-btn--file { cursor: pointer; }
+.preset-btn__icon--bold { font-weight: 900; }

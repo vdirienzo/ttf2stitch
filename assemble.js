@@ -5,7 +5,7 @@
  * 2. ui-shell.css   (styles, inlined back as <style> block)
  * 3. i18n-data.js   (translations, inlined as <script> block)
  * 4. data-fonts.js  (DMC_COLORS)
- * 5. pdf-engine.js  (PDF generation)
+ * 5. pdf-modules/   (PDF generation, split into 4 files)
  */
 const fs = require('fs');
 const path = require('path');
@@ -15,7 +15,8 @@ const uiShell = fs.readFileSync(path.join(BASE, 'ui-shell.html'), 'utf-8');
 const uiCss = fs.readFileSync(path.join(BASE, 'ui-shell.css'), 'utf-8');
 const i18nData = fs.readFileSync(path.join(BASE, 'i18n-data.js'), 'utf-8');
 const dataFonts = fs.readFileSync(path.join(BASE, 'data-fonts.js'), 'utf-8');
-const pdfEngine = fs.readFileSync(path.join(BASE, 'pdf-engine.js'), 'utf-8');
+const pdfModules = ['pdf-helpers.js', 'pdf-bitmap.js', 'pdf-renderer.js', 'pdf-modal.js'];
+const pdfEngine = pdfModules.map(f => fs.readFileSync(path.join(BASE, 'pdf-modules', f), 'utf-8')).join('\n\n');
 
 // Step 1: Inline the CSS — replace <link rel="stylesheet" href="ui-shell.css"> with <style>
 let html = uiShell.replace(
