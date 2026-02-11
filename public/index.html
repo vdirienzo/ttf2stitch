@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Word2Stitch — Cross-Stitch Pattern Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Anybody:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -153,6 +153,10 @@
     transform: translateY(-1px);
   }
   .btn-download:active { transform: translateY(0); }
+  .btn-download:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
   .btn-download svg { width: 15px; height: 15px; }
 
   /* -- Main Layout -- */
@@ -229,6 +233,7 @@
     padding: 8px 0 4px;
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
+    touch-action: pan-x;
   }
   .font-tabs::-webkit-scrollbar { height: 3px; }
   .font-tabs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -243,9 +248,10 @@
     font-size: 10px;
     font-weight: 600;
     color: var(--text-mid);
-    transition: all 0.12s;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
     white-space: nowrap;
     line-height: 1.3;
+    min-height: 44px;
   }
   .font-tab:hover {
     border-color: var(--accent);
@@ -255,6 +261,10 @@
     border-color: var(--accent);
     background: var(--accent-soft);
     color: var(--accent);
+  }
+  .font-tab:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 
   /* -- Font List -- */
@@ -268,6 +278,7 @@
     padding: 0 14px 10px;
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
+    touch-action: pan-y;
   }
   .font-list::-webkit-scrollbar { width: 5px; }
   .font-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -280,7 +291,7 @@
     border: 1.5px solid transparent;
     border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: all 0.12s;
+    transition: background 0.12s, border-color 0.12s;
     background: transparent;
     flex-shrink: 0;
   }
@@ -341,8 +352,8 @@
   .height-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 22px;
-    height: 22px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: var(--accent);
     cursor: pointer;
@@ -354,13 +365,17 @@
     transform: scale(1.15);
   }
   .height-slider::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: var(--accent);
     cursor: pointer;
     border: 2px solid #fff;
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .height-slider:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
   .height-value {
     font-size: 22px;
@@ -392,7 +407,7 @@
     border-radius: 50%;
     border: 2px solid transparent;
     cursor: pointer;
-    transition: all 0.12s;
+    transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
     position: relative;
     box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
   }
@@ -447,12 +462,16 @@
     cursor: pointer;
     font-family: var(--font-body);
     background: transparent;
-    transition: all 0.12s;
+    transition: border-color 0.12s, background 0.12s, color 0.12s;
   }
   .aida-chip:hover { border-color: var(--accent); }
   .aida-chip.selected {
     border-color: var(--accent);
     background: var(--accent-soft);
+  }
+  .aida-chip:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
   .aida-chip-num {
     display: block;
@@ -540,6 +559,10 @@
     border: 3px solid #fff;
     box-shadow: 0 1px 6px rgba(0,0,0,0.2);
   }
+  .custom-stitch-slider:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
   .custom-stitch-equiv {
     font-size: 11px;
     color: var(--text-muted);
@@ -562,7 +585,7 @@
     font-weight: 700;
     color: var(--text-muted);
     cursor: pointer;
-    transition: all 0.12s;
+    transition: background 0.12s, color 0.12s;
     text-transform: lowercase;
     min-height: 40px;
     min-width: 40px;
@@ -577,6 +600,10 @@
   .unit-toggle-btn:not(.active):hover {
     background: var(--accent-soft);
     color: var(--accent);
+  }
+  .unit-toggle-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 
   .custom-unit-toggle {
@@ -594,7 +621,7 @@
     font-weight: 700;
     color: var(--text-muted);
     cursor: pointer;
-    transition: all 0.12s;
+    transition: background 0.12s, color 0.12s;
     text-transform: uppercase;
   }
   .custom-unit-btn.active {
@@ -610,6 +637,14 @@
     color: var(--text-muted);
     font-weight: 500;
     white-space: nowrap;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   /* -- Preview Area (right) -- */
@@ -713,7 +748,7 @@
     font-size: 11px;
     color: var(--text-mid);
     white-space: nowrap;
-    transition: all 0.2s;
+    transition: background 0.2s, color 0.2s;
   }
   .stat-pill strong {
     color: var(--text);
@@ -866,7 +901,7 @@
     body { height: 100vh; height: 100dvh; }
 
     .topbar {
-      padding: 6px 12px;
+      padding: calc(6px + env(safe-area-inset-top, 0px)) 12px 6px;
       gap: 8px;
       height: 48px;
       min-height: 48px;
@@ -1167,10 +1202,10 @@
     color: var(--text);
     padding: 0 16px 12px;
     border-bottom: 1px solid var(--border-light);
+    text-wrap: balance;
   }
   .sheet-body {
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
 
@@ -1218,7 +1253,6 @@
   .sheet-font-list-wrap {
     flex: 1;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     position: relative;
     min-height: 0;
@@ -1473,6 +1507,10 @@
     padding-right: 20px;
   }
   .lang-select:hover, .lang-select:focus { border-color: var(--accent); }
+  .lang-select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
 
   /* -- Scrollbar global -- */
   ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -1483,7 +1521,7 @@
 <body>
 
 <!-- -- Top Bar -- -->
-<div class="topbar">
+<header class="topbar">
   <div class="logo">
     <span class="logo-x">&#10006;</span>
     <span class="logo-text">Word<em>2</em>Stitch</span>
@@ -1496,7 +1534,8 @@
       type="text"
       class="text-input"
       id="textInput"
-      placeholder="Type your text here..."
+      aria-label="Text to render"
+      placeholder="Type your text here…"
       data-i18n-placeholder="placeholder_text"
       value="Welcome"
       maxlength="40"
@@ -1505,7 +1544,7 @@
     />
   </div>
 
-  <select class="lang-select" id="langSelect">
+  <select class="lang-select" id="langSelect" aria-label="Language">
     <option value="en">🇬🇧 EN</option>
     <option value="es">🇪🇸 ES</option>
     <option value="fr">🇫🇷 FR</option>
@@ -1526,8 +1565,8 @@
   </select>
 
   <div class="unit-toggle" id="unitToggle">
-    <button class="unit-toggle-btn active" data-unit="metric">cm</button>
-    <button class="unit-toggle-btn" data-unit="imperial">in</button>
+    <button class="unit-toggle-btn active" data-unit="metric" aria-pressed="true" aria-label="Centimeters">cm</button>
+    <button class="unit-toggle-btn" data-unit="imperial" aria-pressed="false" aria-label="Inches">in</button>
   </div>
 
   <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle controls" data-i18n-aria="toggle_controls">
@@ -1538,7 +1577,7 @@
     </svg>
   </button>
 
-  <button class="btn-download" id="btnDownload">
+  <button class="btn-download" id="btnDownload" aria-label="Download PDF">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
       <polyline points="7 10 12 15 17 10"/>
@@ -1546,16 +1585,16 @@
     </svg>
     <span class="dl-label">PDF</span>
   </button>
-</div>
+</header>
 
 <!-- Drawer backdrop (mobile) -->
 <div class="drawer-backdrop" id="drawerBackdrop"></div>
 
 <!-- -- Main Split Layout -- -->
-<div class="main-layout">
+<main class="main-layout">
 
   <!-- -- Left Sidebar: Controls -- -->
-  <div class="sidebar">
+  <aside class="sidebar">
 
     <!-- Font Search + Header -->
     <div class="sidebar-section">
@@ -1567,7 +1606,8 @@
         type="text"
         class="font-search"
         id="fontSearch"
-        placeholder="Search fonts..."
+        aria-label="Search fonts"
+        placeholder="Search fonts…"
         data-i18n-placeholder="search_fonts"
         autocomplete="off"
         spellcheck="false"
@@ -1587,7 +1627,7 @@
         <span data-i18n="section_height">Stitch Height</span>
       </div>
       <div class="height-control">
-        <input type="range" class="height-slider" id="heightSlider" min="8" max="30" value="18" step="1" />
+        <input type="range" class="height-slider" id="heightSlider" min="8" max="30" value="18" step="1" aria-label="Stitch height" />
         <div>
           <span class="height-value" id="heightValue">18</span>
           <span class="height-unit" data-i18n="unit_px">px</span>
@@ -1640,12 +1680,12 @@
             <span class="stitch-value-unit" id="customStitchUnit">mm</span>
           </div>
         </div>
-        <input type="range" class="custom-stitch-slider" id="customStitchSlider" min="1" max="8" value="3" step="0.1" />
+        <input type="range" class="custom-stitch-slider" id="customStitchSlider" min="1" max="8" value="3" step="0.1" aria-label="Custom stitch length" />
         <div class="custom-stitch-equiv" id="customStitchEquiv"></div>
       </div>
     </div>
 
-  </div>
+  </aside>
 
   <!-- -- Right: Preview -- -->
   <div class="preview-area" id="previewArea">
@@ -1653,7 +1693,7 @@
     <!-- Loading overlay -->
     <div class="preview-loading hidden" id="previewLoading">
       <div class="loading-spinner"></div>
-      <div class="loading-text" data-i18n="loading_text">Rasterizing...</div>
+      <div class="loading-text" data-i18n="loading_text">Rasterizing…</div>
     </div>
 
     <div class="preview-empty" id="previewEmpty">
@@ -1717,7 +1757,7 @@
     </div>
   </div>
 
-</div>
+</main>
 
 <!-- -- Mobile Toolbar (Slider + 3 Buttons) -- -->
 <div class="mobile-toolbar" id="mobileToolbar">
@@ -1757,7 +1797,7 @@
   <div class="sheet-title" data-i18n="section_font">Font</div>
   <div class="sheet-body">
     <div class="sheet-font-search">
-      <input type="text" id="sheetFontSearch" placeholder="Search fonts..." data-i18n-placeholder="search_fonts" autocomplete="off" spellcheck="false" />
+      <input type="text" id="sheetFontSearch" aria-label="Search fonts" placeholder="Search fonts…" data-i18n-placeholder="search_fonts" autocomplete="off" spellcheck="false" />
     </div>
     <div class="sheet-font-tabs" id="sheetFontTabs"></div>
     <div class="sheet-font-list-wrap" id="sheetFontListWrap" role="listbox" aria-label="Font list">
@@ -1793,7 +1833,7 @@
         <span data-i18n="section_height">Stitch Height</span>
       </div>
       <div class="height-control">
-        <input type="range" class="height-slider" id="sheetHeightSlider" min="8" max="30" value="18" step="1" />
+        <input type="range" class="height-slider" id="sheetHeightSlider" min="8" max="30" value="18" step="1" aria-label="Stitch height" />
         <div>
           <span class="height-value" id="sheetHeightValue">18</span>
           <span class="height-unit" data-i18n="unit_px">px</span>
@@ -1820,7 +1860,7 @@
             <span class="stitch-value-unit" id="sheetCustomStitchUnit">mm</span>
           </div>
         </div>
-        <input type="range" class="custom-stitch-slider" id="sheetCustomStitchSlider" min="1" max="8" value="3" step="0.1" />
+        <input type="range" class="custom-stitch-slider" id="sheetCustomStitchSlider" min="1" max="8" value="3" step="0.1" aria-label="Custom stitch length" />
         <div class="custom-stitch-equiv" id="sheetCustomStitchEquiv"></div>
       </div>
     </div>
@@ -1865,11 +1905,11 @@
       <label>Language</label>
       <select id="sheetLangSelect">
         <option value="en">EN English</option>
-        <option value="es">ES Espanol</option>
-        <option value="fr">FR Francais</option>
+        <option value="es">ES Español</option>
+        <option value="fr">FR Français</option>
         <option value="de">DE Deutsch</option>
         <option value="it">IT Italiano</option>
-        <option value="pt">PT Portugues</option>
+        <option value="pt">PT Português</option>
         <option value="nl">NL Nederlands</option>
         <option value="ja">JA Japanese</option>
         <option value="ko">KO Korean</option>
@@ -2594,17 +2634,17 @@ function _createPrintModal() {
     '.pm-dialog { position:relative; background:#faf8f5; border-radius:14px; width:90vw; max-width:680px; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden; }',
     '.pm-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid #e0d6c8; }',
     '.pm-title { font-family:"DM Serif Display",Georgia,serif; font-size:18px; color:#3d3229; }',
-    '.pm-close { background:none; border:none; font-size:18px; color:#a99e8f; cursor:pointer; padding:4px 8px; border-radius:6px; transition:all 0.15s; }',
+    '.pm-close { background:none; border:none; font-size:18px; color:#a99e8f; cursor:pointer; padding:4px 8px; border-radius:6px; transition:background 0.15s, color 0.15s; }',
     '.pm-close:hover { background:rgba(184,58,42,0.08); color:#b83a2a; }',
     '.pm-orient-row { display:flex; gap:8px; padding:12px 18px; justify-content:center; }',
-    '.pm-orient-btn { display:flex; align-items:center; gap:8px; padding:10px 20px; border:2px solid #e0d6c8; border-radius:10px; background:#fff; cursor:pointer; font-family:"Anybody",system-ui,sans-serif; font-size:13px; font-weight:600; color:#7a6e60; transition:all 0.15s; min-height:48px; }',
+    '.pm-orient-btn { display:flex; align-items:center; gap:8px; padding:10px 20px; border:2px solid #e0d6c8; border-radius:10px; background:#fff; cursor:pointer; font-family:"Anybody",system-ui,sans-serif; font-size:13px; font-weight:600; color:#7a6e60; transition:border-color 0.15s, background 0.15s, color 0.15s; min-height:48px; }',
     '.pm-orient-btn:hover { border-color:#b83a2a; color:#b83a2a; }',
     '.pm-orient-btn.pm-active { border-color:#b83a2a; background:rgba(184,58,42,0.08); color:#b83a2a; }',
     '.pm-preview { flex:1; min-height:0; padding:0 18px; overflow:hidden; }',
     '.pm-iframe { width:100%; height:350px; border:1px solid #e0d6c8; border-radius:8px; background:#fff; }',
     '.pm-info { padding:8px 18px; font-size:12px; color:#7a6e60; text-align:center; }',
     '.pm-actions { display:flex; gap:10px; padding:14px 18px; border-top:1px solid #e0d6c8; justify-content:flex-end; }',
-    '.pm-btn { display:flex; align-items:center; gap:6px; padding:10px 20px; border-radius:10px; font-family:"Anybody",system-ui,sans-serif; font-size:14px; font-weight:600; cursor:pointer; border:none; transition:all 0.15s; min-height:48px; }',
+    '.pm-btn { display:flex; align-items:center; gap:6px; padding:10px 20px; border-radius:10px; font-family:"Anybody",system-ui,sans-serif; font-size:14px; font-weight:600; cursor:pointer; border:none; transition:background 0.15s, color 0.15s, box-shadow 0.15s; min-height:48px; }',
     '.pm-btn-secondary { background:#fff; color:#3d3229; border:2px solid #e0d6c8; }',
     '.pm-btn-secondary:hover { border-color:#b83a2a; color:#b83a2a; }',
     '.pm-btn-primary { background:#b83a2a; color:#fff; }',
@@ -2726,9 +2766,9 @@ function truncate(str, maxLen) {
   // -- i18n translations --
   var I18N = {
     en: {
-      placeholder_text: "Type your text here...",
+      placeholder_text: "Type your text here…",
       section_font: "Font",
-      search_fonts: "Search fonts...",
+      search_fonts: "Search fonts…",
       tab_all: "All",
       section_height: "Stitch Height",
       unit_px: "px",
@@ -2736,7 +2776,7 @@ function truncate(str, maxLen) {
       section_fabric: "Fabric",
       label_aida: "Aida",
       empty_state: "Type something to see your pattern",
-      loading_text: "Rasterizing...",
+      loading_text: "Rasterizing…",
       unit_cm: "cm",
       unit_stitches: "stitches",
       unit_crosses: "crosses",
@@ -2747,12 +2787,19 @@ function truncate(str, maxLen) {
       alert_no_text: "Type some text and select a font first.",
       alert_no_pdf: "PDF engine not loaded. Please reload the page.",
       alert_no_jspdf: "jsPDF library not loaded. Check your internet connection and reload.",
-      alert_pdf_fail: "PDF generation failed: "
+      alert_pdf_fail: "PDF generation failed: ",
+      label_custom: 'Custom',
+      label_stitch_length: 'Stitch length',
+      sheet_fabric: 'Fabric & Stitch',
+      sheet_info: 'Pattern Info',
+      label_dmc: 'DMC',
+      label_thread: 'Thread',
+      label_language: 'Language'
     },
     es: {
-      placeholder_text: "Escribe tu texto aquí...",
+      placeholder_text: "Escribe tu texto aquí…",
       section_font: "Fuente",
-      search_fonts: "Buscar fuentes...",
+      search_fonts: "Buscar fuentes…",
       tab_all: "Todas",
       section_height: "Altura de Puntada",
       unit_px: "px",
@@ -2760,7 +2807,7 @@ function truncate(str, maxLen) {
       section_fabric: "Tela",
       label_aida: "Aida",
       empty_state: "Escribe algo para ver tu patrón",
-      loading_text: "Rasterizando...",
+      loading_text: "Rasterizando…",
       unit_cm: "cm",
       unit_stitches: "puntadas",
       unit_crosses: "cruces",
@@ -2771,12 +2818,19 @@ function truncate(str, maxLen) {
       alert_no_text: "Escribe un texto y selecciona una fuente primero.",
       alert_no_pdf: "Motor PDF no cargado. Recarga la página.",
       alert_no_jspdf: "Biblioteca jsPDF no cargada. Verifica tu conexión y recarga.",
-      alert_pdf_fail: "Error al generar PDF: "
+      alert_pdf_fail: "Error al generar PDF: ",
+      label_custom: 'Personalizado',
+      label_stitch_length: 'Largo de puntada',
+      sheet_fabric: 'Tela y Puntada',
+      sheet_info: 'Info del Patrón',
+      label_dmc: 'DMC',
+      label_thread: 'Hilo',
+      label_language: 'Idioma'
     },
     fr: {
-      placeholder_text: "Tapez votre texte ici...",
+      placeholder_text: "Tapez votre texte ici…",
       section_font: "Police",
-      search_fonts: "Rechercher des polices...",
+      search_fonts: "Rechercher des polices…",
       tab_all: "Toutes",
       section_height: "Hauteur de Point",
       unit_px: "px",
@@ -2784,7 +2838,7 @@ function truncate(str, maxLen) {
       section_fabric: "Tissu",
       label_aida: "Aida",
       empty_state: "Tapez quelque chose pour voir votre motif",
-      loading_text: "Rastérisation...",
+      loading_text: "Rastérisation…",
       unit_cm: "cm",
       unit_stitches: "points",
       unit_crosses: "croix",
@@ -2798,9 +2852,9 @@ function truncate(str, maxLen) {
       alert_pdf_fail: "Échec de la génération du PDF : "
     },
     de: {
-      placeholder_text: "Gib deinen Text ein...",
+      placeholder_text: "Gib deinen Text ein…",
       section_font: "Schriftart",
-      search_fonts: "Schriftarten suchen...",
+      search_fonts: "Schriftarten suchen…",
       tab_all: "Alle",
       section_height: "Stichhöhe",
       unit_px: "px",
@@ -2808,7 +2862,7 @@ function truncate(str, maxLen) {
       section_fabric: "Stoff",
       label_aida: "Aida",
       empty_state: "Tippe etwas, um dein Muster zu sehen",
-      loading_text: "Wird gerastert...",
+      loading_text: "Wird gerastert…",
       unit_cm: "cm",
       unit_stitches: "Stiche",
       unit_crosses: "Kreuze",
@@ -2822,9 +2876,9 @@ function truncate(str, maxLen) {
       alert_pdf_fail: "PDF-Erzeugung fehlgeschlagen: "
     },
     it: {
-      placeholder_text: "Scrivi il tuo testo qui...",
+      placeholder_text: "Scrivi il tuo testo qui…",
       section_font: "Font",
-      search_fonts: "Cerca font...",
+      search_fonts: "Cerca font…",
       tab_all: "Tutti",
       section_height: "Altezza Punto",
       unit_px: "px",
@@ -2832,7 +2886,7 @@ function truncate(str, maxLen) {
       section_fabric: "Tessuto",
       label_aida: "Aida",
       empty_state: "Scrivi qualcosa per vedere il tuo schema",
-      loading_text: "Rasterizzazione...",
+      loading_text: "Rasterizzazione…",
       unit_cm: "cm",
       unit_stitches: "punti",
       unit_crosses: "croci",
@@ -2846,9 +2900,9 @@ function truncate(str, maxLen) {
       alert_pdf_fail: "Generazione PDF fallita: "
     },
     pt: {
-      placeholder_text: "Digite seu texto aqui...",
+      placeholder_text: "Digite seu texto aqui…",
       section_font: "Fonte",
-      search_fonts: "Buscar fontes...",
+      search_fonts: "Buscar fontes…",
       tab_all: "Todas",
       section_height: "Altura do Ponto",
       unit_px: "px",
@@ -2856,7 +2910,7 @@ function truncate(str, maxLen) {
       section_fabric: "Tecido",
       label_aida: "Aida",
       empty_state: "Digite algo para ver seu padrão",
-      loading_text: "Rasterizando...",
+      loading_text: "Rasterizando…",
       unit_cm: "cm",
       unit_stitches: "pontos",
       unit_crosses: "cruzes",
@@ -2870,9 +2924,9 @@ function truncate(str, maxLen) {
       alert_pdf_fail: "Falha na geração do PDF: "
     },
     nl: {
-      placeholder_text: "Typ je tekst hier...",
+      placeholder_text: "Typ je tekst hier…",
       section_font: "Lettertype",
-      search_fonts: "Lettertypen zoeken...",
+      search_fonts: "Lettertypen zoeken…",
       tab_all: "Alle",
       section_height: "Steekhoogte",
       unit_px: "px",
@@ -2880,7 +2934,7 @@ function truncate(str, maxLen) {
       section_fabric: "Stof",
       label_aida: "Aida",
       empty_state: "Typ iets om je patroon te zien",
-      loading_text: "Rasteren...",
+      loading_text: "Rasteren…",
       unit_cm: "cm",
       unit_stitches: "steken",
       unit_crosses: "kruisjes",
@@ -2894,9 +2948,9 @@ function truncate(str, maxLen) {
       alert_pdf_fail: "PDF genereren mislukt: "
     },
     ja: {
-      placeholder_text: "テキストを入力...",
+      placeholder_text: "テキストを入力…",
       section_font: "フォント",
-      search_fonts: "フォントを検索...",
+      search_fonts: "フォントを検索…",
       tab_all: "すべて",
       section_height: "ステッチ高さ",
       unit_px: "px",
@@ -2904,7 +2958,7 @@ function truncate(str, maxLen) {
       section_fabric: "布地",
       label_aida: "アイーダ",
       empty_state: "テキストを入力するとパターンが表示されます",
-      loading_text: "ラスタライズ中...",
+      loading_text: "ラスタライズ中…",
       unit_cm: "cm",
       unit_stitches: "ステッチ",
       unit_crosses: "クロス",
@@ -2918,9 +2972,9 @@ function truncate(str, maxLen) {
       alert_pdf_fail: "PDF生成に失敗しました: "
     },
     ko: {
-      placeholder_text: "텍스트를 입력하세요...",
+      placeholder_text: "텍스트를 입력하세요…",
       section_font: "글꼴",
-      search_fonts: "글꼴 검색...",
+      search_fonts: "글꼴 검색…",
       tab_all: "전체",
       section_height: "스티치 높이",
       unit_px: "px",
@@ -2928,7 +2982,7 @@ function truncate(str, maxLen) {
       section_fabric: "원단",
       label_aida: "아이다",
       empty_state: "텍스트를 입력하면 패턴이 표시됩니다",
-      loading_text: "래스터라이즈 중...",
+      loading_text: "래스터라이즈 중…",
       unit_cm: "cm",
       unit_stitches: "스티치",
       unit_crosses: "크로스",
@@ -2942,9 +2996,9 @@ function truncate(str, maxLen) {
       alert_pdf_fail: "PDF 생성 실패: "
     },
     zh: {
-      placeholder_text: "在此输入文字...",
+      placeholder_text: "在此输入文字…",
       section_font: "字体",
-      search_fonts: "搜索字体...",
+      search_fonts: "搜索字体…",
       tab_all: "全部",
       section_height: "针高",
       unit_px: "px",
@@ -2952,7 +3006,7 @@ function truncate(str, maxLen) {
       section_fabric: "布料",
       label_aida: "Aida",
       empty_state: "输入文字以查看图案",
-      loading_text: "正在栅格化...",
+      loading_text: "正在栅格化…",
       unit_cm: "厘米",
       unit_stitches: "针",
       unit_crosses: "十字",
@@ -2966,9 +3020,9 @@ function truncate(str, maxLen) {
       alert_pdf_fail: "PDF生成失败: "
     },
     ru: {
-      placeholder_text: "Введите текст...",
+      placeholder_text: "Введите текст…",
       section_font: "Шрифт",
-      search_fonts: "Поиск шрифтов...",
+      search_fonts: "Поиск шрифтов…",
       tab_all: "Все",
       section_height: "Высота стежка",
       unit_px: "px",
@@ -2976,7 +3030,7 @@ function truncate(str, maxLen) {
       section_fabric: "Ткань",
       label_aida: "Аида",
       empty_state: "Введите текст, чтобы увидеть узор",
-      loading_text: "Растеризация...",
+      loading_text: "Растеризация…",
       unit_cm: "см",
       unit_stitches: "стежков",
       unit_crosses: "крестов",
@@ -2990,9 +3044,9 @@ function truncate(str, maxLen) {
       alert_pdf_fail: "Ошибка генерации PDF: "
     },
     pl: {
-      placeholder_text: "Wpisz swój tekst...",
+      placeholder_text: "Wpisz swój tekst…",
       section_font: "Czcionka",
-      search_fonts: "Szukaj czcionek...",
+      search_fonts: "Szukaj czcionek…",
       tab_all: "Wszystkie",
       section_height: "Wysokość Ściegu",
       unit_px: "px",
@@ -3000,7 +3054,7 @@ function truncate(str, maxLen) {
       section_fabric: "Tkanina",
       label_aida: "Aida",
       empty_state: "Wpisz coś, aby zobaczyć wzór",
-      loading_text: "Rasteryzacja...",
+      loading_text: "Rasteryzacja…",
       unit_cm: "cm",
       unit_stitches: "ściegów",
       unit_crosses: "krzyżyków",
@@ -3014,9 +3068,9 @@ function truncate(str, maxLen) {
       alert_pdf_fail: "Błąd generowania PDF: "
     },
     sv: {
-      placeholder_text: "Skriv din text här...",
+      placeholder_text: "Skriv din text här…",
       section_font: "Typsnitt",
-      search_fonts: "Sök typsnitt...",
+      search_fonts: "Sök typsnitt…",
       tab_all: "Alla",
       section_height: "Stygnh\u00f6jd",
       unit_px: "px",
@@ -3024,7 +3078,7 @@ function truncate(str, maxLen) {
       section_fabric: "Tyg",
       label_aida: "Aida",
       empty_state: "Skriv något för att se ditt mönster",
-      loading_text: "Rastrerar...",
+      loading_text: "Rastrerar…",
       unit_cm: "cm",
       unit_stitches: "stygn",
       unit_crosses: "kors",
@@ -3038,9 +3092,9 @@ function truncate(str, maxLen) {
       alert_pdf_fail: "PDF-generering misslyckades: "
     },
     da: {
-      placeholder_text: "Skriv din tekst her...",
+      placeholder_text: "Skriv din tekst her…",
       section_font: "Skrifttype",
-      search_fonts: "Søg skrifttyper...",
+      search_fonts: "Søg skrifttyper…",
       tab_all: "Alle",
       section_height: "Stinghøjde",
       unit_px: "px",
@@ -3048,7 +3102,7 @@ function truncate(str, maxLen) {
       section_fabric: "Stof",
       label_aida: "Aida",
       empty_state: "Skriv noget for at se dit mønster",
-      loading_text: "Rastrerer...",
+      loading_text: "Rastrerer…",
       unit_cm: "cm",
       unit_stitches: "sting",
       unit_crosses: "kors",
@@ -3062,9 +3116,9 @@ function truncate(str, maxLen) {
       alert_pdf_fail: "PDF-generering mislykkedes: "
     },
     fi: {
-      placeholder_text: "Kirjoita tekstisi tähän...",
+      placeholder_text: "Kirjoita tekstisi tähän…",
       section_font: "Fontti",
-      search_fonts: "Etsi fontteja...",
+      search_fonts: "Etsi fontteja…",
       tab_all: "Kaikki",
       section_height: "Pistonkorkeus",
       unit_px: "px",
@@ -3072,7 +3126,7 @@ function truncate(str, maxLen) {
       section_fabric: "Kangas",
       label_aida: "Aida",
       empty_state: "Kirjoita jotain nähdäksesi kuviosi",
-      loading_text: "Rasteroidaan...",
+      loading_text: "Rasteroidaan…",
       unit_cm: "cm",
       unit_stitches: "pistoa",
       unit_crosses: "ristiä",
@@ -3086,9 +3140,9 @@ function truncate(str, maxLen) {
       alert_pdf_fail: "PDF:n luonti epäonnistui: "
     },
     uk: {
-      placeholder_text: "Введіть текст...",
+      placeholder_text: "Введіть текст…",
       section_font: "Шрифт",
-      search_fonts: "Пошук шрифтів...",
+      search_fonts: "Пошук шрифтів…",
       tab_all: "Усі",
       section_height: "Висота стібка",
       unit_px: "px",
@@ -3096,7 +3150,7 @@ function truncate(str, maxLen) {
       section_fabric: "Тканина",
       label_aida: "Аїда",
       empty_state: "Введіть текст, щоб побачити візерунок",
-      loading_text: "Растеризація...",
+      loading_text: "Растеризація…",
       unit_cm: "см",
       unit_stitches: "стібків",
       unit_crosses: "хрестиків",
@@ -3110,9 +3164,9 @@ function truncate(str, maxLen) {
       alert_pdf_fail: "Помилка генерації PDF: "
     },
     hu: {
-      placeholder_text: "Írd be a szöveged...",
+      placeholder_text: "Írd be a szöveged…",
       section_font: "Betűtípus",
-      search_fonts: "Betűtípusok keresése...",
+      search_fonts: "Betűtípusok keresése…",
       tab_all: "Összes",
       section_height: "Öltésmagasság",
       unit_px: "px",
@@ -3120,7 +3174,7 @@ function truncate(str, maxLen) {
       section_fabric: "Szövet",
       label_aida: "Aida",
       empty_state: "Írj valamit a minta megtekintéséhez",
-      loading_text: "Raszterizálás...",
+      loading_text: "Raszterizálás…",
       unit_cm: "cm",
       unit_stitches: "öltés",
       unit_crosses: "kereszt",
@@ -3158,6 +3212,7 @@ function truncate(str, maxLen) {
   function setLanguage(lang) {
     if (!I18N[lang]) lang = 'en';
     currentLang = lang;
+    document.documentElement.lang = lang;
     try { localStorage.setItem('w2s_lang', lang); } catch(e) {}
     var sel = document.getElementById('langSelect');
     if (sel) sel.value = lang;
@@ -3203,9 +3258,9 @@ function truncate(str, maxLen) {
     var totalMeters = stitches * metersPerStitch;
     if (displayUnit === 'imperial') {
       var yards = (totalMeters * 1.09361).toFixed(1);
-      return yards + 'yd';
+      return yards + '\u00a0yd';
     }
-    return totalMeters.toFixed(1) + 'm';
+    return totalMeters.toFixed(1) + '\u00a0m';
   }
 
   function setDisplayUnit(unit) {
@@ -3501,6 +3556,11 @@ function truncate(str, maxLen) {
     var size = formatSize(result.width, result.height, currentAida);
 
     // Update stats
+    var statsBar = document.getElementById('statsBar');
+    if (statsBar && !statsBar.getAttribute('aria-live')) {
+      statsBar.setAttribute('aria-live', 'polite');
+      statsBar.setAttribute('aria-atomic', 'true');
+    }
     document.getElementById('statSizeCm').textContent = size.value;
     var sizeUnitEl = document.getElementById('statSizeUnit');
     if (sizeUnitEl) sizeUnitEl.textContent = size.unit;
@@ -3606,6 +3666,7 @@ function truncate(str, maxLen) {
     }
 
     var displayed = 0;
+    var fragment = document.createDocumentFragment();
 
     fontListData.forEach(function (font) {
       var name = font.name || font.file;
@@ -3638,7 +3699,7 @@ function truncate(str, maxLen) {
       info.appendChild(meta);
       info.appendChild(previewCanvas);
       item.appendChild(info);
-      fontList.appendChild(item);
+      fragment.appendChild(item);
 
       item.addEventListener('click', function () {
         currentFontFile = font.file;
@@ -3650,6 +3711,8 @@ function truncate(str, maxLen) {
         loadAndRender();
       });
     });
+
+    fontList.appendChild(fragment);
 
     if (!displayed) {
       fontList.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:12px;text-align:center;">' + t('no_matching') + '</div>';
@@ -3700,6 +3763,7 @@ function truncate(str, maxLen) {
   function renderColors() {
     if (typeof DMC_COLORS === 'undefined' || !DMC_COLORS.length) return;
     colorRow.innerHTML = '';
+    var fragment = document.createDocumentFragment();
 
     DMC_COLORS.forEach(function (color, index) {
       var dot = document.createElement('div');
@@ -3721,8 +3785,10 @@ function truncate(str, maxLen) {
         updatePreview();
       });
 
-      colorRow.appendChild(dot);
+      fragment.appendChild(dot);
     });
+
+    colorRow.appendChild(fragment);
   }
 
   // -- Aida Count --
