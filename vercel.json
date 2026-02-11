@@ -1,21 +1,9 @@
 {
-  "outputDirectory": ".",
+  "outputDirectory": "public",
   "cleanUrls": true,
-  "rewrites": [
-    { "source": "/", "destination": "/public/index.html" },
-    { "source": "/inspector", "destination": "/public/inspector.html" }
-  ],
   "functions": {
     "api/*.py": {
       "includeFiles": "fonts/**,src/ttf2stitch/**"
     }
-  },
-  "headers": [
-    {
-      "source": "/fonts/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    }
-  ]
+  }
 }
