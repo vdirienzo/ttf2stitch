@@ -5,8 +5,9 @@
  * 2. ui-shell.css   (styles, inlined as <style> block)
  * 3. i18n-data.js   (translations, inlined as <script> block)
  * 4. data-fonts.js  (DMC_COLORS)
- * 5. pdf-modules/   (PDF generation, 4 files concatenated)
- * 6. ui-modules/    (UI logic, 12 files concatenated into IIFE)
+ * 5. shared.js      (bitmap utilities shared by PDF + UI)
+ * 6. pdf-modules/   (PDF generation, 5 files concatenated)
+ * 7. ui-modules/    (UI logic, 14 files concatenated into IIFE)
  */
 const fs = require('fs');
 const path = require('path');
@@ -16,16 +17,19 @@ const uiShell = fs.readFileSync(path.join(BASE, 'ui-shell.html'), 'utf-8');
 const uiCss = fs.readFileSync(path.join(BASE, 'ui-shell.css'), 'utf-8');
 const i18nData = fs.readFileSync(path.join(BASE, 'i18n-data.js'), 'utf-8');
 const dataFonts = fs.readFileSync(path.join(BASE, 'data-fonts.js'), 'utf-8');
+const sharedJs = fs.readFileSync(path.join(BASE, 'shared.js'), 'utf-8');
 
-// PDF modules (4 files)
-const pdfModules = ['pdf-helpers.js', 'pdf-bitmap.js', 'pdf-renderer.js', 'pdf-modal.js'];
+// PDF modules (5 files)
+const pdfModules = ['pdf-helpers.js', 'pdf-bitmap.js', 'pdf-legend.js', 'pdf-renderer.js', 'pdf-modal.js'];
 const pdfEngine = pdfModules.map(f => fs.readFileSync(path.join(BASE, 'pdf-modules', f), 'utf-8')).join('\n\n');
 
-// UI modules (12 files, order matters — dependencies flow top to bottom)
+// UI modules (14 files, order matters — dependencies flow top to bottom)
 const uiModules = [
-  'i18n.js', 'state.js', 'bitmap.js', 'renderer.js', 'api.js',
+  'i18n.js', 'state.js', 'renderer.js', 'api.js',
   'preview.js', 'font-manager.js', 'color-manager.js', 'settings.js',
-  'pdf-integration.js', 'mobile-ui.js', 'init.js'
+  'pdf-integration.js',
+  'sheet-system.js', 'virtual-scroll.js', 'sheet-content.js', 'mobile-toolbar.js',
+  'init.js'
 ];
 const uiJs = uiModules.map(f => fs.readFileSync(path.join(BASE, 'ui-modules', f), 'utf-8')).join('\n\n');
 
@@ -52,6 +56,11 @@ DMC_COLORS.forEach(function(c) {
     c.b = parseInt(c.hex.slice(5, 7), 16);
   }
 });
+</script>
+
+<!-- ═══ Shared Bitmap Utilities ═══ -->
+<script>
+${sharedJs}
 </script>
 
 <!-- ═══ PDF Generation Engine ═══ -->

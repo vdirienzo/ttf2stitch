@@ -1886,6 +1886,115 @@ DMC_COLORS.forEach(function(c) {
 });
 </script>
 
+<!-- ═══ Shared Bitmap Utilities ═══ -->
+<script>
+// shared.js — Unified bitmap utilities used by both UI and PDF engine
+// Loaded before pdf-modules and ui-modules by assemble.js
+
+/**
+ * Trim trailing empty rows from a glyph bitmap.
+ * Returns only the rows up to and including the last row containing a '1'.
+ *
+ * @param {object} glyph - Glyph object with .bitmap (array of strings)
+ * @returns {string[]} Trimmed bitmap rows
+ */
+function getEffectiveBitmap(glyph) {
+  if (!glyph || !glyph.bitmap || !glyph.bitmap.length) return [];
+  var bitmap = glyph.bitmap;
+  var lastFilledRow = -1;
+  for (var r = bitmap.length - 1; r >= 0; r--) {
+    if (bitmap[r].indexOf('1') !== -1) { lastFilledRow = r; break; }
+  }
+  if (lastFilledRow === -1) return [];
+  return bitmap.slice(0, lastFilledRow + 1);
+}
+
+/**
+ * Convert a text string to a 2D bitmap using bitmap font glyph data.
+ * Supports both UI (top-aligned, boolean) and PDF (bottom-aligned, boolean) use cases.
+ *
+ * @param {string} text - The text to render
+ * @param {object} fontData - Font object with glyphs, height, letterSpacing, spaceWidth
+ * @param {object} [options] - Rendering options
+ * @param {string} [options.align='bottom'] - Vertical glyph alignment:
+ *   'bottom' (default): glyph rows start at top of cell, empty space at bottom
+ *   'top': glyph rows pushed to bottom of cell, empty space at top
+ * @param {string} [options.format='boolean'] - Cell value format:
+ *   'boolean' (default): cells are true/false
+ *   'string': cells are '1'/'0'
+ * @returns {{ bitmap: Array[], width: number, height: number }}
+ */
+function getTextBitmap(text, fontData, options) {
+  options = options || {};
+  var align = options.align || 'bottom';
+  var format = options.format || 'boolean';
+
+  if (!text || !fontData || !fontData.glyphs) return { bitmap: [], width: 0, height: 0 };
+
+  var glyphs = fontData.glyphs;
+  var height = fontData.height || 9;
+  var letterSpacing = (fontData.letterSpacing != null) ? fontData.letterSpacing : 1;
+  var spaceWidth = fontData.spaceWidth || 3;
+  var columns = [];
+
+  var falseVal = (format === 'string') ? '0' : false;
+  var trueVal = (format === 'string') ? '1' : true;
+
+  for (var ci = 0; ci < text.length; ci++) {
+    var ch = text[ci];
+
+    // Letter spacing between characters (not before the first)
+    if (ci > 0 && letterSpacing > 0) {
+      for (var s = 0; s < letterSpacing; s++) columns.push(newEmptyCol(height, falseVal));
+    }
+
+    // Space or missing/empty glyph: insert empty columns
+    if (ch === ' ' || !glyphs[ch] || !glyphs[ch].bitmap || !glyphs[ch].bitmap.length) {
+      for (var sw = 0; sw < spaceWidth; sw++) columns.push(newEmptyCol(height, falseVal));
+      continue;
+    }
+
+    var glyph = glyphs[ch];
+    var bmp = glyph.bitmap;
+    var glyphWidth = glyph.width || (bmp[0] ? bmp[0].length : 0);
+    var glyphHeight = bmp.length;
+
+    // 'top' alignment: push glyph down so empty space is at the top of the cell
+    // 'bottom' (default): glyph starts at row 0, empty space at bottom
+    var yOffset = (align === 'top') ? (height - glyphHeight) : 0;
+
+    for (var x = 0; x < glyphWidth; x++) {
+      var col = newEmptyCol(height, falseVal);
+      for (var row = 0; row < glyphHeight; row++) {
+        if (row < bmp.length && x < bmp[row].length && bmp[row][x] === '1') {
+          col[yOffset + row] = trueVal;
+        }
+      }
+      columns.push(col);
+    }
+  }
+
+  if (!columns.length) return { bitmap: [], width: 0, height: 0 };
+
+  // Transpose columns to rows
+  var width = columns.length;
+  var bitmap = [];
+  for (var y = 0; y < height; y++) {
+    var row = [];
+    for (var x2 = 0; x2 < width; x2++) row.push(columns[x2][y]);
+    bitmap.push(row);
+  }
+  return { bitmap: bitmap, width: width, height: height };
+}
+
+function newEmptyCol(height, fillValue) {
+  var col = new Array(height);
+  for (var i = 0; i < height; i++) col[i] = fillValue;
+  return col;
+}
+
+</script>
+
 <!-- ═══ PDF Generation Engine ═══ -->
 <script>
 // ══════════════════════════════════════════════════════════════════
@@ -1918,293 +2027,18 @@ function truncate(str, maxLen) {
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-//  Word2Stitch — PDF Bitmap
-//  Converts text strings to 2D boolean bitmaps using font glyph data
-// ══════════════════════════════════════════════════════════════════
+// pdf-modules/pdf-bitmap.js — Thin wrapper over shared getTextBitmap()
 
-/**
- * Convert text string to a 2D boolean bitmap using bitmap font glyph data.
- * Handles letter spacing, space width, and missing glyphs gracefully.
- *
- * @param {string} text - The text to render
- * @param {object} fontData - Font object with glyphs, height, letterSpacing, spaceWidth
- * @returns {boolean[][]} 2D array where true = filled stitch, false = empty
- */
 function getTextBitmapForPDF(text, fontData) {
-  if (!text || !fontData || !fontData.glyphs) return [];
-
-  const glyphs = fontData.glyphs;
-  const letterSpacing = fontData.letterSpacing ?? 1;
-  const spaceWidth = fontData.spaceWidth ?? 3;
-
-  // Determine the max glyph height from the font data
-  const fontHeight = fontData.height || Math.max(
-    1,
-    ...Object.values(glyphs).map(g =>
-      g.bitmap ? g.bitmap.length : 0
-    )
-  );
-
-  // Build columns for each character, then concatenate
-  const charColumns = [];
-
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-
-    // Add spacing between characters (not before the first one)
-    if (i > 0 && letterSpacing > 0) {
-      for (let s = 0; s < letterSpacing; s++) {
-        const emptyCol = new Array(fontHeight).fill(false);
-        charColumns.push(emptyCol);
-      }
-    }
-
-    if (ch === ' ' || !glyphs[ch]) {
-      // Space or missing glyph: insert empty columns
-      const w = spaceWidth;
-      for (let s = 0; s < w; s++) {
-        charColumns.push(new Array(fontHeight).fill(false));
-      }
-      continue;
-    }
-
-    const glyph = glyphs[ch];
-    const bitmap = glyph.bitmap || [];
-    const glyphWidth = glyph.width || (bitmap[0] ? bitmap[0].length : 0);
-    const glyphHeight = bitmap.length;
-
-    // Vertically align glyph to bottom of font height
-    const yOffset = fontHeight - glyphHeight;
-
-    for (let col = 0; col < glyphWidth; col++) {
-      const column = new Array(fontHeight).fill(false);
-      for (let row = 0; row < glyphHeight; row++) {
-        if (bitmap[row] && col < bitmap[row].length && bitmap[row][col] === '1') {
-          column[yOffset + row] = true;
-        }
-      }
-      charColumns.push(column);
-    }
-  }
-
-  if (charColumns.length === 0) return [];
-
-  // Convert column-based data to row-based 2D array
-  const width = charColumns.length;
-  const result = [];
-  for (let row = 0; row < fontHeight; row++) {
-    const rowData = [];
-    for (let col = 0; col < width; col++) {
-      rowData.push(charColumns[col][row]);
-    }
-    result.push(rowData);
-  }
-
-  return result;
+  return getTextBitmap(text, fontData, { align: 'top' }).bitmap;
 }
 
 
 // ══════════════════════════════════════════════════════════════════
-//  Word2Stitch — PDF Renderer
-//  Layout calculation, grid drawing, legend, headers/footers, and
-//  PDF document assembly. Depends on pdf-helpers and pdf-bitmap.
+//  Word2Stitch — PDF Legend
+//  Legend/materials page: thread table, pattern info, size boxes.
+//  Depends on pdf-helpers (pt, getLuminance).
 // ══════════════════════════════════════════════════════════════════
-
-/**
- * Calculate multi-page layout for the pattern grid.
- *
- * @param {number} width - Total bitmap width in cells
- * @param {number} height - Total bitmap height in cells
- * @param {number} cellSize - Cell size in mm
- * @param {number} pageW - Usable page width in mm
- * @param {number} pageH - Usable page height in mm
- * @returns {object} Layout info: colsPerPage, rowsPerPage, pagesX, pagesY, totalPages
- */
-function calculatePDFLayout(width, height, cellSize, pageW, pageH) {
-  // Reserve space for coordinate labels on left (~5mm, vertical text) and top (~6mm)
-  const labelMarginLeft = 5;
-  const labelMarginTop = 6;
-
-  const availableW = pageW - labelMarginLeft;
-  const availableH = pageH - labelMarginTop;
-
-  const colsPerPage = Math.max(1, Math.floor(availableW / cellSize));
-  const rowsPerPage = Math.max(1, Math.floor(availableH / cellSize));
-
-  const pagesX = Math.max(1, Math.ceil(width / colsPerPage));
-  const pagesY = Math.max(1, Math.ceil(height / rowsPerPage));
-
-  return {
-    colsPerPage,
-    rowsPerPage,
-    pagesX,
-    pagesY,
-    totalPages: pagesX * pagesY,
-    labelMarginLeft,
-    labelMarginTop,
-  };
-}
-
-/**
- * Draw one page section of the pattern grid.
- *
- * @param {jsPDF} pdf - jsPDF instance
- * @param {object} opts - Grid page options
- * @param {boolean[][]} opts.bitmap - Full 2D bitmap
- * @param {object} opts.color - { r, g, b } thread color
- * @param {number} opts.startCol - First column index for this page
- * @param {number} opts.startRow - First row index for this page
- * @param {number} opts.colsPerPage - Max columns that fit on one page
- * @param {number} opts.rowsPerPage - Max rows that fit on one page
- * @param {number} opts.cellSize - Cell size in mm
- * @param {object} opts.margins - { left, top } in mm
- * @param {object} opts.layout - Layout info from calculatePDFLayout
- */
-function drawGridPage(pdf, opts) {
-  var bitmap = opts.bitmap;
-  var color = opts.color;
-  var startCol = opts.startCol;
-  var startRow = opts.startRow;
-  var colsPerPage = opts.colsPerPage;
-  var rowsPerPage = opts.rowsPerPage;
-  var cellSize = opts.cellSize;
-  var margins = opts.margins;
-  var layout = opts.layout;
-
-  const totalWidth = bitmap[0] ? bitmap[0].length : 0;
-  const totalHeight = bitmap.length;
-
-  // How many cells to actually draw on this page
-  const endCol = Math.min(startCol + colsPerPage, totalWidth);
-  const endRow = Math.min(startRow + rowsPerPage, totalHeight);
-  const drawCols = endCol - startCol;
-  const drawRows = endRow - startRow;
-
-  const offsetX = margins.left + layout.labelMarginLeft;
-  const offsetY = margins.top + layout.labelMarginTop;
-
-  // Determine symbol color based on luminance
-  const luminance = getLuminance(color);
-  const symbolIsWhite = luminance < 0.5;
-
-  // 1. Draw filled cells
-  for (let row = startRow; row < endRow; row++) {
-    for (let col = startCol; col < endCol; col++) {
-      if (bitmap[row] && bitmap[row][col]) {
-        const x = offsetX + (col - startCol) * cellSize;
-        const y = offsetY + (row - startRow) * cellSize;
-
-        // Fill cell with thread color
-        pdf.setFillColor(color.r, color.g, color.b);
-        pdf.rect(x, y, cellSize, cellSize, 'F');
-
-        // Draw cross symbol centered in cell (only if cell is large enough to be readable)
-        if (cellSize >= 1.5) {
-          if (symbolIsWhite) {
-            pdf.setTextColor(255, 255, 255);
-          } else {
-            pdf.setTextColor(0, 0, 0);
-          }
-          pdf.setFontSize(Math.max(4, cellSize * 2.2));
-          pdf.text(
-            '\u00D7',
-            x + cellSize / 2,
-            y + cellSize / 2 + cellSize * 0.12,
-            { align: 'center' }
-          );
-        }
-      }
-    }
-  }
-
-  // 2. Draw grid lines
-
-  // Thin grid lines (every cell)
-  pdf.setDrawColor(204, 204, 204); // #ccc
-  pdf.setLineWidth(0.1);
-
-  for (let col = 0; col <= drawCols; col++) {
-    const x = offsetX + col * cellSize;
-    pdf.line(x, offsetY, x, offsetY + drawRows * cellSize);
-  }
-  for (let row = 0; row <= drawRows; row++) {
-    const y = offsetY + row * cellSize;
-    pdf.line(offsetX, y, offsetX + drawCols * cellSize, y);
-  }
-
-  // Bold grid lines (every 10 cells)
-  pdf.setDrawColor(51, 51, 51); // #333
-  pdf.setLineWidth(0.3);
-
-  for (let col = 0; col <= drawCols; col++) {
-    const absCol = startCol + col;
-    if (absCol % 10 === 0) {
-      const x = offsetX + col * cellSize;
-      pdf.line(x, offsetY, x, offsetY + drawRows * cellSize);
-    }
-  }
-  for (let row = 0; row <= drawRows; row++) {
-    const absRow = startRow + row;
-    if (absRow % 10 === 0) {
-      const y = offsetY + row * cellSize;
-      pdf.line(offsetX, y, offsetX + drawCols * cellSize, y);
-    }
-  }
-
-  // Bold border around the grid area
-  pdf.setDrawColor(51, 51, 51);
-  pdf.setLineWidth(0.3);
-  pdf.rect(offsetX, offsetY, drawCols * cellSize, drawRows * cellSize, 'S');
-
-  // 3. Coordinate labels every 10 cells
-
-  pdf.setFontSize(5);
-  pdf.setTextColor(120, 120, 120);
-
-  // Top edge labels
-  for (let col = 0; col <= drawCols; col++) {
-    const absCol = startCol + col;
-    if (absCol % 10 === 0 && absCol > 0) {
-      const x = offsetX + col * cellSize;
-      pdf.text(String(absCol), x, offsetY - 1, { align: 'center' });
-    }
-  }
-
-  // Left edge labels (rotated 90 for compact width)
-  for (let row = 0; row <= drawRows; row++) {
-    const absRow = startRow + row;
-    if (absRow % 10 === 0 && absRow > 0) {
-      const y = offsetY + row * cellSize;
-      pdf.text(String(absRow), offsetX - 1.5, y, { align: 'center', angle: 90 });
-    }
-  }
-
-  // 4. Verification scale bar (1:1 print check)
-  // Draw a 10mm bar at bottom-right so users can verify print scale with a ruler
-  const gridBottom = offsetY + drawRows * cellSize;
-  const gridRight = offsetX + drawCols * cellSize;
-  const barLen = 10; // exactly 10mm
-  const barY = gridBottom + 5;
-  const barX = gridRight - barLen;
-
-  // Bar line
-  pdf.setDrawColor(184, 58, 42);
-  pdf.setLineWidth(0.4);
-  pdf.line(barX, barY, barX + barLen, barY);
-  // End ticks
-  pdf.line(barX, barY - 1.5, barX, barY + 1.5);
-  pdf.line(barX + barLen, barY - 1.5, barX + barLen, barY + 1.5);
-  // Label
-  pdf.setFontSize(5.5);
-  pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(184, 58, 42);
-  pdf.text('\u2190 10 mm \u2192', barX + barLen / 2, barY - 2.5, { align: 'center' });
-  pdf.setFontSize(4.5);
-  pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(140, 130, 120);
-  pdf.text(pt('pdf_scale_verify', 'Verify: measure this bar with a ruler. Must be exactly 10 mm.'), barX + barLen / 2, barY + 3.5, { align: 'center' });
-}
 
 /**
  * Draw the thread table section of the legend page.
@@ -2484,6 +2318,208 @@ function drawLegend(pdf, opts) {
 
   // Size boxes
   drawSizeBoxes(pdf, legendOpts, y, patternResult, threadResult.preferImperial);
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+//  Word2Stitch — PDF Renderer
+//  Layout calculation, grid drawing, legend, headers/footers, and
+//  PDF document assembly. Depends on pdf-helpers and pdf-bitmap.
+// ══════════════════════════════════════════════════════════════════
+
+/**
+ * Calculate multi-page layout for the pattern grid.
+ *
+ * @param {number} width - Total bitmap width in cells
+ * @param {number} height - Total bitmap height in cells
+ * @param {number} cellSize - Cell size in mm
+ * @param {number} pageW - Usable page width in mm
+ * @param {number} pageH - Usable page height in mm
+ * @returns {object} Layout info: colsPerPage, rowsPerPage, pagesX, pagesY, totalPages
+ */
+function calculatePDFLayout(width, height, cellSize, pageW, pageH) {
+  // Reserve space for coordinate labels on left (~5mm, vertical text) and top (~6mm)
+  const labelMarginLeft = 5;
+  const labelMarginTop = 6;
+
+  const availableW = pageW - labelMarginLeft;
+  const availableH = pageH - labelMarginTop;
+
+  const colsPerPage = Math.max(1, Math.floor(availableW / cellSize));
+  const rowsPerPage = Math.max(1, Math.floor(availableH / cellSize));
+
+  const pagesX = Math.max(1, Math.ceil(width / colsPerPage));
+  const pagesY = Math.max(1, Math.ceil(height / rowsPerPage));
+
+  return {
+    colsPerPage,
+    rowsPerPage,
+    pagesX,
+    pagesY,
+    totalPages: pagesX * pagesY,
+    labelMarginLeft,
+    labelMarginTop,
+  };
+}
+
+/**
+ * Draw one page section of the pattern grid.
+ *
+ * @param {jsPDF} pdf - jsPDF instance
+ * @param {object} opts - Grid page options
+ * @param {boolean[][]} opts.bitmap - Full 2D bitmap
+ * @param {object} opts.color - { r, g, b } thread color
+ * @param {number} opts.startCol - First column index for this page
+ * @param {number} opts.startRow - First row index for this page
+ * @param {number} opts.colsPerPage - Max columns that fit on one page
+ * @param {number} opts.rowsPerPage - Max rows that fit on one page
+ * @param {number} opts.cellSize - Cell size in mm
+ * @param {object} opts.margins - { left, top } in mm
+ * @param {object} opts.layout - Layout info from calculatePDFLayout
+ */
+function drawGridPage(pdf, opts) {
+  var bitmap = opts.bitmap;
+  var color = opts.color;
+  var startCol = opts.startCol;
+  var startRow = opts.startRow;
+  var colsPerPage = opts.colsPerPage;
+  var rowsPerPage = opts.rowsPerPage;
+  var cellSize = opts.cellSize;
+  var margins = opts.margins;
+  var layout = opts.layout;
+
+  const totalWidth = bitmap[0] ? bitmap[0].length : 0;
+  const totalHeight = bitmap.length;
+
+  // How many cells to actually draw on this page
+  const endCol = Math.min(startCol + colsPerPage, totalWidth);
+  const endRow = Math.min(startRow + rowsPerPage, totalHeight);
+  const drawCols = endCol - startCol;
+  const drawRows = endRow - startRow;
+
+  const offsetX = margins.left + layout.labelMarginLeft;
+  const offsetY = margins.top + layout.labelMarginTop;
+
+  // Determine symbol color based on luminance
+  const luminance = getLuminance(color);
+  const symbolIsWhite = luminance < 0.5;
+
+  // 1. Draw filled cells
+  for (let row = startRow; row < endRow; row++) {
+    for (let col = startCol; col < endCol; col++) {
+      if (bitmap[row] && bitmap[row][col]) {
+        const x = offsetX + (col - startCol) * cellSize;
+        const y = offsetY + (row - startRow) * cellSize;
+
+        // Fill cell with thread color
+        pdf.setFillColor(color.r, color.g, color.b);
+        pdf.rect(x, y, cellSize, cellSize, 'F');
+
+        // Draw cross symbol centered in cell (only if cell is large enough to be readable)
+        if (cellSize >= 1.5) {
+          if (symbolIsWhite) {
+            pdf.setTextColor(255, 255, 255);
+          } else {
+            pdf.setTextColor(0, 0, 0);
+          }
+          pdf.setFontSize(Math.max(4, cellSize * 2.2));
+          pdf.text(
+            '\u00D7',
+            x + cellSize / 2,
+            y + cellSize / 2 + cellSize * 0.12,
+            { align: 'center' }
+          );
+        }
+      }
+    }
+  }
+
+  // 2. Draw grid lines
+
+  // Thin grid lines (every cell)
+  pdf.setDrawColor(204, 204, 204); // #ccc
+  pdf.setLineWidth(0.1);
+
+  for (let col = 0; col <= drawCols; col++) {
+    const x = offsetX + col * cellSize;
+    pdf.line(x, offsetY, x, offsetY + drawRows * cellSize);
+  }
+  for (let row = 0; row <= drawRows; row++) {
+    const y = offsetY + row * cellSize;
+    pdf.line(offsetX, y, offsetX + drawCols * cellSize, y);
+  }
+
+  // Bold grid lines (every 10 cells)
+  pdf.setDrawColor(51, 51, 51); // #333
+  pdf.setLineWidth(0.3);
+
+  for (let col = 0; col <= drawCols; col++) {
+    const absCol = startCol + col;
+    if (absCol % 10 === 0) {
+      const x = offsetX + col * cellSize;
+      pdf.line(x, offsetY, x, offsetY + drawRows * cellSize);
+    }
+  }
+  for (let row = 0; row <= drawRows; row++) {
+    const absRow = startRow + row;
+    if (absRow % 10 === 0) {
+      const y = offsetY + row * cellSize;
+      pdf.line(offsetX, y, offsetX + drawCols * cellSize, y);
+    }
+  }
+
+  // Bold border around the grid area
+  pdf.setDrawColor(51, 51, 51);
+  pdf.setLineWidth(0.3);
+  pdf.rect(offsetX, offsetY, drawCols * cellSize, drawRows * cellSize, 'S');
+
+  // 3. Coordinate labels every 10 cells
+
+  pdf.setFontSize(5);
+  pdf.setTextColor(120, 120, 120);
+
+  // Top edge labels
+  for (let col = 0; col <= drawCols; col++) {
+    const absCol = startCol + col;
+    if (absCol % 10 === 0 && absCol > 0) {
+      const x = offsetX + col * cellSize;
+      pdf.text(String(absCol), x, offsetY - 1, { align: 'center' });
+    }
+  }
+
+  // Left edge labels (rotated 90 for compact width)
+  for (let row = 0; row <= drawRows; row++) {
+    const absRow = startRow + row;
+    if (absRow % 10 === 0 && absRow > 0) {
+      const y = offsetY + row * cellSize;
+      pdf.text(String(absRow), offsetX - 1.5, y, { align: 'center', angle: 90 });
+    }
+  }
+
+  // 4. Verification scale bar (1:1 print check)
+  // Draw a 10mm bar at bottom-right so users can verify print scale with a ruler
+  const gridBottom = offsetY + drawRows * cellSize;
+  const gridRight = offsetX + drawCols * cellSize;
+  const barLen = 10; // exactly 10mm
+  const barY = gridBottom + 5;
+  const barX = gridRight - barLen;
+
+  // Bar line
+  pdf.setDrawColor(184, 58, 42);
+  pdf.setLineWidth(0.4);
+  pdf.line(barX, barY, barX + barLen, barY);
+  // End ticks
+  pdf.line(barX, barY - 1.5, barX, barY + 1.5);
+  pdf.line(barX + barLen, barY - 1.5, barX + barLen, barY + 1.5);
+  // Label
+  pdf.setFontSize(5.5);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(184, 58, 42);
+  pdf.text('\u2190 10 mm \u2192', barX + barLen / 2, barY - 2.5, { align: 'center' });
+  pdf.setFontSize(4.5);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(140, 130, 120);
+  pdf.text(pt('pdf_scale_verify', 'Verify: measure this bar with a ruler. Must be exactly 10 mm.'), barX + barLen / 2, barY + 3.5, { align: 'center' });
 }
 
 /**
@@ -4161,67 +4197,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   }
 
 
-// ui-modules/bitmap.js — Bitmap functions (getEffectiveBitmap, getTextBitmap)
-
-  // -- Bitmap --
-
-  function getEffectiveBitmap(glyph) {
-    if (!glyph || !glyph.bitmap || !glyph.bitmap.length) return [];
-    var bitmap = glyph.bitmap;
-    var lastFilledRow = -1;
-    for (var r = bitmap.length - 1; r >= 0; r--) {
-      if (bitmap[r].indexOf('1') !== -1) { lastFilledRow = r; break; }
-    }
-    if (lastFilledRow === -1) return bitmap.slice();
-    return bitmap.slice(0, lastFilledRow + 1);
-  }
-
-  function getTextBitmap(text, fontData) {
-    if (!text || !fontData || !fontData.glyphs) return { bitmap: [], width: 0, height: 0 };
-
-    var height = fontData.height || 9;
-    var letterSpacing = (fontData.letterSpacing != null) ? fontData.letterSpacing : 1;
-    var spaceWidth = fontData.spaceWidth || 3;
-    var columns = [];
-
-    for (var ci = 0; ci < text.length; ci++) {
-      var ch = text[ci];
-      if (ci > 0 && letterSpacing > 0) {
-        for (var s = 0; s < letterSpacing; s++) columns.push(new Array(height).fill(false));
-      }
-      if (ch === ' ') {
-        for (var s2 = 0; s2 < spaceWidth; s2++) columns.push(new Array(height).fill(false));
-        continue;
-      }
-      var glyph = fontData.glyphs[ch];
-      if (!glyph || !glyph.bitmap || !glyph.bitmap.length) {
-        for (var s3 = 0; s3 < spaceWidth; s3++) columns.push(new Array(height).fill(false));
-        continue;
-      }
-      var bmp = glyph.bitmap;
-      var glyphWidth = glyph.width || (bmp[0] ? bmp[0].length : 0);
-      for (var x = 0; x < glyphWidth; x++) {
-        var col = [];
-        for (var y = 0; y < height; y++) {
-          col.push(y < bmp.length && x < bmp[y].length && bmp[y][x] === '1');
-        }
-        columns.push(col);
-      }
-    }
-
-    if (!columns.length) return { bitmap: [], width: 0, height: 0 };
-
-    var width = columns.length;
-    var bitmap = [];
-    for (var y2 = 0; y2 < height; y2++) {
-      var row = [];
-      for (var x2 = 0; x2 < width; x2++) row.push(columns[x2][y2]);
-      bitmap.push(row);
-    }
-    return { bitmap: bitmap, width: width, height: height };
-  }
-
-
 // ui-modules/renderer.js — Canvas rendering (renderPreview)
 
   // -- Render --
@@ -4798,7 +4773,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   });
 
 
-// ui-modules/mobile-ui.js — Mobile sheets, virtual scroll, toolbar
+// ui-modules/sheet-system.js — Mobile sheet open/close & swipe-to-dismiss
 
   // ============================================================
   // == Mobile Canvas First: Bottom Sheets & Virtual Scroll     ==
@@ -4911,6 +4886,9 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   initSheetDrag('sheetColorHandle', 'sheetColor');
   initSheetDrag('sheetSettingsHandle', 'sheetSettings');
   initSheetDrag('sheetInfoHandle', 'sheetInfo');
+
+
+// ui-modules/virtual-scroll.js — Font sheet virtual scroll & preview queue
 
   // ============================================================
   // == Font Sheet: Virtual Scroll                              ==
@@ -5223,6 +5201,9 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     });
   }
 
+
+// ui-modules/sheet-content.js — Color, Settings & Info sheet content
+
   // ============================================================
   // == Color Sheet                                             ==
   // ============================================================
@@ -5382,6 +5363,59 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   }
 
   // ============================================================
+  // == Info Sheet                                              ==
+  // ============================================================
+
+  function syncInfoSheet() {
+    var color = getCurrentColor();
+    var sizeCm = document.getElementById('statSizeCm');
+    var stitchW = document.getElementById('statStitchesW');
+    var stitchH = document.getElementById('statStitchesH');
+    var total = document.getElementById('statTotal');
+    var dmc = document.getElementById('statDmc');
+    var thread = document.getElementById('statThread');
+
+    var infoSize = document.getElementById('infoSize');
+    var infoStitches = document.getElementById('infoStitches');
+    var infoCrosses = document.getElementById('infoCrosses');
+    var infoDmc = document.getElementById('infoDmc');
+    var infoThread = document.getElementById('infoThread');
+    var infoRulerW = document.getElementById('infoRulerWidth');
+
+    if (infoSize && sizeCm) infoSize.textContent = sizeCm.textContent || '-- x --';
+    if (infoStitches && stitchW && stitchH) infoStitches.textContent = (stitchW.textContent || '--') + 'x' + (stitchH.textContent || '--');
+    if (infoCrosses && total) infoCrosses.textContent = total.textContent || '--';
+    if (infoDmc && dmc) infoDmc.textContent = dmc.textContent || '--';
+    if (infoThread && thread) infoThread.textContent = thread.textContent || '--';
+    // Sync unit label
+    var infoSizeUnit = document.getElementById('infoSizeUnit');
+    var statSizeUnit = document.getElementById('statSizeUnit');
+    if (infoSizeUnit && statSizeUnit) infoSizeUnit.textContent = statSizeUnit.textContent;
+    if (infoRulerW) {
+      var rulerW = document.getElementById('rulerWidth');
+      infoRulerW.textContent = rulerW ? rulerW.textContent : '--';
+    }
+
+    // Sync language selector
+    var sheetLang = document.getElementById('sheetLangSelect');
+    if (sheetLang) sheetLang.value = currentLang;
+  }
+
+  // Info sheet: language selector
+  var sheetLangSelect = document.getElementById('sheetLangSelect');
+  if (sheetLangSelect) {
+    sheetLangSelect.addEventListener('change', function () {
+      setLanguage(this.value);
+      // Sync desktop selector
+      var desktopSelect = document.getElementById('langSelect');
+      if (desktopSelect) desktopSelect.value = this.value;
+    });
+  }
+
+
+// ui-modules/mobile-toolbar.js — Mobile toolbar sync, slider & button handlers
+
+  // ============================================================
   // == Mobile Toolbar (Slider + 3 Buttons → Sheets)           ==
   // ============================================================
 
@@ -5486,56 +5520,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     syncMobileHeightValue(currentHeight);
     syncMobileAidaChips();
     syncMobileFontName();
-  }
-
-  // ============================================================
-  // == Info Sheet                                              ==
-  // ============================================================
-
-  function syncInfoSheet() {
-    var color = getCurrentColor();
-    var sizeCm = document.getElementById('statSizeCm');
-    var stitchW = document.getElementById('statStitchesW');
-    var stitchH = document.getElementById('statStitchesH');
-    var total = document.getElementById('statTotal');
-    var dmc = document.getElementById('statDmc');
-    var thread = document.getElementById('statThread');
-
-    var infoSize = document.getElementById('infoSize');
-    var infoStitches = document.getElementById('infoStitches');
-    var infoCrosses = document.getElementById('infoCrosses');
-    var infoDmc = document.getElementById('infoDmc');
-    var infoThread = document.getElementById('infoThread');
-    var infoRulerW = document.getElementById('infoRulerWidth');
-
-    if (infoSize && sizeCm) infoSize.textContent = sizeCm.textContent || '-- x --';
-    if (infoStitches && stitchW && stitchH) infoStitches.textContent = (stitchW.textContent || '--') + 'x' + (stitchH.textContent || '--');
-    if (infoCrosses && total) infoCrosses.textContent = total.textContent || '--';
-    if (infoDmc && dmc) infoDmc.textContent = dmc.textContent || '--';
-    if (infoThread && thread) infoThread.textContent = thread.textContent || '--';
-    // Sync unit label
-    var infoSizeUnit = document.getElementById('infoSizeUnit');
-    var statSizeUnit = document.getElementById('statSizeUnit');
-    if (infoSizeUnit && statSizeUnit) infoSizeUnit.textContent = statSizeUnit.textContent;
-    if (infoRulerW) {
-      var rulerW = document.getElementById('rulerWidth');
-      infoRulerW.textContent = rulerW ? rulerW.textContent : '--';
-    }
-
-    // Sync language selector
-    var sheetLang = document.getElementById('sheetLangSelect');
-    if (sheetLang) sheetLang.value = currentLang;
-  }
-
-  // Info sheet: language selector
-  var sheetLangSelect = document.getElementById('sheetLangSelect');
-  if (sheetLangSelect) {
-    sheetLangSelect.addEventListener('change', function () {
-      setLanguage(this.value);
-      // Sync desktop selector
-      var desktopSelect = document.getElementById('langSelect');
-      if (desktopSelect) desktopSelect.value = this.value;
-    });
   }
 
   // ============================================================
