@@ -308,6 +308,19 @@
     font-size: 10px;
     color: var(--text-muted);
   }
+  .font-item-preview {
+    width: 100%;
+    height: 28px;
+    image-rendering: pixelated;
+    margin-top: 4px;
+    border-radius: 3px;
+    background: var(--bg);
+  }
+  .font-item-preview.loading {
+    background: linear-gradient(90deg, var(--bg) 0%, var(--bg-deep) 50%, var(--bg) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
 
   /* -- Height Slider -- */
   .height-control {
@@ -457,32 +470,115 @@
     font-weight: 600;
   }
 
-  /* -- Custom count input -- */
-  .custom-count-row {
+  /* -- Custom stitch length -- */
+  .custom-stitch-row {
     display: none;
-    align-items: center;
-    gap: 6px;
-    margin-top: 8px;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-light);
   }
-  .custom-count-row.visible { display: flex; }
-  .custom-count-input {
-    width: 58px;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 5px 8px;
-    font-family: var(--font-body);
-    font-size: 14px;
+  .custom-stitch-row.visible { display: flex; }
+  .custom-stitch-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .custom-stitch-header .stitch-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-mid);
+  }
+  .custom-stitch-header .stitch-value-display {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+  }
+  .custom-stitch-header .stitch-value-num {
+    font-size: 22px;
     font-weight: 700;
     color: var(--accent);
-    text-align: center;
-    background: #fff;
+    font-family: var(--font-body);
+    line-height: 1;
+  }
+  .custom-stitch-header .stitch-value-unit {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-mid);
+  }
+  .custom-stitch-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--border);
     outline: none;
-    transition: border-color 0.15s;
   }
-  .custom-count-input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow);
+  .custom-stitch-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 3px solid #fff;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.2);
   }
+  .custom-stitch-slider::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 3px solid #fff;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.2);
+  }
+  .custom-stitch-equiv {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  /* -- Global Unit Toggle (topbar cm/in) -- */
+  .unit-toggle {
+    display: flex;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .unit-toggle-btn {
+    padding: 10px 14px;
+    border: none;
+    background: transparent;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.12s;
+    text-transform: lowercase;
+    min-height: 40px;
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .unit-toggle-btn.active {
+    background: var(--accent);
+    color: #fff;
+  }
+  .unit-toggle-btn:not(.active):hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
   .custom-unit-toggle {
     display: flex;
     border: 1.5px solid var(--border);
@@ -697,6 +793,46 @@
     color: var(--accent);
   }
 
+  /* -- Vertical Ruler (left of canvas) -- */
+  .ruler-vertical {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+    position: relative;
+    margin-right: 4px;
+  }
+  .ruler-v-edge {
+    height: 1px;
+    width: 7px;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+  .ruler-v-bar {
+    flex: 1;
+    width: 1.5px;
+    background: var(--accent);
+    position: relative;
+    min-height: 10px;
+  }
+  .ruler-v-label {
+    position: absolute;
+    left: -4px;
+    top: 50%;
+    transform: translateX(-100%) translateY(-50%);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+    font-family: var(--font-body);
+  }
+
+  /* Desktop: canvas-rulers-wrap just passes through */
+  .canvas-rulers-wrap {
+    display: contents;
+  }
+
   /* -- Sidebar toggle & drawer backdrop (disabled - no longer used) -- */
   .sidebar-toggle {
     display: none;
@@ -723,61 +859,569 @@
 
   /* ============================================= */
   /* -- Responsive: Mobile (<=640px) -- */
-  /* Vertical stack: topbar -> preview -> controls */
+  /* Canvas First: topbar -> canvas -> toolbar     */
   /* ============================================= */
   @media (max-width: 640px) {
-    html, body { overflow: auto; height: auto; min-height: 100vh; }
-    body { height: auto; }
+    html, body { height: 100vh; height: 100dvh; overflow: hidden; }
+    body { height: 100vh; height: 100dvh; }
 
-    .topbar { padding: 8px 12px; gap: 8px; }
+    .topbar {
+      padding: 6px 12px;
+      gap: 8px;
+      height: 48px;
+      min-height: 48px;
+    }
     .topbar-sep, .logo { display: none; }
+    .lang-select {
+      font-size: 12px;
+      padding: 2px 16px 2px 4px;
+      border: none;
+      background-color: transparent;
+      background-position: right 4px center;
+      opacity: 0.7;
+    }
     .sidebar-toggle { display: none; }
+    .unit-toggle { border-radius: var(--radius-sm); }
+    .unit-toggle-btn { padding: 6px 12px; min-height: 36px; min-width: 36px; font-size: 12px; }
 
-    .text-input { font-size: 16px; min-height: 44px; }
+    .text-input { font-size: 16px; min-height: 36px; padding: 6px 12px; }
+    .btn-download { padding: 8px; min-height: 36px; min-width: 36px; }
+    .btn-download .dl-label { display: none; }
 
     .main-layout {
       flex-direction: column;
-      overflow: visible;
+      overflow: hidden;
       min-height: 0;
+      flex: 1;
+      padding-bottom: calc(126px + env(safe-area-inset-bottom, 0px));
     }
 
-    .sidebar {
-      width: 100%;
-      order: 2;
-      border-right: none;
-      border-top: 1px solid var(--border);
-      overflow: visible;
-      max-height: none;
-    }
+    .sidebar { display: none !important; }
 
     .preview-area {
-      order: 1;
-      min-height: 250px;
-      max-height: 50vh;
-      padding: 12px;
+      flex: 1;
+      padding: 14px 16px 14px 40px; /* extra left for vertical ruler label */
+      min-height: 0;
+      max-height: none;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
-    #mainCanvas { max-height: 45vh; }
+    #mainCanvas {
+      /* 48px header + 126px toolbar + safe-area + 100px stats(2rows)/rulers/gaps + 28px padding */
+      max-height: calc(100vh - 48px - 126px - env(safe-area-inset-bottom, 0px) - 128px);
+      max-height: calc(100dvh - 48px - 126px - env(safe-area-inset-bottom, 0px) - 128px);
+    }
 
-    .font-list { max-height: 300px; }
+    /* Stats: responsive wrap on mobile */
+    .stats-bar {
+      gap: 4px 6px;
+      padding: 0 4px;
+      flex-wrap: wrap;
+      justify-content: center;
+      overflow: visible;
+    }
+    .stat-pill { padding: 2px 8px; font-size: 9px; }
+    .stat-pill strong { font-size: 10px; }
+    .stat-pill.size-pill strong { font-size: 11px; }
+    .stat-sep { display: none; }
 
-    /* Larger touch targets */
-    .font-item { min-height: 48px; padding: 12px 14px; }
-    .font-item-name { font-size: 15px; }
-    .color-dot { width: 40px; height: 40px; }
-    .aida-chip { min-height: 52px; padding: 12px 4px; }
-    .aida-chip-num { font-size: 22px; }
-    .font-tab { min-height: 36px; padding: 6px 12px; font-size: 12px; }
-    .font-search { min-height: 44px; font-size: 16px; }
-    .height-slider { height: 10px; }
-    .height-slider::-webkit-slider-thumb { width: 24px; height: 24px; }
-    .height-slider::-moz-range-thumb { width: 24px; height: 24px; }
-    .custom-count-input { min-height: 44px; font-size: 16px; }
-    .sidebar-section { padding: 14px 16px; }
-    .font-list { padding: 0 16px 12px; }
+    /* Preview wrap: generous spacing between canvas, rulers, stats */
+    .preview-canvas-wrap { gap: 14px; }
 
-    .stats-bar { gap: 4px; }
-    .stat-pill { font-size: 11px; }
+    /* Ruler: compact but readable */
+    .ruler-info { gap: 2px; max-width: 100%; margin-top: 2px; }
+    .ruler-label { font-size: 11px; top: -16px; }
+    .ruler-edge { height: 8px; }
+
+    /* Vertical ruler: visible on mobile */
+    .ruler-vertical { display: flex; margin-right: 6px; }
+
+    /* Canvas with rulers layout */
+    .canvas-rulers-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      max-width: 100%;
+      min-height: 0;
+      justify-content: center;
+    }
+
+    .drawer-backdrop { display: none !important; }
+  }
+
+  /* ============================================= */
+  /* -- Mobile Toolbar (Slider + 3 Buttons) -- */
+  /* ============================================= */
+  .mobile-toolbar {
+    display: none;
+  }
+  @media (max-width: 640px) {
+    .mobile-toolbar {
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      z-index: 50;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+    }
+  }
+
+  /* Row 1: Height slider — generous touch area */
+  .mobile-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px 8px;
+    flex-shrink: 0;
+  }
+  .mobile-slider-row .height-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--border);
+    outline: none;
+  }
+  .mobile-slider-row .height-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .mobile-slider-row .height-slider::-moz-range-thumb {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .mobile-slider-label {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-mid);
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .mobile-slider-value {
+    font-family: var(--font-body);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 28px;
+    text-align: right;
+    line-height: 1;
+  }
+  .mobile-slider-unit {
+    font-size: 11px;
+    color: var(--text-mid);
+    font-weight: 600;
+  }
+
+  /* Row 2: 3 action buttons — big touch targets */
+  .mobile-buttons-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px 14px;
+    flex-shrink: 0;
+  }
+
+  /* Shared toolbar button style — 52px height for easy thumb taps */
+  .mobile-tb-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 0 14px;
+    height: 52px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 0;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .mobile-tb-btn:active {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .mobile-tb-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+  .mobile-tb-btn .tb-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .mobile-tb-btn .tb-chevron {
+    width: 12px;
+    height: 12px;
+    margin-left: auto;
+    flex-shrink: 0;
+    opacity: 0.4;
+  }
+
+  /* Color button swatch */
+  .mobile-color-swatch {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    border-radius: 50%;
+    border: 2.5px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  /* ============================================= */
+  /* -- Sheet Backdrop -- */
+  /* ============================================= */
+  .sheet-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    z-index: 55;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .sheet-backdrop.visible {
+    display: block;
+    opacity: 1;
+  }
+
+  /* ============================================= */
+  /* -- Bottom Sheets (generic) -- */
+  /* ============================================= */
+  .bottom-sheet {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--panel);
+    border-radius: 16px 16px 0 0;
+    z-index: 60;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+    overflow: hidden;
+    max-height: 85vh;
+    max-height: 85dvh;
+    padding-bottom: calc(126px + env(safe-area-inset-bottom, 0px));
+  }
+  @media (max-width: 640px) {
+    .bottom-sheet { display: block; }
+  }
+  .bottom-sheet.open {
+    transform: translateY(0);
+  }
+  .sheet-handle {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0 6px;
+    cursor: grab;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .sheet-handle::after {
+    content: '';
+    width: 40px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+  }
+  .sheet-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--text);
+    padding: 0 16px 12px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .sheet-body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* -- Font Sheet -- */
+  .sheet-font { height: 70vh; height: 70dvh; }
+  .sheet-font .sheet-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; height: calc(70vh - 40px - 46px); height: calc(70dvh - 40px - 46px); }
+  .sheet-font-search {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 8px 16px;
+    background: var(--panel);
+  }
+  .sheet-font-search input {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--text);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .sheet-font-search input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .sheet-font-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px 16px 8px;
+    overflow-x: auto;
+    flex-shrink: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .sheet-font-tabs::-webkit-scrollbar { display: none; }
+  .sheet-font-tabs .font-tab {
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .sheet-font-list-wrap {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    position: relative;
+    min-height: 0;
+  }
+  .sheet-font-list-viewport {
+    position: relative;
+  }
+  .sheet-font-item {
+    display: flex;
+    align-items: center;
+    height: 80px;
+    padding: 0 16px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.12s;
+    border-left: 3px solid transparent;
+  }
+  .sheet-font-item:active {
+    background: var(--accent-soft);
+  }
+  .sheet-font-item.selected {
+    background: var(--accent-soft);
+    border-left-color: var(--accent);
+  }
+  .sheet-font-item-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .sheet-font-item-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sheet-font-item-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sheet-font-item-check {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--accent);
+    display: none;
+  }
+  .sheet-font-item.selected .sheet-font-item-check {
+    display: block;
+  }
+  .sheet-font-item-preview {
+    width: 100%;
+    height: 36px;
+    image-rendering: pixelated;
+    margin-top: 4px;
+    border-radius: 3px;
+    background: var(--bg);
+  }
+  .sheet-font-item-preview.loading {
+    background: linear-gradient(90deg, var(--bg) 0%, var(--bg-deep) 50%, var(--bg) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  /* -- Color Sheet -- */
+  .sheet-color .sheet-body { padding: 16px; }
+  .sheet-color-current {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+  }
+  .sheet-color-swatch {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+  }
+  .sheet-color-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .sheet-color-code {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .sheet-color-grid {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .sheet-color-grid .color-dot {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* -- Settings Sheet -- */
+  .sheet-settings .sheet-body { padding: 16px; }
+  .sheet-settings-group {
+    margin-bottom: 20px;
+  }
+  .sheet-settings-group:last-child { margin-bottom: 0; }
+  .sheet-settings-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .sheet-settings .height-control { margin-bottom: 0; }
+  .sheet-settings .aida-row { flex-wrap: wrap; gap: 8px; }
+  .sheet-settings .aida-chip { min-height: 52px; padding: 12px 8px; flex: 0 0 calc(33.33% - 6px); }
+  .sheet-settings .aida-chip-num { font-size: 22px; }
+  .sheet-settings .custom-stitch-row { margin-top: 12px; }
+  .sheet-settings .custom-count-input { min-height: 44px; font-size: 16px; }
+
+  /* -- Info Sheet -- */
+  .sheet-info .sheet-body { padding: 16px; }
+  .sheet-info-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .sheet-info-card {
+    background: var(--bg);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 12px;
+    text-align: center;
+  }
+  .sheet-info-card-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.2;
+  }
+  .sheet-info-card-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+  }
+  .sheet-info-card.full-width {
+    grid-column: 1 / -1;
+  }
+  .sheet-info-ruler {
+    margin: 16px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .sheet-info-ruler .ruler-line {
+    width: 100%;
+    max-width: 300px;
+  }
+  .sheet-info-lang {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sheet-info-lang label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-mid);
+  }
+  .sheet-info-lang select {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* -- Body scroll lock -- */
+  body.sheet-open {
+    overflow: hidden !important;
+    touch-action: none;
   }
 
   /* ============================================= */
@@ -881,6 +1525,11 @@
     <option value="hu">🇭🇺 HU</option>
   </select>
 
+  <div class="unit-toggle" id="unitToggle">
+    <button class="unit-toggle-btn active" data-unit="metric">cm</button>
+    <button class="unit-toggle-btn" data-unit="imperial">in</button>
+  </div>
+
   <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle controls" data-i18n-aria="toggle_controls">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
       <line x1="3" y1="6" x2="21" y2="6"/>
@@ -938,7 +1587,7 @@
         <span data-i18n="section_height">Stitch Height</span>
       </div>
       <div class="height-control">
-        <input type="range" class="height-slider" id="heightSlider" min="4" max="30" value="18" step="1" />
+        <input type="range" class="height-slider" id="heightSlider" min="8" max="30" value="18" step="1" />
         <div>
           <span class="height-value" id="heightValue">18</span>
           <span class="height-unit" data-i18n="unit_px">px</span>
@@ -983,13 +1632,16 @@
           <span class="aida-chip-label">Custom</span>
         </button>
       </div>
-      <div class="custom-count-row" id="customCountRow">
-        <input type="number" class="custom-count-input" id="customCountInput" min="1" max="100" value="14" step="0.5" />
-        <div class="custom-unit-toggle" id="customUnitToggle">
-          <button class="custom-unit-btn active" data-unit="inch">/ inch</button>
-          <button class="custom-unit-btn" data-unit="cm">/ cm</button>
+      <div class="custom-stitch-row" id="customStitchRow">
+        <div class="custom-stitch-header">
+          <span class="stitch-label">Stitch length</span>
+          <div class="stitch-value-display">
+            <span class="stitch-value-num" id="customStitchValue">3.0</span>
+            <span class="stitch-value-unit" id="customStitchUnit">mm</span>
+          </div>
         </div>
-        <span class="custom-count-label" id="customCountLabel">= 14 ct</span>
+        <input type="range" class="custom-stitch-slider" id="customStitchSlider" min="1" max="8" value="3" step="0.1" />
+        <div class="custom-stitch-equiv" id="customStitchEquiv"></div>
       </div>
     </div>
 
@@ -1016,7 +1668,18 @@
     </div>
 
     <div class="preview-canvas-wrap" id="previewWrap" style="display:none;">
-      <canvas id="mainCanvas"></canvas>
+      <!-- Canvas + vertical ruler wrapper -->
+      <div class="canvas-rulers-wrap">
+        <!-- Vertical ruler (left of canvas, mobile only) -->
+        <div class="ruler-vertical" id="rulerVertical">
+          <div class="ruler-v-edge"></div>
+          <div class="ruler-v-bar">
+            <div class="ruler-v-label" id="rulerHeight">--</div>
+          </div>
+          <div class="ruler-v-edge"></div>
+        </div>
+        <canvas id="mainCanvas"></canvas>
+      </div>
 
       <!-- Ruler showing width in cm -->
       <div class="ruler-info" id="rulerInfo">
@@ -1033,7 +1696,7 @@
       <div class="stats-bar" id="statsBar">
         <div class="stat-pill size-pill">
           <strong id="statSizeCm">--</strong>
-          <span class="unit" data-i18n="unit_cm">cm</span>
+          <span class="unit" id="statSizeUnit">cm</span>
         </div>
         <div class="stat-sep">.</div>
         <div class="stat-pill">
@@ -1054,6 +1717,173 @@
     </div>
   </div>
 
+</div>
+
+<!-- -- Mobile Toolbar (Slider + 3 Buttons) -- -->
+<div class="mobile-toolbar" id="mobileToolbar">
+  <!-- Row 1: Height slider -->
+  <div class="mobile-slider-row">
+    <span class="mobile-slider-label">H</span>
+    <input type="range" class="height-slider" id="mobileHeightSlider" min="8" max="30" value="18" step="1" />
+    <span class="mobile-slider-value" id="mobileHeightValue">18</span>
+    <span class="mobile-slider-unit">px</span>
+  </div>
+  <!-- Row 2: Aida + Font + Color buttons -->
+  <div class="mobile-buttons-row">
+    <button class="mobile-tb-btn" id="mobileAidaBtn" aria-label="Fabric settings">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+      <span class="tb-label" id="mobileAidaValue">14 ct</span>
+      <svg class="tb-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <button class="mobile-tb-btn" id="mobileFontBtn" aria-label="Select font">
+      <svg viewBox="0 0 24 24"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+      <span class="tb-label" id="mobileFontName">Font</span>
+      <svg class="tb-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <button class="mobile-tb-btn" id="mobileColorBtn" aria-label="Thread color">
+      <div class="mobile-color-swatch" id="mobileColorSwatch"></div>
+      <span class="tb-label" id="mobileColorName">Black</span>
+      <svg class="tb-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- -- Sheet Backdrop -- -->
+<div class="sheet-backdrop" id="sheetBackdrop"></div>
+
+<!-- -- Font Bottom Sheet -- -->
+<div class="bottom-sheet sheet-font" id="sheetFont" role="dialog" aria-modal="true" aria-label="Font selector">
+  <div class="sheet-handle" id="sheetFontHandle"></div>
+  <div class="sheet-title" data-i18n="section_font">Font</div>
+  <div class="sheet-body">
+    <div class="sheet-font-search">
+      <input type="text" id="sheetFontSearch" placeholder="Search fonts..." data-i18n-placeholder="search_fonts" autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="sheet-font-tabs" id="sheetFontTabs"></div>
+    <div class="sheet-font-list-wrap" id="sheetFontListWrap" role="listbox" aria-label="Font list">
+      <div class="sheet-font-list-viewport" id="sheetFontListViewport"></div>
+    </div>
+  </div>
+</div>
+
+<!-- -- Color Bottom Sheet -- -->
+<div class="bottom-sheet sheet-color" id="sheetColor" role="dialog" aria-modal="true" aria-label="Color selector">
+  <div class="sheet-handle" id="sheetColorHandle"></div>
+  <div class="sheet-title" data-i18n="section_color">Thread Color</div>
+  <div class="sheet-body">
+    <div class="sheet-color-current" id="sheetColorCurrent">
+      <div class="sheet-color-swatch" id="sheetColorSwatch"></div>
+      <div>
+        <div class="sheet-color-name" id="sheetColorName">--</div>
+        <div class="sheet-color-code" id="sheetColorCode">DMC --</div>
+      </div>
+    </div>
+    <div class="sheet-color-grid" id="sheetColorGrid"></div>
+  </div>
+</div>
+
+<!-- -- Settings Bottom Sheet -- -->
+<div class="bottom-sheet sheet-settings" id="sheetSettings" role="dialog" aria-modal="true" aria-label="Settings">
+  <div class="sheet-handle" id="sheetSettingsHandle"></div>
+  <div class="sheet-title">Settings</div>
+  <div class="sheet-body">
+    <div class="sheet-settings-group">
+      <div class="sheet-settings-label">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h4M18 12h4M7 7l2 2M15 15l2 2M7 17l2-2M15 7l2-2"/></svg>
+        <span data-i18n="section_height">Stitch Height</span>
+      </div>
+      <div class="height-control">
+        <input type="range" class="height-slider" id="sheetHeightSlider" min="8" max="30" value="18" step="1" />
+        <div>
+          <span class="height-value" id="sheetHeightValue">18</span>
+          <span class="height-unit" data-i18n="unit_px">px</span>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-settings-group">
+      <div class="sheet-settings-label">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+        <span data-i18n="section_fabric">Fabric</span>
+      </div>
+      <div class="aida-row" id="sheetAidaRow">
+        <button class="aida-chip" data-count="11"><span class="aida-chip-num">11</span><span class="aida-chip-label" data-i18n="label_aida">Aida</span></button>
+        <button class="aida-chip selected" data-count="14"><span class="aida-chip-num">14</span><span class="aida-chip-label" data-i18n="label_aida">Aida</span></button>
+        <button class="aida-chip" data-count="16"><span class="aida-chip-num">16</span><span class="aida-chip-label" data-i18n="label_aida">Aida</span></button>
+        <button class="aida-chip" data-count="18"><span class="aida-chip-num">18</span><span class="aida-chip-label" data-i18n="label_aida">Aida</span></button>
+        <button class="aida-chip" data-count="custom"><span class="aida-chip-num">&#9998;</span><span class="aida-chip-label">Custom</span></button>
+      </div>
+      <div class="custom-stitch-row" id="sheetCustomStitchRow">
+        <div class="custom-stitch-header">
+          <span class="stitch-label">Stitch length</span>
+          <div class="stitch-value-display">
+            <span class="stitch-value-num" id="sheetCustomStitchValue">3.0</span>
+            <span class="stitch-value-unit" id="sheetCustomStitchUnit">mm</span>
+          </div>
+        </div>
+        <input type="range" class="custom-stitch-slider" id="sheetCustomStitchSlider" min="1" max="8" value="3" step="0.1" />
+        <div class="custom-stitch-equiv" id="sheetCustomStitchEquiv"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- -- Info Bottom Sheet -- -->
+<div class="bottom-sheet sheet-info" id="sheetInfo" role="dialog" aria-modal="true" aria-label="Pattern info">
+  <div class="sheet-handle" id="sheetInfoHandle"></div>
+  <div class="sheet-title">Pattern Info</div>
+  <div class="sheet-body">
+    <div class="sheet-info-cards">
+      <div class="sheet-info-card full-width">
+        <div class="sheet-info-card-value" id="infoSize">-- x --</div>
+        <div class="sheet-info-card-label" id="infoSizeUnit">cm</div>
+      </div>
+      <div class="sheet-info-card">
+        <div class="sheet-info-card-value" id="infoStitches">--x--</div>
+        <div class="sheet-info-card-label" data-i18n="unit_stitches">stitches</div>
+      </div>
+      <div class="sheet-info-card">
+        <div class="sheet-info-card-value" id="infoCrosses">--</div>
+        <div class="sheet-info-card-label" data-i18n="unit_crosses">crosses</div>
+      </div>
+      <div class="sheet-info-card">
+        <div class="sheet-info-card-value" id="infoDmc">--</div>
+        <div class="sheet-info-card-label">DMC</div>
+      </div>
+      <div class="sheet-info-card">
+        <div class="sheet-info-card-value" id="infoThread">--</div>
+        <div class="sheet-info-card-label">Thread</div>
+      </div>
+    </div>
+    <div class="sheet-info-ruler" id="infoRuler">
+      <div class="ruler-line">
+        <div class="ruler-edge"></div>
+        <div class="ruler-bar"><div class="ruler-label" id="infoRulerWidth">--</div></div>
+        <div class="ruler-edge"></div>
+      </div>
+    </div>
+    <div class="sheet-info-lang">
+      <label>Language</label>
+      <select id="sheetLangSelect">
+        <option value="en">EN English</option>
+        <option value="es">ES Espanol</option>
+        <option value="fr">FR Francais</option>
+        <option value="de">DE Deutsch</option>
+        <option value="it">IT Italiano</option>
+        <option value="pt">PT Portugues</option>
+        <option value="nl">NL Nederlands</option>
+        <option value="ja">JA Japanese</option>
+        <option value="ko">KO Korean</option>
+        <option value="zh">ZH Chinese</option>
+        <option value="ru">RU Russian</option>
+        <option value="pl">PL Polish</option>
+        <option value="sv">SV Swedish</option>
+        <option value="da">DA Danish</option>
+        <option value="fi">FI Finnish</option>
+        <option value="uk">UK Ukrainian</option>
+        <option value="hu">HU Hungarian</option>
+      </select>
+    </div>
+  </div>
 </div>
 
 <!-- ================================================ -->
@@ -1513,6 +2343,57 @@
   var currentColorIndex = 0;
   var currentAida = 14;
   var currentCategoryFilter = 'all';
+  var displayUnit = 'metric'; // 'metric' | 'imperial'
+
+  // -- Unit detection & formatting --
+
+  function detectDefaultUnit() {
+    var lang = navigator.language || '';
+    var parts = lang.split('-');
+    var country = (parts[1] || '').toUpperCase();
+    // US, Liberia (LR), Myanmar (MM) use imperial
+    if (country === 'US' || country === 'LR' || country === 'MM') return 'imperial';
+    // Fallback: if just 'en' without country, assume metric (UK, AU, etc.)
+    return 'metric';
+  }
+
+  function formatSize(wStitches, hStitches, aida) {
+    var inW = (wStitches / aida).toFixed(1);
+    var inH = (hStitches / aida).toFixed(1);
+    var cmW = (wStitches / aida * 2.54).toFixed(1);
+    var cmH = (hStitches / aida * 2.54).toFixed(1);
+    if (displayUnit === 'imperial') {
+      return { value: inW + ' \u00d7 ' + inH, unit: 'in', width: inW + ' in', height: inH + ' in' };
+    }
+    return { value: cmW + ' \u00d7 ' + cmH, unit: 'cm', width: cmW + ' cm', height: cmH + ' cm' };
+  }
+
+  function formatThread(stitches, aida) {
+    var metersPerStitch = 0.013 * (14 / aida);
+    var totalMeters = stitches * metersPerStitch;
+    if (displayUnit === 'imperial') {
+      var yards = (totalMeters * 1.09361).toFixed(1);
+      return yards + 'yd';
+    }
+    return totalMeters.toFixed(1) + 'm';
+  }
+
+  function setDisplayUnit(unit) {
+    displayUnit = (unit === 'imperial') ? 'imperial' : 'metric';
+    try { localStorage.setItem('w2s_unit', displayUnit); } catch(e) {}
+    // Sync toggle buttons
+    var toggle = document.getElementById('unitToggle');
+    if (toggle) {
+      toggle.querySelectorAll('.unit-toggle-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.unit === displayUnit);
+      });
+    }
+    // Refresh custom stitch labels if visible
+    if (isCustomAida) {
+      updateCustomStitch(currentStitchMm, 'unit');
+    }
+    updatePreview();
+  }
 
   var categoryLabels = {
     'serif': 'Serif', 'sans-serif': 'Sans', 'script': 'Script',
@@ -1786,29 +2667,35 @@
       return;
     }
 
-    // Calculate physical size
-    var widthCm = (result.width / currentAida * 2.54).toFixed(1);
-    var heightCm = (result.height / currentAida * 2.54).toFixed(1);
+    // Calculate physical size using unit-aware helpers
+    var size = formatSize(result.width, result.height, currentAida);
 
     // Update stats
-    document.getElementById('statSizeCm').textContent = widthCm + ' \u00d7 ' + heightCm;
+    document.getElementById('statSizeCm').textContent = size.value;
+    var sizeUnitEl = document.getElementById('statSizeUnit');
+    if (sizeUnitEl) sizeUnitEl.textContent = size.unit;
     document.getElementById('statStitchesW').textContent = result.width;
     document.getElementById('statStitchesH').textContent = result.height;
     document.getElementById('statTotal').textContent = result.stitches;
     document.getElementById('statDmc').textContent = color.code;
 
     // Thread estimate
-    var metersPerStitch = 0.013 * (14 / currentAida);
-    var totalMeters = (result.stitches * metersPerStitch).toFixed(1);
-    document.getElementById('statThread').textContent = totalMeters + 'm';
+    document.getElementById('statThread').textContent = formatThread(result.stitches, currentAida);
 
-    // Ruler: match canvas rendered width
-    document.getElementById('rulerWidth').textContent = widthCm + ' cm';
+    // Ruler: match canvas rendered dimensions
+    document.getElementById('rulerWidth').textContent = size.width;
+    var rulerHeightLabel = document.getElementById('rulerHeight');
+    if (rulerHeightLabel) rulerHeightLabel.textContent = size.height;
     requestAnimationFrame(function () {
-      var canvasRendered = mainCanvas.getBoundingClientRect().width;
+      var canvasRect = mainCanvas.getBoundingClientRect();
       var rulerLine = document.querySelector('.ruler-line');
-      if (rulerLine && canvasRendered > 0) {
-        rulerLine.style.width = canvasRendered + 'px';
+      if (rulerLine && canvasRect.width > 0) {
+        rulerLine.style.width = canvasRect.width + 'px';
+      }
+      // Vertical ruler: match canvas rendered height
+      var rulerV = document.getElementById('rulerVertical');
+      if (rulerV && canvasRect.height > 0) {
+        rulerV.style.height = canvasRect.height + 'px';
       }
     });
   }
@@ -1835,6 +2722,8 @@
   textInput.addEventListener('input', function () {
     currentText = this.value;
     updatePreview();
+    // Re-render font sheet previews with new text
+    renderVirtualFontList();
   });
 
   // -- Font List UI --
@@ -1911,8 +2800,13 @@
       var sizeKb = font.size ? (font.size / 1024).toFixed(0) + ' KB' : '';
       meta.textContent = (categoryLabels[font.category] || font.category || '') + (sizeKb ? ' \u00b7 ' + sizeKb : '');
 
+      var previewCanvas = document.createElement('canvas');
+      previewCanvas.className = 'font-item-preview';
+      previewCanvas.dataset.fontFile = font.file;
+
       info.appendChild(nameEl);
       info.appendChild(meta);
+      info.appendChild(previewCanvas);
       item.appendChild(info);
       fontList.appendChild(item);
 
@@ -1922,12 +2816,21 @@
         fontList.querySelectorAll('.font-item').forEach(function (el) {
           el.classList.toggle('selected', el.dataset.fontFile === font.file);
         });
+        syncMobileFontName();
         loadAndRender();
       });
     });
 
     if (!displayed) {
       fontList.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:12px;text-align:center;">' + t('no_matching') + '</div>';
+    }
+
+    // Queue font previews for visible desktop items
+    if (typeof queueFontPreview === 'function') {
+      var desktopCanvases = fontList.querySelectorAll('.font-item-preview');
+      for (var pi = 0; pi < desktopCanvases.length; pi++) {
+        queueFontPreview(desktopCanvases[pi].dataset.fontFile, desktopCanvases[pi]);
+      }
     }
   }
 
@@ -1953,6 +2856,7 @@
   heightSlider.addEventListener('input', function () {
     var val = parseInt(this.value);
     heightValue.textContent = val;
+    syncMobileHeightValue(val);
 
     clearTimeout(heightDebounceTimer);
     heightDebounceTimer = setTimeout(function () {
@@ -1983,6 +2887,7 @@
         colorRow.querySelectorAll('.color-dot').forEach(function (d) {
           d.classList.toggle('selected', parseInt(d.dataset.index) === index);
         });
+        syncMobileColorStrip();
         updatePreview();
       });
 
@@ -1996,23 +2901,58 @@
     setLanguage(this.value);
   });
 
-  var customCountRow = document.getElementById('customCountRow');
-  var customCountInput = document.getElementById('customCountInput');
-  var customUnitToggle = document.getElementById('customUnitToggle');
-  var customCountLabel = document.getElementById('customCountLabel');
-  var customUnit = 'inch'; // 'inch' or 'cm'
+  var customStitchRow = document.getElementById('customStitchRow');
+  var customStitchSlider = document.getElementById('customStitchSlider');
+  var customStitchValue = document.getElementById('customStitchValue');
+  var customStitchEquiv = document.getElementById('customStitchEquiv');
+  var currentStitchMm = 3.0; // default 3mm stitch length
   var isCustomAida = false;
 
-  function updateCustomLabel() {
-    var val = parseFloat(customCountInput.value) || 14;
-    var aidaEquiv;
-    if (customUnit === 'cm') {
-      aidaEquiv = val * 2.54; // convert stitches/cm to stitches/inch
+  function stitchMmToAida(mm) {
+    return 25.4 / mm; // 25.4mm per inch
+  }
+
+  // Format stitch length + equivalence respecting displayUnit
+  function formatStitchDisplay(mm) {
+    var isImperial = (displayUnit === 'imperial');
+    var displayVal, unit, equiv;
+    if (isImperial) {
+      displayVal = (mm / 25.4).toFixed(2);  // mm → inches
+      unit = 'in';
+      equiv = '\u2248 ' + (25.4 / mm).toFixed(1) + ' stitches/in';
     } else {
-      aidaEquiv = val;
+      displayVal = mm.toFixed(1);
+      unit = 'mm';
+      equiv = '\u2248 ' + (10 / mm).toFixed(1) + ' stitches/cm';
     }
-    customCountLabel.textContent = '= ' + aidaEquiv.toFixed(1) + ' ct';
-    currentAida = aidaEquiv;
+    return { value: displayVal, unit: unit, equiv: equiv };
+  }
+
+  function updateCustomStitch(mm, source) {
+    currentStitchMm = mm;
+    var aida = stitchMmToAida(mm);
+    currentAida = aida;
+
+    var fmt = formatStitchDisplay(mm);
+
+    // Update desktop UI
+    if (customStitchValue) customStitchValue.textContent = fmt.value;
+    if (customStitchSlider && source !== 'desktop') customStitchSlider.value = mm;
+    if (customStitchEquiv) customStitchEquiv.textContent = fmt.equiv;
+    var dUnit = document.getElementById('customStitchUnit');
+    if (dUnit) dUnit.textContent = fmt.unit;
+
+    // Update sheet UI
+    var sheetVal = document.getElementById('sheetCustomStitchValue');
+    var sheetSlider = document.getElementById('sheetCustomStitchSlider');
+    var sheetEquiv = document.getElementById('sheetCustomStitchEquiv');
+    var sheetUnit = document.getElementById('sheetCustomStitchUnit');
+    if (sheetVal) sheetVal.textContent = fmt.value;
+    if (sheetSlider && source !== 'sheet') sheetSlider.value = mm;
+    if (sheetEquiv) sheetEquiv.textContent = fmt.equiv;
+    if (sheetUnit) sheetUnit.textContent = fmt.unit;
+
+    syncMobileAidaChips();
     updatePreview();
   }
 
@@ -2029,30 +2969,29 @@
 
     if (countVal === 'custom') {
       isCustomAida = true;
-      customCountRow.classList.add('visible');
-      updateCustomLabel();
+      if (customStitchRow) customStitchRow.classList.add('visible');
+      updateCustomStitch(currentStitchMm, 'init');
     } else {
       isCustomAida = false;
-      customCountRow.classList.remove('visible');
+      if (customStitchRow) customStitchRow.classList.remove('visible');
       currentAida = parseInt(countVal);
+      syncMobileAidaChips();
       updatePreview();
     }
   });
 
-  // Custom count input
-  customCountInput.addEventListener('input', function () {
-    if (isCustomAida) updateCustomLabel();
-  });
-
-  // Unit toggle (inch / cm)
-  customUnitToggle.addEventListener('click', function (e) {
-    var btn = e.target.closest('.custom-unit-btn');
-    if (!btn) return;
-    customUnit = btn.dataset.unit;
-    customUnitToggle.querySelectorAll('.custom-unit-btn').forEach(function (b) {
-      b.classList.toggle('active', b.dataset.unit === customUnit);
+  // Desktop stitch slider
+  if (customStitchSlider) {
+    customStitchSlider.addEventListener('input', function () {
+      if (isCustomAida) updateCustomStitch(parseFloat(this.value), 'desktop');
     });
-    if (isCustomAida) updateCustomLabel();
+  }
+
+  // -- Global unit toggle (cm / in) --
+  document.getElementById('unitToggle').addEventListener('click', function (e) {
+    var btn = e.target.closest('.unit-toggle-btn');
+    if (!btn || btn.classList.contains('active')) return;
+    setDisplayUnit(btn.dataset.unit);
   });
 
   // -- Download PDF --
@@ -2133,7 +3072,13 @@
     var browserLang = (navigator.language || '').split('-')[0];
     setLanguage(savedLang || (I18N[browserLang] ? browserLang : 'en'));
 
+    // Detect unit preference
+    var savedUnit = null;
+    try { savedUnit = localStorage.getItem('w2s_unit'); } catch(e) {}
+    setDisplayUnit(savedUnit || detectDefaultUnit());
+
     renderColors();
+    initMobileToolbar();
     fetchFontList();
     updatePreview();
   }
@@ -2142,6 +3087,7 @@
   window.getTextBitmap = getTextBitmap;
   window.getEffectiveBitmap = getEffectiveBitmap;
   window.renderPreview = renderPreview;
+  window.getDisplayUnit = function() { return displayUnit; };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
@@ -2154,9 +3100,733 @@
     if (typeof DMC_COLORS !== 'undefined') {
       clearInterval(_colorsInterval);
       renderColors();
+      populateMobileColorStrip();
     }
   }, 200);
   setTimeout(function () { clearInterval(_colorsInterval); }, 10000);
+
+  // ============================================================
+  // == Mobile Canvas First: Bottom Sheets & Virtual Scroll     ==
+  // ============================================================
+
+  var isMobile = function () { return window.innerWidth <= 640; };
+
+  // -- Sheet State --
+  var activeSheet = null;
+  var sheetBackdrop = document.getElementById('sheetBackdrop');
+  var mobileToolbar = document.getElementById('mobileToolbar');
+  var sheets = {
+    font: document.getElementById('sheetFont'),
+    color: document.getElementById('sheetColor'),
+    settings: document.getElementById('sheetSettings'),
+    info: document.getElementById('sheetInfo')
+  };
+
+  // -- Sheet Open / Close --
+  function openSheet(name) {
+    if (!isMobile()) return;
+    if (activeSheet === name) {
+      closeSheet();
+      return;
+    }
+    // Close any open sheet first (no animation, instant)
+    if (activeSheet) {
+      sheets[activeSheet].classList.remove('open');
+    }
+    activeSheet = name;
+    var sheet = sheets[name];
+    if (!sheet) return;
+
+    // Populate sheet content before opening
+    if (name === 'font') populateFontSheet();
+    if (name === 'color') populateColorSheet();
+    if (name === 'settings') syncSettingsSheet();
+    if (name === 'info') syncInfoSheet();
+
+    sheetBackdrop.classList.add('visible');
+    sheet.classList.add('open');
+    document.body.classList.add('sheet-open');
+    sheet.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeSheet() {
+    if (!activeSheet) return;
+    var sheet = sheets[activeSheet];
+    if (sheet) {
+      sheet.classList.remove('open');
+      sheet.setAttribute('aria-hidden', 'true');
+    }
+    sheetBackdrop.classList.remove('visible');
+    document.body.classList.remove('sheet-open');
+    activeSheet = null;
+  }
+
+  // Backdrop click closes sheet
+  sheetBackdrop.addEventListener('click', closeSheet);
+
+  // Escape key closes sheet
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && activeSheet) closeSheet();
+  });
+
+  // ============================================================
+  // == Swipe-to-Dismiss on Sheet Handles                       ==
+  // ============================================================
+
+  function initSheetDrag(handleId, sheetId) {
+    var handle = document.getElementById(handleId);
+    var sheet = document.getElementById(sheetId);
+    if (!handle || !sheet) return;
+
+    var startY = 0, currentY = 0, startTime = 0, isDragging = false;
+
+    handle.addEventListener('touchstart', function (e) {
+      if (!sheet.classList.contains('open')) return;
+      isDragging = true;
+      startY = e.touches[0].clientY;
+      currentY = startY;
+      startTime = Date.now();
+      sheet.style.transition = 'none';
+    }, { passive: true });
+
+    handle.addEventListener('touchmove', function (e) {
+      if (!isDragging) return;
+      currentY = e.touches[0].clientY;
+      var dy = Math.max(0, currentY - startY);
+      sheet.style.transform = 'translateY(' + dy + 'px)';
+    }, { passive: true });
+
+    handle.addEventListener('touchend', function () {
+      if (!isDragging) return;
+      isDragging = false;
+      sheet.style.transition = '';
+      var dy = currentY - startY;
+      var dt = Date.now() - startTime;
+      var velocity = dy / Math.max(dt, 1);
+
+      if (dy > 120 || velocity > 0.5) {
+        closeSheet();
+      } else {
+        sheet.style.transform = '';
+      }
+    });
+  }
+
+  initSheetDrag('sheetFontHandle', 'sheetFont');
+  initSheetDrag('sheetColorHandle', 'sheetColor');
+  initSheetDrag('sheetSettingsHandle', 'sheetSettings');
+  initSheetDrag('sheetInfoHandle', 'sheetInfo');
+
+  // ============================================================
+  // == Font Sheet: Virtual Scroll                              ==
+  // ============================================================
+
+  var FONT_ITEM_HEIGHT = 80;
+  var OVERSCAN = 5;
+  var fontSheetFilter = '';
+  var fontSheetCategory = 'all';
+  var filteredFontsCache = [];
+
+  function getFilteredFonts() {
+    var filter = fontSheetFilter.toLowerCase().trim();
+    return fontListData.filter(function (font) {
+      var name = (font.name || font.file).toLowerCase();
+      if (filter && name.indexOf(filter) === -1) return false;
+      if (fontSheetCategory !== 'all' && (font.category || 'other') !== fontSheetCategory) return false;
+      return true;
+    });
+  }
+
+  function populateFontSheet() {
+    // Build tabs
+    var tabsEl = document.getElementById('sheetFontTabs');
+    var filter = fontSheetFilter.toLowerCase().trim();
+    var categoryCounts = {};
+    fontListData.forEach(function (font) {
+      var name = (font.name || font.file).toLowerCase();
+      if (filter && name.indexOf(filter) === -1) return;
+      var cat = font.category || 'other';
+      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+    });
+    var categories = Object.keys(categoryCounts).sort();
+    var total = 0;
+    categories.forEach(function (c) { total += categoryCounts[c]; });
+
+    tabsEl.innerHTML = '';
+    var allTab = document.createElement('button');
+    allTab.className = 'font-tab' + (fontSheetCategory === 'all' ? ' active' : '');
+    allTab.dataset.category = 'all';
+    allTab.textContent = t('tab_all') + ' (' + total + ')';
+    tabsEl.appendChild(allTab);
+
+    categories.forEach(function (cat) {
+      var btn = document.createElement('button');
+      btn.className = 'font-tab' + (fontSheetCategory === cat ? ' active' : '');
+      btn.dataset.category = cat;
+      btn.textContent = (categoryLabels[cat] || cat) + ' (' + categoryCounts[cat] + ')';
+      tabsEl.appendChild(btn);
+    });
+
+    // Reset category if invalid
+    if (fontSheetCategory !== 'all' && !categoryCounts[fontSheetCategory]) {
+      fontSheetCategory = 'all';
+    }
+
+    // Update filtered cache
+    filteredFontsCache = getFilteredFonts();
+
+    // Set viewport total height
+    var viewport = document.getElementById('sheetFontListViewport');
+    viewport.style.height = (filteredFontsCache.length * FONT_ITEM_HEIGHT) + 'px';
+
+    // Trigger initial render
+    renderVirtualFontList();
+  }
+
+  var rafPending = false;
+
+  function renderVirtualFontList() {
+    var wrap = document.getElementById('sheetFontListWrap');
+    var viewport = document.getElementById('sheetFontListViewport');
+    if (!wrap || !viewport) return;
+
+    var scrollTop = wrap.scrollTop;
+    var viewportHeight = wrap.clientHeight;
+    var totalItems = filteredFontsCache.length;
+
+    if (!totalItems) {
+      viewport.innerHTML = '<div style="padding:40px 20px;color:var(--text-muted);font-size:14px;text-align:center;">' + t('no_matching') + '</div>';
+      viewport.style.height = 'auto';
+      return;
+    }
+
+    var startIndex = Math.max(0, Math.floor(scrollTop / FONT_ITEM_HEIGHT) - OVERSCAN);
+    var endIndex = Math.min(totalItems, Math.ceil((scrollTop + viewportHeight) / FONT_ITEM_HEIGHT) + OVERSCAN);
+
+    var fragment = document.createDocumentFragment();
+
+    // Top spacer
+    if (startIndex > 0) {
+      var topSpacer = document.createElement('div');
+      topSpacer.style.height = (startIndex * FONT_ITEM_HEIGHT) + 'px';
+      fragment.appendChild(topSpacer);
+    }
+
+    for (var i = startIndex; i < endIndex; i++) {
+      var font = filteredFontsCache[i];
+      var name = font.name || font.file;
+
+      var item = document.createElement('div');
+      item.className = 'sheet-font-item' + (font.file === currentFontFile ? ' selected' : '');
+      item.dataset.fontFile = font.file;
+      item.dataset.fontIndex = i;
+      item.setAttribute('role', 'option');
+      item.setAttribute('aria-selected', font.file === currentFontFile ? 'true' : 'false');
+
+      var info = document.createElement('div');
+      info.className = 'sheet-font-item-info';
+
+      var nameEl = document.createElement('div');
+      nameEl.className = 'sheet-font-item-name';
+      nameEl.textContent = name;
+
+      var meta = document.createElement('div');
+      meta.className = 'sheet-font-item-meta';
+      meta.textContent = categoryLabels[font.category] || font.category || '';
+
+      var previewCanvas = document.createElement('canvas');
+      previewCanvas.className = 'sheet-font-item-preview';
+      previewCanvas.dataset.fontFile = font.file;
+
+      info.appendChild(nameEl);
+      info.appendChild(meta);
+      info.appendChild(previewCanvas);
+      item.appendChild(info);
+
+      // Checkmark
+      var check = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      check.setAttribute('class', 'sheet-font-item-check');
+      check.setAttribute('viewBox', '0 0 24 24');
+      check.setAttribute('fill', 'none');
+      check.setAttribute('stroke', 'currentColor');
+      check.setAttribute('stroke-width', '3');
+      check.setAttribute('stroke-linecap', 'round');
+      check.setAttribute('stroke-linejoin', 'round');
+      var path = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      path.setAttribute('points', '20 6 9 17 4 12');
+      check.appendChild(path);
+      item.appendChild(check);
+
+      fragment.appendChild(item);
+    }
+
+    // Bottom spacer
+    var bottomHeight = (totalItems - endIndex) * FONT_ITEM_HEIGHT;
+    if (bottomHeight > 0) {
+      var bottomSpacer = document.createElement('div');
+      bottomSpacer.style.height = bottomHeight + 'px';
+      fragment.appendChild(bottomSpacer);
+    }
+
+    previewQueue = [];
+    viewport.innerHTML = '';
+    viewport.appendChild(fragment);
+    viewport.style.height = ''; // let spacers define height
+
+    // Queue font previews for visible items
+    var canvases = viewport.querySelectorAll('.sheet-font-item-preview');
+    for (var ci = 0; ci < canvases.length; ci++) {
+      queueFontPreview(canvases[ci].dataset.fontFile, canvases[ci]);
+    }
+  }
+
+  // -- Font Preview Queue --
+  var previewQueue = [];
+  var activePreviewRequests = 0;
+  var MAX_PREVIEW_CONCURRENT = 3;
+
+  function queueFontPreview(fontFile, canvasEl) {
+    var cacheKey = getCacheKey(fontFile, currentHeight);
+    if (fontCache.has(cacheKey)) {
+      renderFontPreviewCanvas(canvasEl, fontCache.get(cacheKey));
+      return;
+    }
+    canvasEl.classList.add('loading');
+    previewQueue.push({ fontFile: fontFile, canvas: canvasEl, height: currentHeight });
+    processPreviewQueue();
+  }
+
+  function processPreviewQueue() {
+    while (activePreviewRequests < MAX_PREVIEW_CONCURRENT && previewQueue.length > 0) {
+      var job = previewQueue.shift();
+      if (!document.contains(job.canvas)) continue;
+      var cacheKey = getCacheKey(job.fontFile, job.height);
+      if (fontCache.has(cacheKey)) {
+        renderFontPreviewCanvas(job.canvas, fontCache.get(cacheKey));
+        job.canvas.classList.remove('loading');
+        continue;
+      }
+      activePreviewRequests++;
+      rasterizeFontForPreview(job);
+    }
+  }
+
+  function rasterizeFontForPreview(job) {
+    var cacheKey = getCacheKey(job.fontFile, job.height);
+    fetch('/api/rasterize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ font: job.fontFile, height: job.height, bold: 0, strategy: 'average' })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      fontCache.set(cacheKey, data);
+      if (document.contains(job.canvas)) {
+        renderFontPreviewCanvas(job.canvas, data);
+        job.canvas.classList.remove('loading');
+      }
+    })
+    .catch(function() {
+      if (document.contains(job.canvas)) job.canvas.classList.remove('loading');
+    })
+    .finally(function() {
+      activePreviewRequests--;
+      processPreviewQueue();
+    });
+  }
+
+  function renderFontPreviewCanvas(canvas, fontData) {
+    var text = currentText || 'Abc';
+    var color = getCurrentColor().hex;
+    renderPreview(canvas, text, fontData, color, { cellSize: 2, maxWidth: 260 });
+  }
+
+  // Scroll handler (RAF-throttled)
+  var sheetFontListWrap = document.getElementById('sheetFontListWrap');
+  if (sheetFontListWrap) {
+    sheetFontListWrap.addEventListener('scroll', function () {
+      if (rafPending) return;
+      rafPending = true;
+      requestAnimationFrame(function () {
+        rafPending = false;
+        renderVirtualFontList();
+      });
+    }, { passive: true });
+  }
+
+  // Font sheet: item click (delegated)
+  var sheetFontListViewport = document.getElementById('sheetFontListViewport');
+  if (sheetFontListViewport) {
+    sheetFontListViewport.addEventListener('click', function (e) {
+      var item = e.target.closest('.sheet-font-item');
+      if (!item) return;
+      var fontFile = item.dataset.fontFile;
+      var font = fontListData.find(function (f) { return f.file === fontFile; });
+      if (!font) return;
+
+      currentFontFile = font.file;
+      currentFontName = font.name || font.file;
+
+      // Update desktop sidebar selection too
+      fontList.querySelectorAll('.font-item').forEach(function (el) {
+        el.classList.toggle('selected', el.dataset.fontFile === font.file);
+      });
+
+      syncMobileFontName();
+      loadAndRender();
+
+      // Re-render virtual list to update selection
+      renderVirtualFontList();
+
+      // Close sheet after brief delay
+      setTimeout(closeSheet, 200);
+    });
+  }
+
+  // Font sheet: search
+  var sheetFontSearchInput = document.getElementById('sheetFontSearch');
+  var fontSearchDebounce = null;
+  if (sheetFontSearchInput) {
+    sheetFontSearchInput.addEventListener('input', function () {
+      clearTimeout(fontSearchDebounce);
+      fontSearchDebounce = setTimeout(function () {
+        fontSheetFilter = sheetFontSearchInput.value;
+        filteredFontsCache = getFilteredFonts();
+        var viewport = document.getElementById('sheetFontListViewport');
+        if (viewport) viewport.style.height = (filteredFontsCache.length * FONT_ITEM_HEIGHT) + 'px';
+        var wrap = document.getElementById('sheetFontListWrap');
+        if (wrap) wrap.scrollTop = 0;
+        populateFontSheet();
+      }, 150);
+    });
+  }
+
+  // Font sheet: category tabs (delegated)
+  var sheetFontTabs = document.getElementById('sheetFontTabs');
+  if (sheetFontTabs) {
+    sheetFontTabs.addEventListener('click', function (e) {
+      var tab = e.target.closest('.font-tab');
+      if (!tab) return;
+      fontSheetCategory = tab.dataset.category;
+      // Also sync desktop sidebar
+      currentCategoryFilter = fontSheetCategory;
+      populateFontSheet();
+      renderFontListUI();
+    });
+  }
+
+  // ============================================================
+  // == Color Sheet                                             ==
+  // ============================================================
+
+  function populateColorSheet() {
+    if (typeof DMC_COLORS === 'undefined' || !DMC_COLORS.length) return;
+
+    var color = getCurrentColor();
+    var swatch = document.getElementById('sheetColorSwatch');
+    var nameEl = document.getElementById('sheetColorName');
+    var codeEl = document.getElementById('sheetColorCode');
+    if (swatch) swatch.style.backgroundColor = color.hex;
+    if (nameEl) nameEl.textContent = color.name;
+    if (codeEl) codeEl.textContent = 'DMC ' + color.code;
+
+    var grid = document.getElementById('sheetColorGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    DMC_COLORS.forEach(function (c, index) {
+      var dot = document.createElement('div');
+      dot.className = 'color-dot' + (index === currentColorIndex ? ' selected' : '');
+      dot.style.backgroundColor = c.hex;
+      dot.dataset.index = index;
+
+      dot.addEventListener('click', function () {
+        currentColorIndex = index;
+
+        // Update desktop sidebar
+        colorRow.querySelectorAll('.color-dot').forEach(function (d) {
+          d.classList.toggle('selected', parseInt(d.dataset.index) === index);
+        });
+
+        // Sync mobile color strip
+        syncMobileColorStrip();
+
+        // Update this sheet
+        populateColorSheet();
+        updatePreview();
+      });
+
+      grid.appendChild(dot);
+    });
+  }
+
+  // ============================================================
+  // == Settings Sheet                                          ==
+  // ============================================================
+
+  function syncSettingsSheet() {
+    var sheetSlider = document.getElementById('sheetHeightSlider');
+    var sheetValue = document.getElementById('sheetHeightValue');
+    if (sheetSlider) sheetSlider.value = currentHeight;
+    if (sheetValue) sheetValue.textContent = currentHeight;
+
+    // Sync aida selection
+    var sheetAidaRow = document.getElementById('sheetAidaRow');
+    if (sheetAidaRow) {
+      sheetAidaRow.querySelectorAll('.aida-chip').forEach(function (chip) {
+        var count = chip.dataset.count;
+        if (count === 'custom') {
+          chip.classList.toggle('selected', isCustomAida);
+        } else {
+          chip.classList.toggle('selected', !isCustomAida && parseInt(count) === currentAida);
+        }
+      });
+    }
+
+    var sheetCustomRow = document.getElementById('sheetCustomStitchRow');
+    if (sheetCustomRow) {
+      sheetCustomRow.classList.toggle('visible', isCustomAida);
+      if (isCustomAida) {
+        var fmt = formatStitchDisplay(currentStitchMm);
+        var sv = document.getElementById('sheetCustomStitchValue');
+        var ss = document.getElementById('sheetCustomStitchSlider');
+        var se = document.getElementById('sheetCustomStitchEquiv');
+        var su = document.getElementById('sheetCustomStitchUnit');
+        if (sv) sv.textContent = fmt.value;
+        if (ss) ss.value = currentStitchMm;
+        if (se) se.textContent = fmt.equiv;
+        if (su) su.textContent = fmt.unit;
+      }
+    }
+  }
+
+  // Settings sheet: height slider
+  var sheetHeightSlider = document.getElementById('sheetHeightSlider');
+  var sheetHeightDebounce = null;
+  if (sheetHeightSlider) {
+    sheetHeightSlider.addEventListener('input', function () {
+      var val = parseInt(this.value);
+      var sheetValue = document.getElementById('sheetHeightValue');
+      if (sheetValue) sheetValue.textContent = val;
+
+      // Sync desktop slider + mobile slider
+      heightSlider.value = val;
+      heightValue.textContent = val;
+      syncMobileHeightValue(val);
+
+      clearTimeout(sheetHeightDebounce);
+      sheetHeightDebounce = setTimeout(function () {
+        currentHeight = val;
+        loadAndRender();
+      }, 300);
+    });
+  }
+
+  // Settings sheet: aida chips
+  var sheetAidaRow = document.getElementById('sheetAidaRow');
+  if (sheetAidaRow) {
+    sheetAidaRow.addEventListener('click', function (e) {
+      var chip = e.target.closest('.aida-chip');
+      if (!chip) return;
+      var countVal = chip.dataset.count;
+
+      // Deselect all in sheet
+      sheetAidaRow.querySelectorAll('.aida-chip').forEach(function (c) { c.classList.remove('selected'); });
+      chip.classList.add('selected');
+
+      // Sync desktop
+      aidaRow.querySelectorAll('.aida-chip').forEach(function (c) { c.classList.remove('selected'); });
+      var desktopChip = aidaRow.querySelector('[data-count="' + countVal + '"]');
+      if (desktopChip) desktopChip.classList.add('selected');
+
+      var sheetCustomRow = document.getElementById('sheetCustomStitchRow');
+
+      if (countVal === 'custom') {
+        isCustomAida = true;
+        if (customStitchRow) customStitchRow.classList.add('visible');
+        if (sheetCustomRow) sheetCustomRow.classList.add('visible');
+        updateCustomStitch(currentStitchMm, 'init');
+      } else {
+        isCustomAida = false;
+        if (customStitchRow) customStitchRow.classList.remove('visible');
+        if (sheetCustomRow) sheetCustomRow.classList.remove('visible');
+        currentAida = parseInt(countVal);
+        syncMobileAidaChips();
+        updatePreview();
+      }
+    });
+  }
+
+  // Settings sheet: stitch length slider
+  var sheetStitchSlider = document.getElementById('sheetCustomStitchSlider');
+  if (sheetStitchSlider) {
+    sheetStitchSlider.addEventListener('input', function () {
+      if (isCustomAida) updateCustomStitch(parseFloat(this.value), 'sheet');
+    });
+  }
+
+  // ============================================================
+  // == Mobile Toolbar (Slider + 3 Buttons → Sheets)           ==
+  // ============================================================
+
+  // -- Sync helpers --
+
+  function syncMobileColorStrip() {
+    // Update color button swatch and name
+    var color = getCurrentColor();
+    var swatch = document.getElementById('mobileColorSwatch');
+    var nameEl = document.getElementById('mobileColorName');
+    if (swatch) swatch.style.backgroundColor = color.hex;
+    if (nameEl) nameEl.textContent = color.name;
+  }
+
+  function syncMobileHeightValue(val) {
+    var el = document.getElementById('mobileHeightValue');
+    var slider = document.getElementById('mobileHeightSlider');
+    if (el) el.textContent = val;
+    if (slider) slider.value = val;
+  }
+
+  function syncMobileAidaChips() {
+    var el = document.getElementById('mobileAidaValue');
+    if (el) el.textContent = (isCustomAida ? Math.round(currentAida) : currentAida) + ' ct';
+  }
+
+  function syncMobileFontName() {
+    var el = document.getElementById('mobileFontName');
+    if (el) el.textContent = currentFontName || 'Font';
+  }
+
+  // Kept for compatibility — no longer renders dots
+  function populateMobileColorStrip() {
+    syncMobileColorStrip();
+  }
+
+  // -- Mobile height slider --
+
+  var mobileSlider = document.getElementById('mobileHeightSlider');
+  var mobileSliderDebounce = null;
+  if (mobileSlider) {
+    mobileSlider.addEventListener('input', function () {
+      var val = parseInt(this.value);
+      var display = document.getElementById('mobileHeightValue');
+      if (display) display.textContent = val;
+
+      // Sync desktop + sheet sliders
+      heightSlider.value = val;
+      heightValue.textContent = val;
+      var sheetSlider = document.getElementById('sheetHeightSlider');
+      var sheetValue = document.getElementById('sheetHeightValue');
+      if (sheetSlider) sheetSlider.value = val;
+      if (sheetValue) sheetValue.textContent = val;
+
+      clearTimeout(mobileSliderDebounce);
+      mobileSliderDebounce = setTimeout(function () {
+        currentHeight = val;
+        loadAndRender();
+      }, 300);
+    });
+  }
+
+  // -- Aida button → opens settings sheet --
+
+  var mobileAidaBtn = document.getElementById('mobileAidaBtn');
+  if (mobileAidaBtn) {
+    mobileAidaBtn.addEventListener('click', function () {
+      openSheet('settings');
+    });
+  }
+
+  // -- Font button → opens font sheet --
+
+  var mobileFontBtn = document.getElementById('mobileFontBtn');
+  if (mobileFontBtn) {
+    mobileFontBtn.addEventListener('click', function () {
+      openSheet('font');
+    });
+  }
+
+  // -- Color button → opens color sheet --
+
+  var mobileColorBtn = document.getElementById('mobileColorBtn');
+  if (mobileColorBtn) {
+    mobileColorBtn.addEventListener('click', function () {
+      openSheet('color');
+    });
+  }
+
+  // -- Initialize mobile toolbar on load --
+
+  function initMobileToolbar() {
+    syncMobileColorStrip();
+    syncMobileHeightValue(currentHeight);
+    syncMobileAidaChips();
+    syncMobileFontName();
+  }
+
+  // ============================================================
+  // == Info Sheet                                              ==
+  // ============================================================
+
+  function syncInfoSheet() {
+    var color = getCurrentColor();
+    var sizeCm = document.getElementById('statSizeCm');
+    var stitchW = document.getElementById('statStitchesW');
+    var stitchH = document.getElementById('statStitchesH');
+    var total = document.getElementById('statTotal');
+    var dmc = document.getElementById('statDmc');
+    var thread = document.getElementById('statThread');
+
+    var infoSize = document.getElementById('infoSize');
+    var infoStitches = document.getElementById('infoStitches');
+    var infoCrosses = document.getElementById('infoCrosses');
+    var infoDmc = document.getElementById('infoDmc');
+    var infoThread = document.getElementById('infoThread');
+    var infoRulerW = document.getElementById('infoRulerWidth');
+
+    if (infoSize && sizeCm) infoSize.textContent = sizeCm.textContent || '-- x --';
+    if (infoStitches && stitchW && stitchH) infoStitches.textContent = (stitchW.textContent || '--') + 'x' + (stitchH.textContent || '--');
+    if (infoCrosses && total) infoCrosses.textContent = total.textContent || '--';
+    if (infoDmc && dmc) infoDmc.textContent = dmc.textContent || '--';
+    if (infoThread && thread) infoThread.textContent = thread.textContent || '--';
+    // Sync unit label
+    var infoSizeUnit = document.getElementById('infoSizeUnit');
+    var statSizeUnit = document.getElementById('statSizeUnit');
+    if (infoSizeUnit && statSizeUnit) infoSizeUnit.textContent = statSizeUnit.textContent;
+    if (infoRulerW) {
+      var rulerW = document.getElementById('rulerWidth');
+      infoRulerW.textContent = rulerW ? rulerW.textContent : '--';
+    }
+
+    // Sync language selector
+    var sheetLang = document.getElementById('sheetLangSelect');
+    if (sheetLang) sheetLang.value = currentLang;
+  }
+
+  // Info sheet: language selector
+  var sheetLangSelect = document.getElementById('sheetLangSelect');
+  if (sheetLangSelect) {
+    sheetLangSelect.addEventListener('change', function () {
+      setLanguage(this.value);
+      // Sync desktop selector
+      var desktopSelect = document.getElementById('langSelect');
+      if (desktopSelect) desktopSelect.value = this.value;
+    });
+  }
+
+  // ============================================================
+  // == Resize: close sheet if transitioning to desktop         ==
+  // ============================================================
+
+  var mobileResizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(mobileResizeTimer);
+    mobileResizeTimer = setTimeout(function () {
+      if (!isMobile() && activeSheet) {
+        closeSheet();
+      }
+    }, 150);
+  });
 
 })();
 </script>
