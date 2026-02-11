@@ -31,6 +31,28 @@ _EXTRACT_OPTION_NAMES = (
     "verbose",
 )
 
+# Names of the shared rasterize options (used to split kwargs in rasterize command)
+_RASTERIZE_OPTION_NAMES = (
+    "name",
+    "font_id",
+    "letter_spacing",
+    "space_width",
+    "charset",
+    "category",
+    "source",
+    "license_str",
+    "tags",
+    "exclude_chars",
+    "cursive",
+    "verbose",
+    "height",
+    "threshold",
+    "auto_threshold",
+    "bold",
+    "strategy",
+    "no_trim",
+)
+
 
 def shared_extraction_options(func):
     """Decorator that adds common extraction options to a command."""
@@ -61,20 +83,65 @@ def shared_extraction_options(func):
     return func
 
 
+def shared_rasterize_options(func):
+    """Decorator that adds rasterize-specific + common font options to a command."""
+    options = [
+        click.option(
+            "--height", type=int, default=8, help="Target height in stitches (default: 8)"
+        ),
+        click.option(
+            "--threshold",
+            type=int,
+            default=128,
+            help="Pixel threshold 0-255 (default: 128, 'auto' via --auto-threshold)",
+        ),
+        click.option(
+            "--auto-threshold",
+            is_flag=True,
+            help="Auto-detect threshold (Otsu's method, best for decorative fonts)",
+        ),
+        click.option(
+            "--bold",
+            type=int,
+            default=0,
+            help="Thicken strokes by N pixels (1=normal, 2=extra bold)",
+        ),
+        click.option(
+            "--strategy",
+            type=click.Choice(["average", "max-ink"]),
+            default="average",
+            help="average=LANCZOS (clean fonts), max-ink=preserve thin strokes (script)",
+        ),
+        click.option("--name", default=None, help="Display name override"),
+        click.option("--id", "font_id", default=None, help="Font ID override (kebab-case)"),
+        click.option("--letter-spacing", type=int, default=1, help="Letter spacing in stitches"),
+        click.option(
+            "--space-width", type=int, default=3, help="Space character width in stitches"
+        ),
+        click.option("--charset", type=click.Choice(["basic", "extended"]), default="basic"),
+        click.option(
+            "--category",
+            type=click.Choice(["serif", "sans-serif", "script", "pixel", "decorative", "gothic"]),
+            default=None,
+        ),
+        click.option("--source", default=None, help="Attribution text"),
+        click.option("--license", "license_str", default=None, help="License identifier"),
+        click.option("--tags", default=None, help="Comma-separated tags"),
+        click.option("--exclude-chars", default="", help="Characters to exclude"),
+        click.option("--cursive", is_flag=True, help="Shorthand: spacing=0, category=script"),
+        click.option("--no-trim", is_flag=True, help="Keep empty border rows/columns"),
+        click.option("-v", "--verbose", is_flag=True, help="Verbose output"),
+    ]
+    for option in reversed(options):
+        func = option(func)
+    return func
+
+
 def _build_extract_kwargs(opts: dict) -> dict:
     """Convert CLI option dict into kwargs for extract_font()."""
     tags_raw = opts.get("tags")
     tag_list = [t.strip() for t in tags_raw.split(",")] if tags_raw else None
     exclude = set(opts["exclude_chars"]) if opts.get("exclude_chars") else set()
-
-    letter_spacing = opts["letter_spacing"]
-    category = opts["category"]
-    cursive = opts["cursive"]
-
-    if cursive:
-        letter_spacing = 0
-        if category is None:
-            category = "script"
 
     return {
         "name": opts["name"],
@@ -83,15 +150,42 @@ def _build_extract_kwargs(opts: dict) -> dict:
         "render_size": opts["render_size"],
         "sample_pct": opts["sample_pct"],
         "fill_threshold": opts["fill_threshold"],
-        "letter_spacing": letter_spacing,
+        "letter_spacing": opts["letter_spacing"],
         "space_width": opts["space_width"],
         "charset": opts["charset"],
-        "category": category,
+        "category": opts["category"],
         "source": opts["source"],
         "license_str": opts["license_str"],
         "tags": tag_list,
         "exclude_chars": exclude,
-        "is_cursive": cursive,
+        "is_cursive": opts["cursive"],
+        "verbose": opts["verbose"],
+    }
+
+
+def _build_rasterize_kwargs(opts: dict) -> dict:
+    """Convert CLI option dict into kwargs for rasterize_font()."""
+    tags_raw = opts.get("tags")
+    tag_list = [t.strip() for t in tags_raw.split(",")] if tags_raw else None
+    exclude = set(opts["exclude_chars"]) if opts.get("exclude_chars") else set()
+
+    return {
+        "target_height": opts["height"],
+        "threshold": None if opts["auto_threshold"] else opts["threshold"],
+        "bold": opts["bold"],
+        "strategy": opts["strategy"],
+        "name": opts["name"],
+        "font_id": opts["font_id"],
+        "letter_spacing": opts["letter_spacing"],
+        "space_width": opts["space_width"],
+        "charset": opts["charset"],
+        "category": opts["category"],
+        "source": opts["source"],
+        "license_str": opts["license_str"],
+        "tags": tag_list,
+        "exclude_chars": exclude,
+        "is_cursive": opts["cursive"],
+        "trim": not opts["no_trim"],
         "verbose": opts["verbose"],
     }
 
@@ -101,6 +195,13 @@ def _split_kwargs(all_kwargs: dict) -> tuple[dict, dict]:
     ext = {k: all_kwargs[k] for k in _EXTRACT_OPTION_NAMES}
     cmd = {k: v for k, v in all_kwargs.items() if k not in _EXTRACT_OPTION_NAMES}
     return ext, cmd
+
+
+def _split_rasterize_kwargs(all_kwargs: dict) -> tuple[dict, dict]:
+    """Split kwargs into (rasterize_opts, command_opts)."""
+    rast = {k: all_kwargs[k] for k in _RASTERIZE_OPTION_NAMES}
+    cmd = {k: v for k, v in all_kwargs.items() if k not in _RASTERIZE_OPTION_NAMES}
+    return rast, cmd
 
 
 def _write_result(result, output_path: str) -> dict:
@@ -123,13 +224,36 @@ def _print_result_summary(result, output_path: str) -> None:
         click.secho(f"  Skipped: {', '.join(result.skipped_chars)}", fg="yellow")
 
 
+def _show_output(data: dict, preview: bool, do_validate: bool) -> None:
+    """Show optional preview and/or validation results."""
+    if preview:
+        from ttf2stitch.preview import preview_font as show_preview
+
+        click.echo("\n" + show_preview(data, "ABCabc123"))
+
+    if do_validate:
+        from ttf2stitch.validator import validate_font
+
+        issues = validate_font(data)
+        if issues:
+            click.secho(f"\n  Validation issues ({len(issues)}):", fg="yellow")
+            for issue in issues:
+                click.echo(f"    - {issue}")
+        else:
+            click.secho("  Validation passed", fg="green")
+
+
 # -- CLI group --------------------------------------------------------------------------
 
 
 @click.group()
 @click.version_option(version="0.1.0", prog_name="ttf2stitch")
-def cli():
+@click.option("-v", "--verbose", is_flag=True, hidden=True, help="Verbose output")
+@click.pass_context
+def cli(ctx, verbose):
     """Convert TTF/OTF cross-stitch fonts to bitmap JSON v2 for Stitchx."""
+    if verbose:
+        logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 
 # -- convert ---------------------------------------------------------------------------
@@ -148,8 +272,6 @@ def convert(font_path, **all_kwargs):
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     from ttf2stitch.extractor import extract_font
-    from ttf2stitch.preview import preview_font as show_preview
-    from ttf2stitch.validator import validate_font
 
     try:
         result = extract_font(font_path, **_build_extract_kwargs(ext_opts))
@@ -160,18 +282,7 @@ def convert(font_path, **all_kwargs):
     output = cmd["output"] or f"{result.font.id}.json"
     data = _write_result(result, output)
     _print_result_summary(result, output)
-
-    if cmd["preview"]:
-        click.echo("\n" + show_preview(data, "ABCabc123"))
-
-    if cmd["do_validate"]:
-        issues = validate_font(data)
-        if issues:
-            click.secho(f"\n  Validation issues ({len(issues)}):", fg="yellow")
-            for issue in issues:
-                click.echo(f"    - {issue}")
-        else:
-            click.secho("  Validation passed", fg="green")
+    _show_output(data, cmd["preview"], cmd["do_validate"])
 
 
 # -- batch -----------------------------------------------------------------------------
@@ -190,8 +301,6 @@ def batch(input_dir, **all_kwargs):
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     from ttf2stitch.extractor import extract_font
-    from ttf2stitch.preview import preview_font as show_preview
-    from ttf2stitch.validator import validate_font
 
     input_path = Path(input_dir)
     font_files = sorted(p for p in input_path.iterdir() if p.suffix.lower() in (".ttf", ".otf"))
@@ -221,15 +330,7 @@ def batch(input_dir, **all_kwargs):
         data = _write_result(result, out_file)
         _print_result_summary(result, out_file)
 
-        if cmd["preview"]:
-            click.echo("\n" + show_preview(data, "ABCabc123"))
-        if cmd["do_validate"]:
-            issues = validate_font(data)
-            if issues:
-                click.secho(f"  Validation issues ({len(issues)}):", fg="yellow")
-                for issue in issues:
-                    click.echo(f"    - {issue}")
-
+        _show_output(data, cmd["preview"], cmd["do_validate"])
         success += 1
         click.echo()
 
@@ -302,123 +403,31 @@ def inspect(font_path, cell_units, verbose):
     click.echo(f"    {' '.join(parts)}")
 
 
-# -- validate --------------------------------------------------------------------------
+# -- rasterize -------------------------------------------------------------------------
 
 
 @cli.command()
 @click.argument("font_path", type=click.Path(exists=True))
 @click.option("-o", "--output", type=click.Path(), default=None, help="Output JSON path")
-@click.option("--height", type=int, default=8, help="Target height in stitches (default: 8)")
-@click.option(
-    "--threshold",
-    type=int,
-    default=128,
-    help="Pixel threshold 0-255 (default: 128, 'auto' via --auto-threshold)",
-)
-@click.option(
-    "--auto-threshold",
-    is_flag=True,
-    help="Auto-detect threshold (Otsu's method, best for decorative fonts)",
-)
-@click.option(
-    "--bold", type=int, default=0, help="Thicken strokes by N pixels (1=normal, 2=extra bold)"
-)
-@click.option(
-    "--strategy",
-    type=click.Choice(["average", "max-ink"]),
-    default="average",
-    help="average=LANCZOS (clean fonts), max-ink=preserve thin strokes (script)",
-)
-@click.option("--name", default=None, help="Display name override")
-@click.option("--id", "font_id", default=None, help="Font ID override (kebab-case)")
-@click.option("--letter-spacing", type=int, default=1, help="Letter spacing in stitches")
-@click.option("--space-width", type=int, default=3, help="Space character width in stitches")
-@click.option("--charset", type=click.Choice(["basic", "extended"]), default="basic")
-@click.option(
-    "--category",
-    type=click.Choice(["serif", "sans-serif", "script", "pixel", "decorative", "gothic"]),
-    default=None,
-)
-@click.option("--source", default=None, help="Attribution text")
-@click.option("--license", "license_str", default=None, help="License identifier")
-@click.option("--tags", default=None, help="Comma-separated tags")
-@click.option("--exclude-chars", default="", help="Characters to exclude")
-@click.option("--cursive", is_flag=True, help="Shorthand: spacing=0, category=script")
-@click.option("--no-trim", is_flag=True, help="Keep empty border rows/columns")
 @click.option("--preview/--no-preview", default=False, help="Show ASCII preview")
 @click.option("--validate/--no-validate", "do_validate", default=False, help="Validate output")
-@click.option("-v", "--verbose", is_flag=True, help="Verbose output")
-def rasterize(
-    font_path,
-    output,
-    height,
-    threshold,
-    auto_threshold,
-    bold,
-    strategy,
-    name,
-    font_id,
-    letter_spacing,
-    space_width,
-    charset,
-    category,
-    source,
-    license_str,
-    tags,
-    exclude_chars,
-    cursive,
-    no_trim,
-    preview,
-    do_validate,
-    verbose,
-):
+@shared_rasterize_options
+def rasterize(font_path, **all_kwargs):
     """Rasterize ANY TTF/OTF font at a fixed stitch height (1 pixel = 1 stitch)."""
-    if verbose:
+    rast_opts, cmd = _split_rasterize_kwargs(all_kwargs)
+    if rast_opts["verbose"]:
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-    from ttf2stitch.preview import preview_font as show_preview
     from ttf2stitch.rasterizer import rasterize_font
-    from ttf2stitch.validator import validate_font
-
-    tag_list = [t.strip() for t in tags.split(",")] if tags else None
-    exclude = set(exclude_chars) if exclude_chars else set()
-
-    if cursive:
-        letter_spacing = 0
-        if category is None:
-            category = "script"
 
     try:
-        effective_threshold = None if auto_threshold else threshold
-        result = rasterize_font(
-            font_path,
-            target_height=height,
-            threshold=effective_threshold,
-            bold=bold,
-            strategy=strategy,
-            name=name,
-            font_id=font_id,
-            letter_spacing=letter_spacing,
-            space_width=space_width,
-            charset=charset,
-            category=category,
-            source=source,
-            license_str=license_str,
-            tags=tag_list,
-            exclude_chars=exclude,
-            is_cursive=cursive,
-            trim=not no_trim,
-            verbose=verbose,
-        )
+        result = rasterize_font(font_path, **_build_rasterize_kwargs(rast_opts))
     except Exception as e:
         click.secho(f"Error: {e}", fg="red", err=True)
         sys.exit(1)
 
-    if output is None:
-        output = f"{result.font.id}.json"
-
-    data = result.font.model_dump_json_v2()
-    Path(output).write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    output = cmd["output"] or f"{result.font.id}.json"
+    data = _write_result(result, output)
 
     click.secho(f"Wrote {output}", fg="green")
     click.echo(f"  Font: {result.font.name} ({result.font.id})")
@@ -428,17 +437,7 @@ def rasterize(
     if result.skipped_chars:
         click.secho(f"  Skipped: {', '.join(result.skipped_chars)}", fg="yellow")
 
-    if preview:
-        click.echo("\n" + show_preview(data, "ABCabc123"))
-
-    if do_validate:
-        issues = validate_font(data)
-        if issues:
-            click.secho(f"\n  Validation issues ({len(issues)}):", fg="yellow")
-            for issue in issues:
-                click.echo(f"    - {issue}")
-        else:
-            click.secho("  Validation passed", fg="green")
+    _show_output(data, cmd["preview"], cmd["do_validate"])
 
 
 # -- validate --------------------------------------------------------------------------

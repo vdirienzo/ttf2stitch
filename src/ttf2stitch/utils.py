@@ -1,6 +1,7 @@
 """Slug generation and metadata inference from font files."""
 
 import re
+from dataclasses import dataclass
 
 from fontTools.ttLib import TTFont
 
@@ -100,3 +101,65 @@ def infer_tags(name: str, metadata: dict, is_cursive: bool = False) -> list[str]
             tags.append("connected")
 
     return tags
+
+
+@dataclass
+class FontConversionOptions:
+    """Shared options for both extraction and rasterization pipelines."""
+
+    name: str | None = None
+    font_id: str | None = None
+    letter_spacing: int = 1
+    space_width: int = 3
+    charset: str = "basic"
+    category: str | None = None
+    source: str | None = None
+    license_str: str | None = None
+    tags: list[str] | None = None
+    exclude_chars: set[str] | None = None
+    is_cursive: bool = False
+    verbose: bool = False
+
+
+@dataclass
+class ResolvedMetadata:
+    """Resolved font metadata ready for FontV2 construction."""
+
+    display_name: str
+    slug: str
+    category: str
+    tags: list[str]
+    source: str
+    license: str
+    letter_spacing: int
+
+
+def resolve_font_metadata(font_path: str, opts: FontConversionOptions) -> ResolvedMetadata:
+    """Resolve font metadata from file + user overrides + cursive logic.
+
+    Centralizes the metadata inference block duplicated in extractor and rasterizer.
+    Uses the conditional cursive override: only sets category to "script" if not already script.
+    """
+    metadata = infer_metadata(font_path)
+    display_name = opts.name or metadata["name"] or "Unknown Font"
+    slug = opts.font_id or generate_slug(display_name)
+    font_category = opts.category or infer_category(display_name, metadata)
+    font_tags = opts.tags or infer_tags(display_name, metadata, opts.is_cursive)
+    font_source = opts.source or metadata["source"]
+    font_license = opts.license_str or metadata["license"]
+    letter_spacing = opts.letter_spacing
+
+    if opts.is_cursive:
+        letter_spacing = 0
+        if font_category != "script":
+            font_category = "script"
+
+    return ResolvedMetadata(
+        display_name=display_name,
+        slug=slug,
+        category=font_category,
+        tags=font_tags,
+        source=font_source,
+        license=font_license,
+        letter_spacing=letter_spacing,
+    )

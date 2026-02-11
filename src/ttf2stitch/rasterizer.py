@@ -20,8 +20,8 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from ttf2stitch.config import DEFAULT_EXCLUDE_CHARS, DEFAULT_LETTER_SPACING, DEFAULT_SPACE_WIDTH
 from ttf2stitch.filters import filter_glyphs
 from ttf2stitch.sampler import trim_bitmap
-from ttf2stitch.schema import FontV2, GlyphV2
-from ttf2stitch.utils import generate_slug, infer_category, infer_metadata, infer_tags
+from ttf2stitch.schema import GlyphV2, build_font_v2
+from ttf2stitch.utils import FontConversionOptions, resolve_font_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class RasterResult:
 
     def __init__(
         self,
-        font: FontV2,
+        font,
         target_height: int,
         skipped_chars: list[str],
     ):
@@ -129,7 +129,7 @@ def _render_char_bitmap(
         bold: Dilation radius (0=none, 1=thicken thin strokes, 2=extra bold).
         strategy: Downsampling strategy:
             "average" - LANCZOS resize then threshold (good for clean fonts)
-            "max-ink" - min-pool cells: if ANY pixel has ink → '1' (best for script/thin strokes)
+            "max-ink" - min-pool cells: if ANY pixel has ink -> '1' (best for script/thin strokes)
 
     Returns:
         List of bitmap strings, or None if empty.
@@ -221,6 +221,7 @@ def _render_char_bitmap(
 def rasterize_font(
     font_path: str,
     *,
+    opts: FontConversionOptions | None = None,
     target_height: int = 8,
     threshold: int | None = 128,
     bold: int = 0,
@@ -241,45 +242,58 @@ def rasterize_font(
 ) -> RasterResult:
     """Rasterize any TTF/OTF font at a fixed stitch height.
 
+    Accepts either a FontConversionOptions via `opts` or individual keyword args
+    for backward compatibility. If `opts` is provided, shared params are taken from it.
+
     Args:
         font_path: Path to TTF/OTF file.
+        opts: Shared conversion options (replaces individual shared kwargs).
         target_height: Desired height in stitches.
         threshold: Pixel threshold (0-255). None = auto (Otsu's method).
         bold: Dilation radius (0=none, 1=thicken, 2=extra bold).
-        name: Display name override.
-        font_id: Font ID override.
-        letter_spacing: Space between letters in stitches.
-        space_width: Width of space character in stitches.
-        charset: "basic" or "extended".
-        category: Font category.
-        source: Attribution text.
-        license_str: License identifier.
-        tags: Tags list.
-        exclude_chars: Characters to exclude.
-        is_cursive: Shorthand for spacing=0, category=script.
+        strategy: Downsampling strategy.
+        name: Display name override (ignored if opts provided).
+        font_id: Font ID override (ignored if opts provided).
+        letter_spacing: Space between letters (ignored if opts provided).
+        space_width: Width of space character (ignored if opts provided).
+        charset: Character set (ignored if opts provided).
+        category: Font category (ignored if opts provided).
+        source: Attribution text (ignored if opts provided).
+        license_str: License identifier (ignored if opts provided).
+        tags: Tags list (ignored if opts provided).
+        exclude_chars: Characters to exclude (ignored if opts provided).
+        is_cursive: Shorthand for spacing=0, category=script (ignored if opts provided).
         trim: Whether to trim empty border rows/columns.
-        verbose: Enable logging.
+        verbose: Enable logging (ignored if opts provided).
     """
-    metadata = infer_metadata(font_path)
-    display_name = name or metadata["name"] or "Unknown Font"
-    slug = font_id or generate_slug(display_name)
-    font_category = category or infer_category(display_name, metadata)
-    font_tags = tags or infer_tags(display_name, metadata, is_cursive)
-    font_source = source or metadata["source"]
-    font_license = license_str or metadata["license"]
+    # Build opts from individual kwargs if not provided
+    if opts is None:
+        opts = FontConversionOptions(
+            name=name,
+            font_id=font_id,
+            letter_spacing=letter_spacing,
+            space_width=space_width,
+            charset=charset,
+            category=category,
+            source=source,
+            license_str=license_str,
+            tags=tags,
+            exclude_chars=exclude_chars,
+            is_cursive=is_cursive,
+            verbose=verbose,
+        )
 
-    if is_cursive:
-        letter_spacing = 0
-        font_category = "script"
+    # Metadata inference + cursive logic
+    meta = resolve_font_metadata(font_path, opts)
 
     render_size = target_height * 20
     pil_font = ImageFont.truetype(font_path, size=render_size)
 
-    exclude = exclude_chars if exclude_chars is not None else DEFAULT_EXCLUDE_CHARS
+    exclude = opts.exclude_chars if opts.exclude_chars is not None else DEFAULT_EXCLUDE_CHARS
     font_obj = TTFont(font_path, fontNumber=0)
     try:
         cmap = font_obj.getBestCmap()
-        filtered = filter_glyphs(cmap, charset, exclude)
+        filtered = filter_glyphs(cmap, opts.charset, exclude)
     finally:
         font_obj.close()
 
@@ -289,8 +303,8 @@ def rasterize_font(
     for _codepoint, char in filtered:
         if char == " ":
             glyphs[char] = GlyphV2(
-                width=space_width,
-                bitmap=["0" * space_width] * target_height,
+                width=opts.space_width,
+                bitmap=["0" * opts.space_width] * target_height,
             )
             continue
 
@@ -309,25 +323,19 @@ def rasterize_font(
 
         width = len(bitmap[0])
 
-        if verbose:
+        if opts.verbose:
             logger.info("  '%s': %dx%d stitches", char, width, len(bitmap))
 
         glyphs[char] = GlyphV2(width=width, bitmap=bitmap)
 
     max_height = max((len(g.bitmap) for g in glyphs.values()), default=target_height)
 
-    font_v2 = FontV2(
-        id=slug,
-        name=display_name,
-        height=max_height,
-        letter_spacing=letter_spacing,
-        space_width=space_width,
-        source=font_source,
-        license=font_license,
-        charset=charset,
-        category=font_category,
-        tags=font_tags,
+    font_v2 = build_font_v2(
         glyphs=glyphs,
+        height=max_height,
+        meta=meta,
+        charset=opts.charset,
+        space_width=opts.space_width,
     )
 
     return RasterResult(

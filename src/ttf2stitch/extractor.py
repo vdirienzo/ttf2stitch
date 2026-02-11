@@ -21,8 +21,8 @@ from ttf2stitch.config import (
 from ttf2stitch.filters import filter_glyphs
 from ttf2stitch.renderer import render_glyph
 from ttf2stitch.sampler import sample_bitmap
-from ttf2stitch.schema import FontV2, GlyphV2
-from ttf2stitch.utils import generate_slug, infer_category, infer_metadata, infer_tags
+from ttf2stitch.schema import GlyphV2, build_font_v2
+from ttf2stitch.utils import FontConversionOptions, resolve_font_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class ExtractionResult:
 
     def __init__(
         self,
-        font: FontV2,
+        font,
         cell_units: int,
         confidence: float,
         skipped_chars: list[str],
@@ -46,6 +46,7 @@ class ExtractionResult:
 def extract_font(
     font_path: str,
     *,
+    opts: FontConversionOptions | None = None,
     name: str | None = None,
     font_id: str | None = None,
     cell_units_override: int | None = None,
@@ -65,6 +66,9 @@ def extract_font(
 ) -> ExtractionResult:
     """Main extraction pipeline.
 
+    Accepts either a FontConversionOptions via `opts` or individual keyword args
+    for backward compatibility. If `opts` is provided, shared params are taken from it.
+
     Steps:
     1. Detect/use CELL_UNITS
     2. Read font cmap, filter characters by charset
@@ -76,33 +80,39 @@ def extract_font(
     4. Compute max height across all glyphs
     5. Assemble FontV2 output
     """
+    # Build opts from individual kwargs if not provided
+    if opts is None:
+        opts = FontConversionOptions(
+            name=name,
+            font_id=font_id,
+            letter_spacing=letter_spacing,
+            space_width=space_width,
+            charset=charset,
+            category=category,
+            source=source,
+            license_str=license_str,
+            tags=tags,
+            exclude_chars=exclude_chars,
+            is_cursive=is_cursive,
+            verbose=verbose,
+        )
+
     # Step 1: Cell units
     units, confidence = detect_cell_units(font_path, cell_units_override)
-    if verbose:
+    if opts.verbose:
         logger.info("CELL_UNITS: %d (confidence: %.2f)", units, confidence)
 
-    # Metadata inference
-    metadata = infer_metadata(font_path)
-    display_name = name or metadata["name"] or "Unknown Font"
-    slug = font_id or generate_slug(display_name)
-    font_category = category or infer_category(display_name, metadata)
-    font_tags = tags or infer_tags(display_name, metadata, is_cursive)
-    font_source = source or metadata["source"]
-    font_license = license_str or metadata["license"]
-
-    if is_cursive:
-        letter_spacing = 0
-        if font_category != "script":
-            font_category = "script"
+    # Metadata inference + cursive logic
+    meta = resolve_font_metadata(font_path, opts)
 
     # Step 2: Get cmap and filter characters
-    exclude = exclude_chars if exclude_chars is not None else DEFAULT_EXCLUDE_CHARS
+    exclude = opts.exclude_chars if opts.exclude_chars is not None else DEFAULT_EXCLUDE_CHARS
     font_obj = TTFont(font_path, fontNumber=0)
     try:
         cmap = font_obj.getBestCmap()
         glyphset = font_obj.getGlyphSet()
 
-        filtered = filter_glyphs(cmap, charset, exclude)
+        filtered = filter_glyphs(cmap, opts.charset, exclude)
 
         glyphs: dict[str, GlyphV2] = {}
         skipped: list[str] = []
@@ -118,8 +128,8 @@ def extract_font(
             if bounds is None:
                 if char == " ":
                     glyphs[char] = GlyphV2(
-                        width=space_width,
-                        bitmap=["0" * space_width] * 4,
+                        width=opts.space_width,
+                        bitmap=["0" * opts.space_width] * 4,
                     )
                 else:
                     skipped.append(char)
@@ -132,7 +142,7 @@ def extract_font(
             num_cols = max(1, round(glyph_w / units))
             num_rows = max(1, round(glyph_h / units))
 
-            if verbose:
+            if opts.verbose:
                 logger.info(
                     "  '%s': %dx%d cells (%.0fx%.0f units)",
                     char,
@@ -166,18 +176,12 @@ def extract_font(
     max_height = max((len(g.bitmap) for g in glyphs.values()), default=1)
 
     # Step 5: Assemble FontV2
-    font_v2 = FontV2(
-        id=slug,
-        name=display_name,
-        height=max_height,
-        letter_spacing=letter_spacing,
-        space_width=space_width,
-        source=font_source,
-        license=font_license,
-        charset=charset,
-        category=font_category,
-        tags=font_tags,
+    font_v2 = build_font_v2(
         glyphs=glyphs,
+        height=max_height,
+        meta=meta,
+        charset=opts.charset,
+        space_width=opts.space_width,
     )
 
     return ExtractionResult(

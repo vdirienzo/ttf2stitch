@@ -4,6 +4,10 @@
 //  Depends on jsPDF loaded via CDN (window.jspdf.jsPDF)
 // ══════════════════════════════════════════════════════════════════
 
+function getLuminance(color) {
+  return (0.299 * color.r + 0.587 * color.g + 0.114 * color.b) / 255;
+}
+
 /**
  * Convert text string to a 2D boolean bitmap using bitmap font glyph data.
  * Handles letter spacing, space width, and missing glyphs gracefully.
@@ -43,7 +47,7 @@ function getTextBitmapForPDF(text, fontData) {
 
     if (ch === ' ' || !glyphs[ch]) {
       // Space or missing glyph: insert empty columns
-      const w = ch === ' ' ? spaceWidth : spaceWidth;
+      const w = spaceWidth;
       for (let s = 0; s < w; s++) {
         charColumns.push(new Array(fontHeight).fill(false));
       }
@@ -148,7 +152,7 @@ function drawGridPage(pdf, bitmap, color, startCol, startRow, colsPerPage, rowsP
   const offsetY = margins.top + layout.labelMarginTop;
 
   // Determine symbol color based on luminance
-  const luminance = (0.299 * color.r + 0.587 * color.g + 0.114 * color.b) / 255;
+  const luminance = getLuminance(color);
   const symbolIsWhite = luminance < 0.5;
 
   // 1. Draw filled cells
@@ -333,7 +337,7 @@ function drawLegend(pdf, color, stitchCount, aidaCount, width, height, fontName,
   pdf.line(margin, y - 2, margin + tW, y - 2);
 
   // Data row
-  const luminance = (0.299 * color.r + 0.587 * color.g + 0.114 * color.b) / 255;
+  const luminance = getLuminance(color);
 
   // Symbol cell
   pdf.setFillColor(color.r, color.g, color.b);

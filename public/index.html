@@ -352,8 +352,8 @@
   .height-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 44px;
-    height: 44px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--accent);
     cursor: pointer;
@@ -365,8 +365,8 @@
     transform: scale(1.15);
   }
   .height-slider::-moz-range-thumb {
-    width: 44px;
-    height: 44px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--accent);
     cursor: pointer;
@@ -1680,7 +1680,7 @@
             <span class="stitch-value-unit" id="customStitchUnit">mm</span>
           </div>
         </div>
-        <input type="range" class="custom-stitch-slider" id="customStitchSlider" min="1" max="8" value="3" step="0.1" aria-label="Custom stitch length" />
+        <input type="range" class="custom-stitch-slider" id="customStitchSlider" min="1" max="10" value="3" step="0.1" aria-label="Custom stitch length" />
         <div class="custom-stitch-equiv" id="customStitchEquiv"></div>
       </div>
     </div>
@@ -1860,7 +1860,7 @@
             <span class="stitch-value-unit" id="sheetCustomStitchUnit">mm</span>
           </div>
         </div>
-        <input type="range" class="custom-stitch-slider" id="sheetCustomStitchSlider" min="1" max="8" value="3" step="0.1" aria-label="Custom stitch length" />
+        <input type="range" class="custom-stitch-slider" id="sheetCustomStitchSlider" min="1" max="10" value="3" step="0.1" aria-label="Custom stitch length" />
         <div class="custom-stitch-equiv" id="sheetCustomStitchEquiv"></div>
       </div>
     </div>
@@ -1978,6 +1978,10 @@ DMC_COLORS.forEach(function(c) {
 //  Depends on jsPDF loaded via CDN (window.jspdf.jsPDF)
 // ══════════════════════════════════════════════════════════════════
 
+function getLuminance(color) {
+  return (0.299 * color.r + 0.587 * color.g + 0.114 * color.b) / 255;
+}
+
 /**
  * Convert text string to a 2D boolean bitmap using bitmap font glyph data.
  * Handles letter spacing, space width, and missing glyphs gracefully.
@@ -2017,7 +2021,7 @@ function getTextBitmapForPDF(text, fontData) {
 
     if (ch === ' ' || !glyphs[ch]) {
       // Space or missing glyph: insert empty columns
-      const w = ch === ' ' ? spaceWidth : spaceWidth;
+      const w = spaceWidth;
       for (let s = 0; s < w; s++) {
         charColumns.push(new Array(fontHeight).fill(false));
       }
@@ -2122,7 +2126,7 @@ function drawGridPage(pdf, bitmap, color, startCol, startRow, colsPerPage, rowsP
   const offsetY = margins.top + layout.labelMarginTop;
 
   // Determine symbol color based on luminance
-  const luminance = (0.299 * color.r + 0.587 * color.g + 0.114 * color.b) / 255;
+  const luminance = getLuminance(color);
   const symbolIsWhite = luminance < 0.5;
 
   // 1. Draw filled cells
@@ -2307,7 +2311,7 @@ function drawLegend(pdf, color, stitchCount, aidaCount, width, height, fontName,
   pdf.line(margin, y - 2, margin + tW, y - 2);
 
   // Data row
-  const luminance = (0.299 * color.r + 0.587 * color.g + 0.114 * color.b) / 255;
+  const luminance = getLuminance(color);
 
   // Symbol cell
   pdf.setFillColor(color.r, color.g, color.b);
@@ -3911,43 +3915,6 @@ function truncate(str, maxLen) {
     } catch (err) {
       alert(t('alert_pdf_fail') + err.message);
       console.error('PDF error:', err);
-    }
-  });
-
-  // -- Mobile sidebar drawer --
-
-  var sidebarToggle = document.getElementById('sidebarToggle');
-  var sidebar = document.querySelector('.sidebar');
-  var drawerBackdrop = document.getElementById('drawerBackdrop');
-
-  function openDrawer() {
-    sidebar.classList.add('open');
-    sidebarToggle.classList.add('active');
-    drawerBackdrop.classList.add('visible');
-  }
-
-  function closeDrawer() {
-    sidebar.classList.remove('open');
-    sidebarToggle.classList.remove('active');
-    drawerBackdrop.classList.remove('visible');
-  }
-
-  sidebarToggle.addEventListener('click', function () {
-    if (sidebar.classList.contains('open')) {
-      closeDrawer();
-    } else {
-      openDrawer();
-    }
-  });
-
-  drawerBackdrop.addEventListener('click', closeDrawer);
-
-  // Close drawer when a font is selected on mobile
-  var origFontClick = fontList.addEventListener;
-  fontList.addEventListener('click', function (e) {
-    var item = e.target.closest('.font-item');
-    if (item && window.innerWidth <= 640) {
-      setTimeout(closeDrawer, 200);
     }
   });
 

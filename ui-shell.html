@@ -352,8 +352,8 @@
   .height-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 44px;
-    height: 44px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--accent);
     cursor: pointer;
@@ -365,8 +365,8 @@
     transform: scale(1.15);
   }
   .height-slider::-moz-range-thumb {
-    width: 44px;
-    height: 44px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--accent);
     cursor: pointer;
@@ -1680,7 +1680,7 @@
             <span class="stitch-value-unit" id="customStitchUnit">mm</span>
           </div>
         </div>
-        <input type="range" class="custom-stitch-slider" id="customStitchSlider" min="1" max="8" value="3" step="0.1" aria-label="Custom stitch length" />
+        <input type="range" class="custom-stitch-slider" id="customStitchSlider" min="1" max="10" value="3" step="0.1" aria-label="Custom stitch length" />
         <div class="custom-stitch-equiv" id="customStitchEquiv"></div>
       </div>
     </div>
@@ -1860,7 +1860,7 @@
             <span class="stitch-value-unit" id="sheetCustomStitchUnit">mm</span>
           </div>
         </div>
-        <input type="range" class="custom-stitch-slider" id="sheetCustomStitchSlider" min="1" max="8" value="3" step="0.1" aria-label="Custom stitch length" />
+        <input type="range" class="custom-stitch-slider" id="sheetCustomStitchSlider" min="1" max="10" value="3" step="0.1" aria-label="Custom stitch length" />
         <div class="custom-stitch-equiv" id="sheetCustomStitchEquiv"></div>
       </div>
     </div>
@@ -3081,43 +3081,6 @@
     } catch (err) {
       alert(t('alert_pdf_fail') + err.message);
       console.error('PDF error:', err);
-    }
-  });
-
-  // -- Mobile sidebar drawer --
-
-  var sidebarToggle = document.getElementById('sidebarToggle');
-  var sidebar = document.querySelector('.sidebar');
-  var drawerBackdrop = document.getElementById('drawerBackdrop');
-
-  function openDrawer() {
-    sidebar.classList.add('open');
-    sidebarToggle.classList.add('active');
-    drawerBackdrop.classList.add('visible');
-  }
-
-  function closeDrawer() {
-    sidebar.classList.remove('open');
-    sidebarToggle.classList.remove('active');
-    drawerBackdrop.classList.remove('visible');
-  }
-
-  sidebarToggle.addEventListener('click', function () {
-    if (sidebar.classList.contains('open')) {
-      closeDrawer();
-    } else {
-      openDrawer();
-    }
-  });
-
-  drawerBackdrop.addEventListener('click', closeDrawer);
-
-  // Close drawer when a font is selected on mobile
-  var origFontClick = fontList.addEventListener;
-  fontList.addEventListener('click', function (e) {
-    var item = e.target.closest('.font-item');
-    if (item && window.innerWidth <= 640) {
-      setTimeout(closeDrawer, 200);
     }
   });
 

@@ -1,8 +1,13 @@
 """Pydantic v2 models matching the Stitchx bitmap font JSON v2 format."""
 
-from typing import Literal
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+
+if TYPE_CHECKING:
+    from ttf2stitch.utils import ResolvedMetadata
 
 
 class GlyphV2(BaseModel):
@@ -28,7 +33,7 @@ class GlyphV2(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def bitmap_rows_match_width(self) -> "GlyphV2":
+    def bitmap_rows_match_width(self) -> GlyphV2:
         for i, row in enumerate(self.bitmap):
             if len(row) != self.width:
                 msg = f"Bitmap row {i} has length {len(row)}, expected {self.width}"
@@ -65,7 +70,7 @@ class FontV2(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def glyphs_height_consistent(self) -> "FontV2":
+    def glyphs_height_consistent(self) -> FontV2:
         for char, glyph in self.glyphs.items():
             row_count = len(glyph.bitmap)
             if row_count > self.height:
@@ -80,3 +85,30 @@ class FontV2(BaseModel):
         data["letterSpacing"] = data.pop("letter_spacing")
         data["spaceWidth"] = data.pop("space_width")
         return data
+
+
+def build_font_v2(
+    glyphs: dict[str, GlyphV2],
+    height: int,
+    meta: ResolvedMetadata,
+    charset: str,
+    space_width: int,
+) -> FontV2:
+    """Build a FontV2 from glyphs, height, and resolved metadata.
+
+    Factory that replaces the identical 11-field FontV2() construction
+    duplicated across extractor and rasterizer.
+    """
+    return FontV2(
+        id=meta.slug,
+        name=meta.display_name,
+        height=height,
+        letter_spacing=meta.letter_spacing,
+        space_width=space_width,
+        source=meta.source,
+        license=meta.license,
+        charset=charset,
+        category=meta.category,
+        tags=meta.tags,
+        glyphs=glyphs,
+    )
