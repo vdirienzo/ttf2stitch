@@ -21,6 +21,7 @@ const sharedJs = fs.readFileSync(path.join(BASE, 'shared.js'), 'utf-8');
 
 // PDF modules (5 files)
 const pdfModules = ['pdf-helpers.js', 'pdf-bitmap.js', 'pdf-legend.js', 'pdf-renderer.js', 'pdf-modal.js'];
+// nosemgrep: path-join-resolve-traversal — f iterates over hardcoded constant array
 const pdfEngine = pdfModules.map(f => fs.readFileSync(path.join(BASE, 'pdf-modules', f), 'utf-8')).join('\n\n');
 
 // UI modules (14 files, order matters — dependencies flow top to bottom)
@@ -32,6 +33,7 @@ const uiModules = [
   'bottom-input.js',
   'init.js'
 ];
+// nosemgrep: path-join-resolve-traversal — f iterates over hardcoded constant array
 const uiJs = uiModules.map(f => fs.readFileSync(path.join(BASE, 'ui-modules', f), 'utf-8')).join('\n\n');
 
 // Step 1: Inline the CSS — replace <link> with <style>
