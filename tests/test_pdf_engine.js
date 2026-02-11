@@ -95,7 +95,7 @@ function getTextBitmapForPDF(text, fontData) {
 }
 
 function calculatePDFLayout(width, height, cellSize, pageW, pageH) {
-  const labelMarginLeft = 8;
+  const labelMarginLeft = 5;
   const labelMarginTop = 6;
 
   const availableW = pageW - labelMarginLeft;
@@ -374,9 +374,9 @@ test('getTextBitmapForPDF', 'height inferred from glyphs if not set', () => {
 
 console.log('\ncalculatePDFLayout');
 
-test('calculatePDFLayout', 'returns labelMarginLeft=8 and labelMarginTop=6', () => {
+test('calculatePDFLayout', 'returns labelMarginLeft=5 and labelMarginTop=6', () => {
   const layout = calculatePDFLayout(10, 4, AIDA_14_CELL_SIZE, USABLE_W, USABLE_H);
-  assert.strictEqual(layout.labelMarginLeft, 8);
+  assert.strictEqual(layout.labelMarginLeft, 5);
   assert.strictEqual(layout.labelMarginTop, 6);
 });
 
@@ -389,9 +389,9 @@ test('calculatePDFLayout', 'small pattern (10x4) at Aida 14 fits on 1 page', () 
 
 test('calculatePDFLayout', 'small pattern colsPerPage and rowsPerPage are correct', () => {
   const layout = calculatePDFLayout(10, 4, AIDA_14_CELL_SIZE, USABLE_W, USABLE_H);
-  // availableW = 180 - 8 = 172, colsPerPage = floor(172 / 1.814...) = 94
+  // availableW = 180 - 5 = 175, colsPerPage = floor(175 / 1.814...) = 96
   // availableH = 253 - 6 = 247, rowsPerPage = floor(247 / 1.814...) = 136
-  const expectedCols = Math.floor((USABLE_W - 8) / AIDA_14_CELL_SIZE);
+  const expectedCols = Math.floor((USABLE_W - 5) / AIDA_14_CELL_SIZE);
   const expectedRows = Math.floor((USABLE_H - 6) / AIDA_14_CELL_SIZE);
   assert.strictEqual(layout.colsPerPage, expectedCols);
   assert.strictEqual(layout.rowsPerPage, expectedRows);

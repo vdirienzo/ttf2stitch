@@ -111,8 +111,8 @@ function getTextBitmapForPDF(text, fontData) {
  * @returns {object} Layout info: colsPerPage, rowsPerPage, pagesX, pagesY, totalPages
  */
 function calculatePDFLayout(width, height, cellSize, pageW, pageH) {
-  // Reserve space for coordinate labels on left (~8mm) and top (~6mm)
-  const labelMarginLeft = 8;
+  // Reserve space for coordinate labels on left (~5mm, vertical text) and top (~6mm)
+  const labelMarginLeft = 5;
   const labelMarginTop = 6;
 
   const availableW = pageW - labelMarginLeft;
@@ -249,12 +249,12 @@ function drawGridPage(pdf, bitmap, color, startCol, startRow, colsPerPage, rowsP
     }
   }
 
-  // Left edge labels
+  // Left edge labels (rotated 90° for compact width)
   for (let row = 0; row <= drawRows; row++) {
     const absRow = startRow + row;
     if (absRow % 10 === 0 && absRow > 0) {
-      const y = offsetY + row * cellSize + 0.3;
-      pdf.text(String(absRow), offsetX - 1.5, y, { align: 'right' });
+      const y = offsetY + row * cellSize;
+      pdf.text(String(absRow), offsetX - 1.5, y, { align: 'center', angle: 90 });
     }
   }
 

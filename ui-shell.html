@@ -826,7 +826,7 @@
 
   /* -- Vertical Ruler (left of canvas) -- */
   .ruler-vertical {
-    display: none;
+    display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0;
@@ -859,9 +859,12 @@
     font-family: var(--font-body);
   }
 
-  /* Desktop: canvas-rulers-wrap just passes through */
+  /* Desktop: flex row so vertical ruler + canvas sit side by side */
   .canvas-rulers-wrap {
-    display: contents;
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    justify-content: center;
   }
 
 
