@@ -51,15 +51,6 @@ let html = uiShell.replace(
 
 // Step 2: Insert all scripts before </body>
 const scriptsBlock = `
-<!-- ═══ Clerk Auth SDK ═══ -->
-<script
-  async
-  crossorigin="anonymous"
-  data-clerk-publishable-key="pk_test_bWFpbi13b21iYXQtNzIuY2xlcmsuYWNjb3VudHMuZGV2JA"
-  src="https://main-wombat-72.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
-  type="text/javascript"
-><\/script>
-
 <!-- ═══ jsPDF CDN ═══ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
 
