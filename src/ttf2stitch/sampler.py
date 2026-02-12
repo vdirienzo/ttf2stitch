@@ -85,6 +85,41 @@ def sample_bitmap(
     return bitmap
 
 
+def trim_columns(bitmap: list[str]) -> list[str]:
+    """Remove empty columns from left/right only, preserving all rows.
+
+    Unlike trim_bitmap() which also removes empty top/bottom rows, this
+    keeps all rows intact. Used by the rasterizer to maintain uniform
+    glyph height within a font's vertical frame.
+    """
+    if not bitmap:
+        return bitmap
+
+    width = len(bitmap[0])
+    if width == 0:
+        return bitmap
+
+    left_trim = 0
+    for col in range(width):
+        if all(row[col] == "0" for row in bitmap):
+            left_trim += 1
+        else:
+            break
+
+    right_trim = 0
+    for col in range(width - 1, left_trim - 1, -1):
+        if all(row[col] == "0" for row in bitmap):
+            right_trim += 1
+        else:
+            break
+
+    if left_trim > 0 or right_trim > 0:
+        end = width - right_trim
+        bitmap = [row[left_trim:end] for row in bitmap]
+
+    return bitmap
+
+
 def trim_bitmap(bitmap: list[str]) -> list[str]:
     """Remove empty rows from top/bottom and empty columns from left/right.
 
