@@ -5300,14 +5300,20 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     window.LemonSqueezy.Setup({
       eventHandler: function (event) {
         if (event.event === 'Checkout.Success') {
-          if (_pendingPdfFn) {
-            try {
-              _pendingPdfFn();
-            } catch (err) {
-              console.error('PDF generation after payment failed:', err);
+          // Close the LS overlay immediately so user sees the app
+          try { window.LemonSqueezy.Url.Close(); } catch (e) { /* ignore */ }
+
+          // Short delay to let overlay close, then trigger PDF download
+          setTimeout(function () {
+            if (_pendingPdfFn) {
+              try {
+                _pendingPdfFn();
+              } catch (err) {
+                console.error('PDF generation after payment failed:', err);
+              }
+              _pendingPdfFn = null;
             }
-            _pendingPdfFn = null;
-          }
+          }, 500);
         }
       }
     });
