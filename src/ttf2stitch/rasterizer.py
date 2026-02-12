@@ -8,7 +8,7 @@ Includes morphological operations (dilate/erode) for decorative fonts with
 thin strokes that would otherwise appear broken at low resolutions.
 
 Usage:
-    rasterize_font("arial.ttf", target_height=8)
+    rasterize_font("arial.ttf", target_height=18)
     rasterize_font("chandia.otf", target_height=16, bold=1, threshold=100)
 """
 
@@ -350,7 +350,7 @@ def rasterize_font(
     font_path: str,
     *,
     opts: FontConversionOptions | None = None,
-    target_height: int = 8,
+    target_height: int = 18,
     threshold: int | None = 128,
     bold: int = 0,
     strategy: str = "average",

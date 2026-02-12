@@ -4,7 +4,7 @@
   var currentText = 'Welcome';
   var currentFontFile = 'GeorgiaPro-Bold.ttf';
   var currentFontName = 'GeorgiaPro-Bold';
-  var currentHeight = 16;
+  var currentHeight = 18;
   var currentColorCode = '310'; // DMC code (robust with 449 colors)
   var currentAida = 14;
   var currentCategoryFilter = 'all';
