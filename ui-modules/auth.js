@@ -1,6 +1,6 @@
-// ui-modules/auth.js — Payment gate (Lemon Squeezy checkout overlay)
+// ui-modules/auth.js — Payment gate (Lemon Squeezy redirect checkout)
 // App is open to everyone. Pay per PDF or subscribe for unlimited.
-// Checkout happens IN the page as overlay — no redirect needed.
+// Saves pattern state to localStorage, redirects to LS, auto-downloads on return.
 
   var payModalEl = document.getElementById('pay-modal');
   var payBackdrop = document.getElementById('pay-backdrop');
@@ -9,8 +9,8 @@
   var payBtnClose = document.getElementById('pay-close');
 
   // Lemon Squeezy checkout URLs (from dashboard)
-  var LS_ONETIME_URL = 'https://infinis.lemonsqueezy.com/checkout/buy/cc335ab8-b79e-46a1-89d8-24e19a034dbd';
-  var LS_SUBSCRIBE_URL = 'https://infinis.lemonsqueezy.com/checkout/buy/46c36545-580d-476f-a91a-45df9950454c';
+  var LS_BASE_ONETIME = 'https://infinis.lemonsqueezy.com/checkout/buy/cc335ab8-b79e-46a1-89d8-24e19a034dbd';
+  var LS_BASE_SUBSCRIBE = 'https://infinis.lemonsqueezy.com/checkout/buy/46c36545-580d-476f-a91a-45df9950454c';
 
   var _pendingPdfFn = null;
 
@@ -22,6 +22,23 @@
     if (payModalEl) payModalEl.classList.add('pay-hidden');
   }
 
+  function savePendingDownload() {
+    try {
+      localStorage.setItem('w2s_pending_pdf', JSON.stringify({
+        text: currentText,
+        font: currentFontFile,
+        height: currentHeight,
+        color: currentColorCode,
+        aida: currentAida,
+        align: currentAlign
+      }));
+    } catch (e) { /* ignore */ }
+  }
+
+  function clearPendingDownload() {
+    try { localStorage.removeItem('w2s_pending_pdf'); } catch (e) { /* ignore */ }
+  }
+
   /**
    * Called by pdf-integration.js instead of directly generating PDF.
    * Shows payment modal — user picks one-time or subscription.
@@ -31,25 +48,25 @@
     showPaymentModal();
   }
 
-  function openLemonCheckout(url) {
+  function goToCheckout(baseUrl) {
     hidePaymentModal();
-    if (window.LemonSqueezy) {
-      window.LemonSqueezy.Url.Open(url);
-    } else {
-      window.open(url, '_blank');
-    }
+    // Save pattern state before leaving the page
+    savePendingDownload();
+    // Redirect to LS checkout with return URL
+    var returnUrl = encodeURIComponent(window.location.origin + '/?payment=success');
+    window.location.href = baseUrl + '?checkout[custom][return_url]=' + returnUrl;
   }
 
   // -- Bind modal buttons --
 
   if (payBtnOnetime) {
     payBtnOnetime.addEventListener('click', function () {
-      openLemonCheckout(LS_ONETIME_URL);
+      goToCheckout(LS_BASE_ONETIME);
     });
   }
   if (payBtnSubscribe) {
     payBtnSubscribe.addEventListener('click', function () {
-      openLemonCheckout(LS_SUBSCRIBE_URL);
+      goToCheckout(LS_BASE_SUBSCRIBE);
     });
   }
   if (payBtnClose) {
@@ -59,42 +76,29 @@
     payBackdrop.addEventListener('click', hidePaymentModal);
   }
 
-  // -- Lemon Squeezy event handling --
-
-  function setupLemonEvents() {
-    if (!window.LemonSqueezy) return;
-    window.LemonSqueezy.Setup({
-      eventHandler: function (event) {
-        if (event.event === 'Checkout.Success') {
-          // Close the LS overlay immediately so user sees the app
-          try { window.LemonSqueezy.Url.Close(); } catch (e) { /* ignore */ }
-
-          // Short delay to let overlay close, then trigger PDF download
-          setTimeout(function () {
-            if (_pendingPdfFn) {
-              try {
-                _pendingPdfFn();
-              } catch (err) {
-                console.error('PDF generation after payment failed:', err);
-              }
-              _pendingPdfFn = null;
-            }
-          }, 500);
-        }
-      }
-    });
-  }
-
   // -- Init (app loads immediately, no auth gate) --
 
   function initAuth(onReady) {
     onReady();
 
-    var lsCheck = setInterval(function () {
-      if (window.LemonSqueezy) {
-        clearInterval(lsCheck);
-        setupLemonEvents();
-      }
-    }, 200);
-    setTimeout(function () { clearInterval(lsCheck); }, 15000);
+    // Check for payment return — auto-download PDF
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'success') {
+      window.history.replaceState({}, '', window.location.pathname);
+
+      // Wait for pattern to load, then trigger PDF
+      setTimeout(function () {
+        var pending = null;
+        try { pending = JSON.parse(localStorage.getItem('w2s_pending_pdf')); } catch (e) { /* ignore */ }
+        if (pending && typeof generatePDF === 'function' && currentFontData) {
+          clearPendingDownload();
+          var color = getCurrentColor();
+          try {
+            generatePDF(currentText, currentFontData, color, currentAida);
+          } catch (err) {
+            console.error('Auto PDF download failed:', err);
+          }
+        }
+      }, 2500);
+    }
   }
