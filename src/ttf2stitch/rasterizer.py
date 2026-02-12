@@ -108,6 +108,32 @@ def _auto_threshold(img: Image.Image) -> int:
     return best_threshold
 
 
+def _measure_ink_descent(
+    pil_font: ImageFont.FreeTypeFont,
+    render_size: int,
+    ascent_px: float,
+) -> float:
+    """Measure actual ink descent below baseline from descender characters.
+
+    Instead of using the font's declared descent (padded for line spacing),
+    uses textbbox() on known descender characters to measure how far their
+    ink actually extends below the baseline.  Returns 0 if no descenders found.
+    """
+    descender_chars = "gjpqy"
+    canvas_size = render_size * 4
+    baseline_y = render_size + ascent_px
+    max_ink_bottom = baseline_y
+
+    img = Image.new("L", (canvas_size, canvas_size), 255)
+    draw = ImageDraw.Draw(img)
+    for char in descender_chars:
+        bbox = draw.textbbox((render_size, render_size), char, font=pil_font)
+        if bbox[3] > max_ink_bottom:
+            max_ink_bottom = bbox[3]
+
+    return max(0.0, float(max_ink_bottom - baseline_y))
+
+
 def _compute_frame_metrics(
     font_obj: TTFont,
     pil_font: ImageFont.FreeTypeFont,
@@ -115,14 +141,14 @@ def _compute_frame_metrics(
 ) -> tuple[float, float]:
     """Compute cap-height-based vertical frame for proportional scaling.
 
-    Uses a tighter frame (cap_height + descent) instead of the full
+    Uses a tight frame (cap_height + actual_ink_descent) instead of the full
     line_height (ascent + descent). This skips the accent space above
-    cap-height, giving more vertical resolution to the actual content
-    and making uppercase/lowercase size differences more visible.
+    cap-height AND the unused descent padding, giving maximum vertical
+    resolution to the actual content.
 
     Returns (frame_top_offset, frame_height) in pixels at render_size:
     - frame_top_offset: accent space to skip above PIL ascent line
-    - frame_height: cap_height + descent (tighter than full line_height)
+    - frame_height: cap_height + actual_ink_descent
 
     Cascade: OS/2 sCapHeight → measure "H" ink bounds → full line_height.
     """
@@ -150,8 +176,11 @@ def _compute_frame_metrics(
     if cap_height_px <= 0:
         return 0.0, float(ascent_px + descent_px)
 
+    # Measure actual ink descent instead of using padded font descent
+    actual_descent = _measure_ink_descent(pil_font, render_size, ascent_px)
+
     frame_top_offset = ascent_px - cap_height_px
-    frame_height = cap_height_px + descent_px
+    frame_height = cap_height_px + actual_descent
     return max(0.0, frame_top_offset), frame_height
 
 

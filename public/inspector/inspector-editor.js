@@ -18,6 +18,7 @@ export function openEditor(fontId, char) {
   editorState.isDrawing = false;
   editorState.lastCell = null;
   editorState.saveStatus = 'idle';
+  editorState.activeTool = 'pencil';
 
   appState.currentView = 'editor';
   document.getElementById('overviewView').style.display = 'none';
@@ -49,6 +50,7 @@ export function renderEditor() {
       <button class="back-btn" id="editorBack">&#8592; Back</button>
       <div class="editor-char-display">${displayChar}</div>
       <div class="editor-font-info">${escapeHtml(entry.name)} &middot; ${escapeHtml(String(cols))}&times;${escapeHtml(String(rows))}</div>
+      <button class="editor-tool-btn ${editorState.activeTool === 'pencil' ? 'active' : ''}" id="editorPencil" title="Pencil (toggle pixels)">&#9998; Pencil</button>
       <button class="editor-tool-btn" id="editorUndo" ${editorState.undoStack.length === 0 ? 'disabled' : ''}>&#8630; Undo</button>
       <button class="editor-tool-btn" id="editorSave">Save</button>
       <button class="editor-tool-btn" id="editorDownload">Download JSON</button>
@@ -286,6 +288,7 @@ export function bindEditorEvents() {
 
   // Mouse drawing
   canvas.addEventListener('mousedown', (e) => {
+    if (editorState.activeTool !== 'pencil') return;
     const cell = editorCellFromMouse(e);
     if (!cell) return;
     const { data } = fonts.get(editorState.fontId);
@@ -306,7 +309,7 @@ export function bindEditorEvents() {
     const cell = editorCellFromMouse(e);
     if (!cell) return;
     const cellKey = `${cell.row},${cell.col}`;
-    if (editorState.isDrawing) {
+    if (editorState.isDrawing && editorState.activeTool === 'pencil') {
       if (cellKey !== editorState.lastCell) {
         editorState.lastCell = cellKey;
         if (editorTogglePixel(cell.row, cell.col)) {
@@ -317,7 +320,7 @@ export function bindEditorEvents() {
           if (btn) btn.disabled = false;
         }
       }
-    } else {
+    } else if (!editorState.isDrawing) {
       editorHighlightCell(cell.row, cell.col);
     }
   });
@@ -332,6 +335,13 @@ export function bindEditorEvents() {
   // Toolbar buttons
   document.getElementById('editorBack').addEventListener('click', () => {
     viewCallbacks.showDetail?.(editorState.fontId);
+  });
+
+  document.getElementById('editorPencil').addEventListener('click', () => {
+    const isActive = editorState.activeTool === 'pencil';
+    editorState.activeTool = isActive ? null : 'pencil';
+    document.getElementById('editorPencil').classList.toggle('active', !isActive);
+    canvas.classList.toggle('no-tool', isActive);
   });
 
   document.getElementById('editorUndo').addEventListener('click', () => editorUndo());
