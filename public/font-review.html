@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Font Review — Stitchx</title>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wght@400;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f5f0ea;--panel:#faf8f5;--border:#e0d6c8;--text:#3d3229;--text-mid:#7a6e60;--text-muted:#a99e8f;--accent:#b83a2a;--accent-hover:#9c3023;--accent-soft:rgba(184,58,42,.08);--radius:10px;--radius-sm:6px}
+body{font-family:'Anybody',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;opacity:.3;background-image:url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 20h40M20 0v40' stroke='%23c8bfb0' stroke-width='0.3'/%3E%3C/svg%3E");background-size:40px 40px;z-index:0}
+*{position:relative;z-index:1}
+
+header{text-align:center;margin-bottom:12px}
+h1{font-family:'DM Serif Display',Georgia,serif;font-size:1.3rem;color:var(--text);margin-bottom:6px}
+h1 span{color:var(--accent)}
+
+#controls{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+#controls select,#controls input{background:var(--panel);color:var(--text);border:1px solid var(--border);padding:4px 8px;border-radius:var(--radius-sm);font-family:inherit;font-size:.8rem}
+#controls input{width:80px}
+.btn{background:var(--accent);color:#fff;border:none;padding:5px 14px;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;font-size:.8rem;font-weight:600}
+.btn:hover{background:var(--accent-hover)}
+.btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn-ghost:hover{background:var(--accent-soft)}
+
+#stats{text-align:center;font-size:.8rem;color:var(--text-muted);margin-bottom:10px}
+#stats b{color:var(--accent)}
+
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
+
+.card{
+  background:var(--panel);border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  padding:6px 8px;cursor:pointer;transition:all .12s;overflow:hidden;
+}
+.card:hover{border-color:var(--text-muted);box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card.selected{border-color:var(--accent);background:var(--accent-soft);opacity:.55}
+.card.selected .name{text-decoration:line-through;color:var(--accent)}
+.card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.card .name{font-size:.65rem;color:var(--text-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70%}
+.card .cat{font-size:.55rem;color:var(--text-muted);background:var(--bg);padding:1px 5px;border-radius:3px}
+.card canvas{display:block;image-rendering:pixelated}
+.card .msg{font-size:.6rem;color:var(--text-muted);padding:4px 0}
+
+#output-box{
+  position:fixed;bottom:0;left:0;right:0;background:var(--panel);
+  border-top:2px solid var(--accent);padding:12px 16px;display:none;z-index:100;
+  max-height:35vh;overflow-y:auto;box-shadow:0 -4px 20px rgba(0,0,0,.1)
+}
+#output-box h3{color:var(--accent);margin-bottom:6px;font-size:.85rem;font-family:'DM Serif Display',serif}
+#output-box textarea{
+  width:100%;min-height:50px;background:var(--bg);color:var(--text);border:1px solid var(--border);
+  padding:6px;font-family:monospace;font-size:.75rem;border-radius:var(--radius-sm);resize:vertical
+}
+#output-box .actions{display:flex;gap:8px;margin-top:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Font Review — <span>Click para eliminar</span></h1>
+</header>
+<div id="controls">
+  <select id="height">
+    <option value="8">8 st</option>
+    <option value="12">12 st</option>
+    <option value="16" selected>16 st</option>
+    <option value="20">20 st</option>
+  </select>
+  <select id="catFilter"></select>
+  <input id="sampleText" value="Hola 123" placeholder="Texto">
+  <button class="btn" onclick="loadAll()">Recargar</button>
+  <button class="btn btn-ghost" onclick="showOutput()">Lista eliminables</button>
+</div>
+<div id="stats">Cargando...</div>
+<div id="grid"></div>
+
+<div id="output-box">
+  <h3>Eliminar (<span id="del-count">0</span> fonts):</h3>
+  <textarea id="del-list" readonly></textarea>
+  <div class="actions">
+    <button class="btn" onclick="copyList()">Copiar</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('output-box').style.display='none'">Cerrar</button>
+  </div>
+</div>
+
+<script>
+var fonts=[], selected=new Set(), fontData={}, PX=3;
+
+async function init(){
+  var r=await fetch('/api/fonts');
+  fonts=await r.json();
+  fonts.sort(function(a,b){return a.name.localeCompare(b.name)});
+  var cats={};
+  fonts.forEach(function(f){cats[f.category]=(cats[f.category]||0)+1});
+  var sel=document.getElementById('catFilter');
+  sel.innerHTML='<option value="all">Todas ('+fonts.length+')</option>';
+  Object.keys(cats).sort().forEach(function(c){
+    sel.innerHTML+='<option value="'+c+'">'+c+' ('+cats[c]+')</option>';
+  });
+  sel.onchange=renderGrid;
+  loadAll();
+}
+
+function visible(){
+  var c=document.getElementById('catFilter').value;
+  return fonts.filter(function(f){return c==='all'||f.category===c});
+}
+
+function renderGrid(){
+  var vis=visible(), grid=document.getElementById('grid');
+  grid.innerHTML='';
+  vis.forEach(function(f){
+    var card=document.createElement('div');
+    card.className='card'+(selected.has(f.file)?' selected':'');
+    card.dataset.file=f.file;
+    var top=document.createElement('div');
+    top.className='top';
+    top.innerHTML='<span class="name" title="'+f.file+'">'+f.file+'</span><span class="cat">'+f.category+'</span>';
+    card.appendChild(top);
+    if(fontData[f.file]){
+      card.appendChild(makeCanvas(fontData[f.file]));
+    } else {
+      var m=document.createElement('div');m.className='msg';m.textContent='cargando...';
+      m.id='msg-'+f.file.replace(/[^a-zA-Z0-9]/g,'_');
+      card.appendChild(m);
+    }
+    card.onclick=function(){toggleSelect(f.file,card)};
+    grid.appendChild(card);
+  });
+  updateStats();
+}
+
+function makeCanvas(data){
+  var chars=document.getElementById('sampleText').value||'Hola';
+  var glyphs=[];
+  for(var i=0;i<chars.length;i++){
+    var g=data.glyphs?data.glyphs[chars[i]]:null;
+    if(g&&g.bitmap&&g.bitmap.length>0)glyphs.push(g);
+  }
+  if(!glyphs.length){var m=document.createElement('div');m.className='msg';m.textContent='sin glyphs';return m}
+  var maxH=0,totalW=0;
+  glyphs.forEach(function(g){
+    var h=g.bitmap.length, w=g.bitmap[0]?g.bitmap[0].length:0;
+    if(h>maxH)maxH=h;
+    totalW+=w+1;
+  });
+  totalW-=1;
+  var c=document.createElement('canvas');
+  c.width=totalW*PX; c.height=maxH*PX;
+  c.style.maxWidth='100%';
+  c.style.height='auto';
+  var ctx=c.getContext('2d');
+  ctx.fillStyle='var(--accent,#b83a2a)';
+  var ox=0;
+  glyphs.forEach(function(g){
+    var h=g.bitmap.length, w=g.bitmap[0]?g.bitmap[0].length:0;
+    var yoff=maxH-h;
+    for(var y=0;y<h;y++){
+      var row=g.bitmap[y];
+      for(var x=0;x<row.length;x++){
+        if(row[x]==='1'){
+          ctx.fillRect((ox+x)*PX,(yoff+y)*PX,PX,PX);
+        }
+      }
+    }
+    ox+=w+1;
+  });
+  return c;
+}
+
+function toggleSelect(file,card){
+  if(selected.has(file)){selected.delete(file);card.classList.remove('selected')}
+  else{selected.add(file);card.classList.add('selected')}
+  updateStats();
+}
+
+function updateStats(){
+  var v=visible();
+  document.getElementById('stats').innerHTML=v.length+' fonts | <b>'+selected.size+' marcadas</b>';
+}
+
+async function loadAll(){
+  var h=parseInt(document.getElementById('height').value);
+  fontData={};
+  renderGrid();
+  for(var i=0;i<fonts.length;i+=6){
+    var batch=fonts.slice(i,i+6);
+    await Promise.all(batch.map(async function(f){
+      try{
+        var r=await fetch('/api/rasterize',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({font:f.file,height:h,bold:0,strategy:'average'})
+        });
+        fontData[f.file]=await r.json();
+        var card=document.querySelector('[data-file="'+CSS.escape(f.file)+'"]');
+        if(card){
+          var old=card.querySelector('canvas,.msg');
+          if(old)old.remove();
+          card.querySelector('.top').after(makeCanvas(fontData[f.file]));
+        }
+      }catch(e){}
+    }));
+  }
+}
+
+function showOutput(){
+  var list=Array.from(selected).sort().join('\n');
+  document.getElementById('del-list').value=list;
+  document.getElementById('del-count').textContent=selected.size;
+  document.getElementById('output-box').style.display='block';
+}
+
+function copyList(){
+  var ta=document.getElementById('del-list');
+  navigator.clipboard.writeText(ta.value).then(function(){
+    var btn=document.querySelector('#output-box .btn');
+    btn.textContent='Copiado!';setTimeout(function(){btn.textContent='Copiar'},1500);
+  });
+}
+
+init();
+</script>
+</body>
+</html>
