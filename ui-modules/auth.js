@@ -62,6 +62,29 @@
   }
 
   function handlePayment(mode) {
+    // For subscriptions, require sign-in first
+    if (mode === 'subscription' && !isAuthenticated) {
+      // Open Clerk sign-in and wait for completion
+      if (window.Clerk) {
+        window.Clerk.openSignIn();
+        // Listen for sign-in, then retry
+        var _subWait = setInterval(function () {
+          if (window.Clerk.user) {
+            clearInterval(_subWait);
+            isAuthenticated = true;
+            document.body.classList.add('authenticated');
+            if (clerkUserBtn) window.Clerk.mountUserButton(clerkUserBtn);
+            if (signInBtn) signInBtn.style.display = 'none';
+            applyPlanUI();
+            // Now proceed with subscription checkout
+            handlePayment(mode);
+          }
+        }, 500);
+        setTimeout(function () { clearInterval(_subWait); }, 120000);
+        return;
+      }
+    }
+
     // Save pattern state before redirecting to Stripe
     savePendingDownload();
 
