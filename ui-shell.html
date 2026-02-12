@@ -67,6 +67,8 @@
     <span class="dl-label">PDF</span>
   </button>
 
+  <button class="btn-signin" id="btn-signin" aria-label="Sign In" onclick="window.Clerk && window.Clerk.openSignIn()">Sign In</button>
+  <div id="clerk-user-button"></div>
 </header>
 
 <!-- -- Main Split Layout -- -->
@@ -471,12 +473,20 @@
   <div class="pay-dialog">
     <button class="pay-close" id="pay-close">&times;</button>
     <div class="pay-title">Download Your Pattern</div>
-    <div class="pay-subtitle">Get your cross-stitch PDF pattern ready to print</div>
-    <button class="pay-option pay-option-featured" id="pay-onetime">
-      <span class="pay-option-price">$1.99</span>
-      <span class="pay-option-label">Download PDF</span>
-      <span class="pay-option-desc">One-time purchase, no account needed</span>
-    </button>
+    <div class="pay-subtitle">Choose how you'd like to get your cross-stitch PDF</div>
+    <div class="pay-options">
+      <button class="pay-option" id="pay-onetime">
+        <span class="pay-option-price">$1.99</span>
+        <span class="pay-option-label">This PDF</span>
+        <span class="pay-option-desc">One-time download, no account needed</span>
+      </button>
+      <button class="pay-option pay-option-featured" id="pay-subscribe">
+        <span class="pay-option-badge">Best Value</span>
+        <span class="pay-option-price">$4.99<small>/mo</small></span>
+        <span class="pay-option-label">Unlimited</span>
+        <span class="pay-option-desc">All PDFs, cancel anytime</span>
+      </button>
+    </div>
   </div>
 </div>
 

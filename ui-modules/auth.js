@@ -1,11 +1,39 @@
-// ui-modules/auth.js — Payment gate (Stripe one-time per PDF)
-// App is open to everyone. No accounts needed. Pay $1.99 per PDF download.
+// ui-modules/auth.js — Optional auth + payment gate (Clerk + Stripe)
+// App is open to everyone. Clerk is optional (for subscription management).
+// PDF download is the monetization point.
+
+  var clerkUserBtn = document.getElementById('clerk-user-button');
+  var signInBtn = document.getElementById('btn-signin');
+  var isAuthenticated = false;
+  var userPlan = 'free'; // 'free' | 'pro'
+
+  // -- Session helpers --
+
+  function getSessionToken() {
+    if (window.Clerk && window.Clerk.session) {
+      return window.Clerk.session.getToken();
+    }
+    return Promise.resolve(null);
+  }
+
+  function isProUser() {
+    return userPlan === 'pro';
+  }
+
+  function applyPlanUI() {
+    var meta = window.Clerk && window.Clerk.user
+      ? (window.Clerk.user.publicMetadata || {})
+      : {};
+    userPlan = meta.plan === 'pro' ? 'pro' : 'free';
+    document.body.classList.toggle('plan-pro', userPlan === 'pro');
+  }
 
   // -- Payment modal --
 
   var payModalEl = document.getElementById('pay-modal');
   var payBackdrop = document.getElementById('pay-backdrop');
   var payBtnOnetime = document.getElementById('pay-onetime');
+  var payBtnSubscribe = document.getElementById('pay-subscribe');
   var payBtnClose = document.getElementById('pay-close');
 
   function showPaymentModal() {
@@ -33,19 +61,49 @@
     try { localStorage.removeItem('w2s_pending_pdf'); } catch (e) { /* ignore */ }
   }
 
-  function handlePayment() {
+  function handlePayment(mode) {
+    // For subscriptions, require sign-in first
+    if (mode === 'subscription' && !isAuthenticated) {
+      // Open Clerk sign-in and wait for completion
+      if (window.Clerk) {
+        window.Clerk.openSignIn();
+        // Listen for sign-in, then retry
+        var _subWait = setInterval(function () {
+          if (window.Clerk.user) {
+            clearInterval(_subWait);
+            isAuthenticated = true;
+            document.body.classList.add('authenticated');
+            if (clerkUserBtn) window.Clerk.mountUserButton(clerkUserBtn);
+            if (signInBtn) signInBtn.style.display = 'none';
+            applyPlanUI();
+            // Now proceed with subscription checkout
+            handlePayment(mode);
+          }
+        }, 500);
+        setTimeout(function () { clearInterval(_subWait); }, 120000);
+        return;
+      }
+    }
+
+    // Save pattern state before redirecting to Stripe
     savePendingDownload();
 
     var origin = window.location.origin;
+    var body = {
+      mode: mode,
+      success_url: origin + '/?payment=success',
+      cancel_url: origin + '/?payment=cancelled'
+    };
 
-    fetch('/api/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mode: 'payment',
-        success_url: origin + '/?payment=success',
-        cancel_url: origin + '/?payment=cancelled'
-      })
+    getSessionToken().then(function (token) {
+      var headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+
+      return fetch('/api/checkout', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(body)
+      });
     })
     .then(function (res) {
       if (!res.ok) throw new Error('Checkout failed');
@@ -62,9 +120,15 @@
 
   /**
    * Called by pdf-integration.js instead of directly generating PDF.
-   * Always shows payment modal — every PDF costs $1.99.
+   * If user is pro subscriber → generate PDF immediately.
+   * If not → show payment modal.
    */
   function requestPdfDownload(generateFn) {
+    if (isProUser()) {
+      generateFn();
+      return;
+    }
+    // Store the generate function for after payment
     window._pendingPdfGenerate = generateFn;
     showPaymentModal();
   }
@@ -72,7 +136,10 @@
   // -- Bind payment modal buttons --
 
   if (payBtnOnetime) {
-    payBtnOnetime.addEventListener('click', handlePayment);
+    payBtnOnetime.addEventListener('click', function () { handlePayment('payment'); });
+  }
+  if (payBtnSubscribe) {
+    payBtnSubscribe.addEventListener('click', function () { handlePayment('subscription'); });
   }
   if (payBtnClose) {
     payBtnClose.addEventListener('click', hidePaymentModal);
@@ -81,15 +148,55 @@
     payBackdrop.addEventListener('click', hidePaymentModal);
   }
 
-  // -- Init (no auth gate, app loads immediately) --
+  // -- Optional Clerk initialization (non-blocking) --
 
   function initAuth(onReady) {
+    // App loads immediately — no auth gate
     onReady();
+
+    // Initialize Clerk in background (optional sign-in)
+    var checkInterval = setInterval(function () {
+      if (!window.Clerk) return;
+      clearInterval(checkInterval);
+
+      window.Clerk.load().then(function () {
+        if (window.Clerk.user) {
+          isAuthenticated = true;
+          document.body.classList.add('authenticated');
+          if (clerkUserBtn) window.Clerk.mountUserButton(clerkUserBtn);
+          if (signInBtn) signInBtn.style.display = 'none';
+          applyPlanUI();
+        }
+
+        // Listen for sign-in/sign-out changes
+        window.Clerk.addListener(function () {
+          if (window.Clerk.user && !isAuthenticated) {
+            isAuthenticated = true;
+            document.body.classList.add('authenticated');
+            if (clerkUserBtn) window.Clerk.mountUserButton(clerkUserBtn);
+            if (signInBtn) signInBtn.style.display = 'none';
+            applyPlanUI();
+          } else if (!window.Clerk.user && isAuthenticated) {
+            isAuthenticated = false;
+            document.body.classList.remove('authenticated');
+            if (signInBtn) signInBtn.style.display = '';
+            userPlan = 'free';
+            document.body.classList.remove('plan-pro');
+          }
+        });
+      });
+    }, 100);
+    setTimeout(function () { clearInterval(checkInterval); }, 15000);
 
     // Check for payment return
     var params = new URLSearchParams(window.location.search);
     if (params.get('payment') === 'success') {
       window.history.replaceState({}, '', window.location.pathname);
+
+      // If user is logged in, refresh metadata
+      if (window.Clerk && window.Clerk.user) {
+        window.Clerk.user.reload().then(applyPlanUI);
+      }
 
       // Trigger pending PDF download
       setTimeout(function () {
