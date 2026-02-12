@@ -1,6 +1,7 @@
-// ui-modules/auth.js — Payment gate (Lemon Squeezy API checkout with redirect)
+// ui-modules/auth.js — Payment gate (LS Checkouts API + in-page iframe overlay)
 // App is open to everyone. Pay per PDF or subscribe for unlimited.
-// Creates checkout via /api/checkout, redirects to LS, auto-downloads on return.
+// Creates checkout via /api/checkout, shows LS in an iframe overlay,
+// listens for postMessage events to detect payment success.
 
   var payModalEl = document.getElementById('pay-modal');
   var payBackdrop = document.getElementById('pay-backdrop');
@@ -18,23 +19,6 @@
     if (payModalEl) payModalEl.classList.add('pay-hidden');
   }
 
-  function savePendingDownload() {
-    try {
-      localStorage.setItem('w2s_pending_pdf', JSON.stringify({
-        text: currentText,
-        font: currentFontFile,
-        height: currentHeight,
-        color: currentColorCode,
-        aida: currentAida,
-        align: currentAlign
-      }));
-    } catch (e) { /* ignore */ }
-  }
-
-  function clearPendingDownload() {
-    try { localStorage.removeItem('w2s_pending_pdf'); } catch (e) { /* ignore */ }
-  }
-
   /**
    * Called by pdf-integration.js instead of directly generating PDF.
    * Shows payment modal — user picks one-time or subscription.
@@ -44,11 +28,88 @@
     showPaymentModal();
   }
 
+  // -- Checkout overlay (own iframe, no lemon.js dependency) --
+
+  var _checkoutOverlay = null;
+  var _checkoutIframe = null;
+  var _paymentHandled = false;
+
+  function showCheckoutOverlay(checkoutUrl) {
+    // Backdrop
+    _checkoutOverlay = document.createElement('div');
+    _checkoutOverlay.className = 'ls-overlay';
+
+    // Loading spinner
+    var loader = document.createElement('div');
+    loader.className = 'ls-overlay-loader';
+    loader.innerHTML = '<div class="ls-overlay-spinner"></div>';
+    _checkoutOverlay.appendChild(loader);
+
+    // Iframe
+    _checkoutIframe = document.createElement('iframe');
+    _checkoutIframe.className = 'ls-overlay-iframe';
+    _checkoutIframe.src = checkoutUrl;
+    _checkoutIframe.allow = 'payment';
+    _checkoutOverlay.appendChild(_checkoutIframe);
+
+    document.body.appendChild(_checkoutOverlay);
+    _paymentHandled = false;
+  }
+
+  function closeCheckoutOverlay() {
+    if (_checkoutOverlay) {
+      _checkoutOverlay.remove();
+      _checkoutOverlay = null;
+      _checkoutIframe = null;
+    }
+  }
+
+  function handlePaymentSuccess() {
+    if (_paymentHandled) return;
+    _paymentHandled = true;
+
+    closeCheckoutOverlay();
+
+    // Trigger PDF download
+    setTimeout(function () {
+      if (_pendingPdfFn) {
+        try {
+          _pendingPdfFn();
+        } catch (err) {
+          console.error('PDF generation after payment failed:', err);
+        }
+        _pendingPdfFn = null;
+      }
+    }, 400);
+  }
+
+  // Listen for postMessage from LS checkout iframe
+  window.addEventListener('message', function (e) {
+    if (!_checkoutIframe) return;
+    var data = e.data;
+
+    // "mounted" = checkout loaded, hide spinner
+    if (data === 'mounted' && _checkoutOverlay) {
+      var loader = _checkoutOverlay.querySelector('.ls-overlay-loader');
+      if (loader) loader.remove();
+    }
+
+    // "close" = user closed the checkout
+    if (data === 'close') {
+      closeCheckoutOverlay();
+    }
+
+    // Payment success detection
+    var eventName = data && data.event ? data.event : '';
+    if (eventName === 'Checkout.Success' || eventName === 'GA.Purchase') {
+      handlePaymentSuccess();
+    }
+  });
+
   function goToCheckout(plan) {
     hidePaymentModal();
-    savePendingDownload();
 
-    // Call our API to create a checkout with redirect_url baked in
+    // Call our API to create an embeddable checkout URL
     fetch('/api/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -57,15 +118,13 @@
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (data.url) {
-          window.location.href = data.url;
+          showCheckoutOverlay(data.url);
         } else {
           console.error('Checkout error:', data.error);
-          clearPendingDownload();
         }
       })
       .catch(function (err) {
         console.error('Checkout fetch failed:', err);
-        clearPendingDownload();
       });
   }
 
@@ -88,52 +147,8 @@
     payBackdrop.addEventListener('click', hidePaymentModal);
   }
 
-  // -- Init (app loads immediately, no auth gate) --
-
-  var _pendingReturn = null;
+  // -- Init --
 
   function initAuth(onReady) {
-    // Check for payment return BEFORE init so state is set before fetchFontList
-    var params = new URLSearchParams(window.location.search);
-    if (params.get('payment') === 'success') {
-      window.history.replaceState({}, '', window.location.pathname);
-      try { _pendingReturn = JSON.parse(localStorage.getItem('w2s_pending_pdf')); } catch (e) { /* ignore */ }
-      if (_pendingReturn) {
-        // Restore state variables before init() runs (so fetchFontList uses them)
-        currentText = _pendingReturn.text || currentText;
-        currentFontFile = _pendingReturn.font || currentFontFile;
-        currentHeight = _pendingReturn.height || currentHeight;
-        currentColorCode = _pendingReturn.color || currentColorCode;
-        currentAida = _pendingReturn.aida || currentAida;
-        currentAlign = _pendingReturn.align || currentAlign;
-        // Update DOM inputs so they match restored state
-        if (textInput) textInput.value = currentText;
-        if (heightSlider) { heightSlider.value = currentHeight; }
-        if (heightValue) { heightValue.textContent = currentHeight; }
-      }
-    }
-
-    // Now run init() — fetchFontList will use the restored state
     onReady();
-
-    // After init, trigger PDF download if returning from payment
-    if (_pendingReturn) {
-      clearPendingDownload();
-      // Poll until font data is loaded, then generate PDF
-      var pdfAttempts = 0;
-      var pdfInterval = setInterval(function () {
-        pdfAttempts++;
-        if (currentFontData && typeof generatePDF === 'function') {
-          clearInterval(pdfInterval);
-          var color = getCurrentColor();
-          try {
-            generatePDF(currentText, currentFontData, color, currentAida);
-          } catch (err) {
-            console.error('Auto PDF download failed:', err);
-          }
-          _pendingReturn = null;
-        }
-        if (pdfAttempts > 30) { clearInterval(pdfInterval); } // 15s timeout
-      }, 500);
-    }
   }

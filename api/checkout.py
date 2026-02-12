@@ -78,7 +78,7 @@ class handler(BaseHTTPRequestHandler):
                             "redirect_url": redirect_url,
                         },
                         "checkout_options": {
-                            "embed": False,
+                            "embed": True,
                         },
                         "checkout_data": {
                             "custom": {"source": "word2stitch"},
