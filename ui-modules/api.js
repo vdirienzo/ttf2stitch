@@ -41,15 +41,20 @@
 
     showLoading();
 
-    var promise = fetch('/api/rasterize', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        font: fontFile,
-        height: height,
-        bold: 0,
-        strategy: 'average'
-      })
+    var promise = getSessionToken().then(function (token) {
+      var headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+
+      return fetch('/api/rasterize', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          font: fontFile,
+          height: height,
+          bold: 0,
+          strategy: 'average'
+        })
+      });
     })
     .then(function (res) {
       if (!res.ok) throw new Error('Rasterization failed');

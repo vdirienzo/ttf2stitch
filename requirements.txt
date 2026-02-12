@@ -2,3 +2,5 @@ fonttools>=4.50.0
 pillow>=10.0.0
 pydantic>=2.0.0
 click>=8.1.0
+PyJWT>=2.8.0
+cryptography>=42.0.0

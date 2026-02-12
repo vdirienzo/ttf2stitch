@@ -1,0 +1,67 @@
+/* Auth gate — full-screen overlay for Clerk sign-in */
+@layer components {
+
+  #auth-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-main, #1a1a2e);
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+  }
+
+  #auth-gate.auth-gate-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .auth-gate-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    user-select: none;
+  }
+
+  .auth-gate-logo .logo-x {
+    font-size: 2rem;
+    color: var(--accent, #c0392b);
+  }
+
+  .auth-gate-logo .logo-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    color: var(--text-primary, #e8e8e8);
+  }
+
+  .auth-gate-logo .logo-text em {
+    font-style: italic;
+    color: var(--accent, #c0392b);
+  }
+
+  #auth-sign-in {
+    min-width: 320px;
+    max-width: 440px;
+    width: 100%;
+  }
+
+  /* Hide main app until authenticated */
+  body:not(.authenticated) .topbar,
+  body:not(.authenticated) .main-layout,
+  body:not(.authenticated) .mobile-input-bar,
+  body:not(.authenticated) .mobile-toolbar {
+    display: none !important;
+  }
+
+  /* User button in topbar */
+  #clerk-user-button {
+    display: flex;
+    align-items: center;
+    margin-left: 0.5rem;
+    flex-shrink: 0;
+  }
+}

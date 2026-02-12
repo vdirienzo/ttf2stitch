@@ -2,22 +2,23 @@
 /**
  * Assembles the final index.html from modular source files:
  * 1. ui-shell.html  (HTML-only template, no JS)
- * 2. css/            (8 @layer CSS files, concatenated and inlined as <style> block)
+ * 2. css/            (9 @layer CSS files, concatenated and inlined as <style> block)
  * 3. i18n-data.js   (translations, inlined as <script> block)
  * 4. data-fonts.js  (DMC_COLORS)
  * 5. shared.js      (bitmap utilities shared by PDF + UI)
  * 6. pdf-modules/   (PDF generation, 5 files concatenated)
- * 7. ui-modules/    (UI logic, 14 files concatenated into IIFE)
+ * 7. ui-modules/    (UI logic, 15 files concatenated into IIFE)
  */
 const fs = require('fs');
 const path = require('path');
 
 const BASE = __dirname;
 const uiShell = fs.readFileSync(path.join(BASE, 'ui-shell.html'), 'utf-8');
-// CSS modules (8 files, cascade layers flow top to bottom)
+// CSS modules (9 files, cascade layers flow top to bottom)
 const cssModules = [
   '00-layers.css', '01-tokens.css', '02-layout.css', '03-sidebar.css',
-  '04-controls.css', '05-preview.css', '06-sheets.css', '07-responsive.css'
+  '04-controls.css', '05-preview.css', '06-sheets.css', '07-responsive.css',
+  '08-auth.css'
 ];
 // nosemgrep: path-join-resolve-traversal — f iterates over hardcoded constant array
 const uiCss = cssModules.map(f => fs.readFileSync(path.join(BASE, 'css', f), 'utf-8')).join('\n\n');
@@ -30,9 +31,9 @@ const pdfModules = ['pdf-helpers.js', 'pdf-bitmap.js', 'pdf-legend.js', 'pdf-ren
 // nosemgrep: path-join-resolve-traversal — f iterates over hardcoded constant array
 const pdfEngine = pdfModules.map(f => fs.readFileSync(path.join(BASE, 'pdf-modules', f), 'utf-8')).join('\n\n');
 
-// UI modules (14 files, order matters — dependencies flow top to bottom)
+// UI modules (15 files, order matters — dependencies flow top to bottom)
 const uiModules = [
-  'i18n.js', 'state.js', 'renderer.js', 'api.js',
+  'i18n.js', 'state.js', 'auth.js', 'renderer.js', 'api.js',
   'preview.js', 'font-manager.js', 'color-manager.js', 'settings.js',
   'pdf-integration.js',
   'sheet-system.js', 'virtual-scroll.js', 'sheet-content.js', 'mobile-toolbar.js',
@@ -50,6 +51,15 @@ let html = uiShell.replace(
 
 // Step 2: Insert all scripts before </body>
 const scriptsBlock = `
+<!-- ═══ Clerk Auth SDK ═══ -->
+<script
+  async
+  crossorigin="anonymous"
+  data-clerk-publishable-key="pk_test_bWFpbi13b21iYXQtNzIuY2xlcmsuYWNjb3VudHMuZGV2JA"
+  src="https://main-wombat-72.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+  type="text/javascript"
+><\/script>
+
 <!-- ═══ jsPDF CDN ═══ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
 
@@ -91,6 +101,10 @@ ${uiJs}
 
 })();
 </script>
+
+<!-- ═══ Vercel Analytics & Speed Insights ═══ -->
+<script defer src="/_vercel/insights/script.js"><\/script>
+<script defer src="/_vercel/speed-insights/script.js"><\/script>
 `;
 
 const finalHtml = html.replace('</body>', scriptsBlock + '\n</body>');

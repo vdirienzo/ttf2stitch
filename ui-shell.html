@@ -10,6 +10,15 @@
 </head>
 <body>
 
+<!-- -- Auth Gate (Clerk sign-in overlay) -- -->
+<div id="auth-gate">
+  <div class="auth-gate-logo">
+    <span class="logo-x">&#10006;</span>
+    <span class="logo-text">Word<em>2</em>Stitch</span>
+  </div>
+  <div id="auth-sign-in"></div>
+</div>
+
 <!-- -- Top Bar -- -->
 <header class="topbar">
   <div class="logo">
@@ -66,6 +75,8 @@
     </svg>
     <span class="dl-label">PDF</span>
   </button>
+
+  <div id="clerk-user-button"></div>
 </header>
 
 <!-- -- Main Split Layout -- -->

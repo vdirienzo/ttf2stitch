@@ -20,7 +20,24 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 logger = logging.getLogger(__name__)
 
-from server_utils import (
+
+def _load_dotenv():
+    """Load .env file if present (local development only)."""
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    if not os.path.isfile(env_path):
+        return
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, _, value = line.partition("=")
+                os.environ.setdefault(key.strip(), value.strip())
+
+
+_load_dotenv()
+
+from auth_utils import get_bearer_token, is_auth_enabled, verify_token  # noqa: E402
+from server_utils import (  # noqa: E402
     FONT_ID_RE,
     do_rasterize,
     etag_for_json,
@@ -33,6 +50,7 @@ from server_utils import (
 
 OUTPUT_DIR = "output"
 FONTS_DIR = "fonts"
+_AUTH_ENABLED = is_auth_enabled()
 
 # In-memory caches
 _rasterize_cache: dict[tuple[str, int, int, str], dict] = {}
@@ -83,6 +101,17 @@ class FontServerHandler(SimpleHTTPRequestHandler):
         json_response(self, fonts)
 
     def _handle_rasterize(self):
+        # Verify Clerk JWT if auth is configured
+        if _AUTH_ENABLED:
+            token = get_bearer_token(self)
+            if not token:
+                json_error(self, "Authentication required", 401)
+                return
+            claims = verify_token(token)
+            if claims is None:
+                json_error(self, "Invalid or expired token", 401)
+                return
+
         body = read_json_body(self)
         if body is None:
             return
@@ -198,7 +227,7 @@ class FontServerHandler(SimpleHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.end_headers()
 
     def log_message(self, fmt, *args):
@@ -233,8 +262,10 @@ def main():
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8042
     server = HTTPServer(("127.0.0.1", port), FontServerHandler)
     print(f"ttf2stitch server on http://127.0.0.1:{port}")
-    print(f"Word2Stitch: http://127.0.0.1:{port}/public/index.html")
-    print(f"Inspector:   http://127.0.0.1:{port}/public/inspector.html")
+    auth_status = "ENABLED (Clerk JWT)" if _AUTH_ENABLED else "DISABLED"
+    print(f"Auth:        {auth_status}")
+    print(f"Word2Stitch: http://127.0.0.1:{port}/")
+    print(f"Inspector:   http://127.0.0.1:{port}/inspector.html")
     font_count = len(list_fonts(FONTS_DIR, category_cache=_font_categories))
     print(f"Fonts dir:   {os.path.abspath(FONTS_DIR)}/ ({font_count} fonts)")
     print("Press Ctrl+C to stop\n")

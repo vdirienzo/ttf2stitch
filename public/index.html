@@ -1726,9 +1726,87 @@
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 }
 
+
+/* Auth gate — full-screen overlay for Clerk sign-in */
+@layer components {
+
+  #auth-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-main, #1a1a2e);
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+  }
+
+  #auth-gate.auth-gate-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .auth-gate-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    user-select: none;
+  }
+
+  .auth-gate-logo .logo-x {
+    font-size: 2rem;
+    color: var(--accent, #c0392b);
+  }
+
+  .auth-gate-logo .logo-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    color: var(--text-primary, #e8e8e8);
+  }
+
+  .auth-gate-logo .logo-text em {
+    font-style: italic;
+    color: var(--accent, #c0392b);
+  }
+
+  #auth-sign-in {
+    min-width: 320px;
+    max-width: 440px;
+    width: 100%;
+  }
+
+  /* Hide main app until authenticated */
+  body:not(.authenticated) .topbar,
+  body:not(.authenticated) .main-layout,
+  body:not(.authenticated) .mobile-input-bar,
+  body:not(.authenticated) .mobile-toolbar {
+    display: none !important;
+  }
+
+  /* User button in topbar */
+  #clerk-user-button {
+    display: flex;
+    align-items: center;
+    margin-left: 0.5rem;
+    flex-shrink: 0;
+  }
+}
+
 </style>
 </head>
 <body>
+
+<!-- -- Auth Gate (Clerk sign-in overlay) -- -->
+<div id="auth-gate">
+  <div class="auth-gate-logo">
+    <span class="logo-x">&#10006;</span>
+    <span class="logo-text">Word<em>2</em>Stitch</span>
+  </div>
+  <div id="auth-sign-in"></div>
+</div>
 
 <!-- -- Top Bar -- -->
 <header class="topbar">
@@ -1786,6 +1864,8 @@
     </svg>
     <span class="dl-label">PDF</span>
   </button>
+
+  <div id="clerk-user-button"></div>
 </header>
 
 <!-- -- Main Split Layout -- -->
@@ -2186,6 +2266,15 @@
 
 <!-- JS loaded via assemble.js from ui-modules/ -->
 
+
+<!-- ═══ Clerk Auth SDK ═══ -->
+<script
+  async
+  crossorigin="anonymous"
+  data-clerk-publishable-key="pk_test_bWFpbi13b21iYXQtNzIuY2xlcmsuYWNjb3VudHMuZGV2JA"
+  src="https://main-wombat-72.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+  type="text/javascript"
+></script>
 
 <!-- ═══ jsPDF CDN ═══ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
@@ -5064,6 +5153,106 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   }
 
 
+// ui-modules/auth.js — Authentication gate (Clerk)
+
+  var authGate = document.getElementById('auth-gate');
+  var authSignIn = document.getElementById('auth-sign-in');
+  var clerkUserBtn = document.getElementById('clerk-user-button');
+  var isAuthenticated = false;
+
+  /**
+   * Returns the current session JWT token (Promise<string|null>).
+   * Called by api.js to attach Authorization header.
+   */
+  function getSessionToken() {
+    if (window.Clerk && window.Clerk.session) {
+      return window.Clerk.session.getToken();
+    }
+    return Promise.resolve(null);
+  }
+
+  function showApp() {
+    isAuthenticated = true;
+    authGate.classList.add('auth-gate-hidden');
+    document.body.classList.add('authenticated');
+    if (clerkUserBtn) {
+      window.Clerk.mountUserButton(clerkUserBtn);
+    }
+  }
+
+  /**
+   * Wait for Clerk.session to be fully ready (has getToken method),
+   * then call the callback. Clerk.user can exist before session is populated.
+   */
+  function waitForSession(callback) {
+    if (window.Clerk.session && window.Clerk.session.getToken) {
+      callback();
+      return;
+    }
+    // Poll until session is ready (usually 50-200ms after Clerk.load)
+    var sessionCheck = setInterval(function () {
+      if (window.Clerk.session && window.Clerk.session.getToken) {
+        clearInterval(sessionCheck);
+        callback();
+      }
+    }, 50);
+    setTimeout(function () { clearInterval(sessionCheck); }, 10000);
+  }
+
+  /**
+   * Initialize Clerk auth: wait for ClerkJS async script,
+   * then check session and either show app or mount sign-in.
+   * @param {Function} onReady — called once user is authenticated (triggers init)
+   */
+  function initAuth(onReady) {
+    var attempts = 0;
+    var maxAttempts = 150; // 15 seconds at 100ms intervals
+
+    var checkInterval = setInterval(function () {
+      attempts++;
+      if (attempts > maxAttempts) {
+        clearInterval(checkInterval);
+        // Clerk failed to load — show error in auth gate
+        if (authSignIn) {
+          authSignIn.innerHTML =
+            '<p style="color:#e74c3c;text-align:center;padding:20px;">' +
+            'Authentication service unavailable. Please refresh the page.</p>';
+        }
+        return;
+      }
+
+      if (!window.Clerk) return;
+      clearInterval(checkInterval);
+
+      window.Clerk.load().then(function () {
+        if (window.Clerk.user) {
+          showApp();
+          // Wait for session to be fully populated before calling init
+          waitForSession(onReady);
+        } else {
+          // Mount Clerk's sign-in component
+          authGate.classList.remove('auth-gate-hidden');
+          window.Clerk.mountSignIn(authSignIn, {
+            appearance: {
+              variables: {
+                colorPrimary: '#c0392b'
+              }
+            }
+          });
+
+          // Listen for successful sign-in
+          window.Clerk.addListener(function () {
+            if (window.Clerk.user && !isAuthenticated) {
+              showApp();
+              waitForSession(onReady);
+            }
+          });
+        }
+      });
+    }, 100);
+  }
+
+
 // ui-modules/renderer.js — Canvas rendering (renderPreview)
 
   // -- Render --
@@ -5188,15 +5377,20 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
     showLoading();
 
-    var promise = fetch('/api/rasterize', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        font: fontFile,
-        height: height,
-        bold: 0,
-        strategy: 'average'
-      })
+    var promise = getSessionToken().then(function (token) {
+      var headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+
+      return fetch('/api/rasterize', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          font: fontFile,
+          height: height,
+          bold: 0,
+          strategy: 'average'
+        })
+      });
     })
     .then(function (res) {
       if (!res.ok) throw new Error('Rasterization failed');
@@ -6702,9 +6896,9 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   window.getDisplayUnit = function() { return displayUnit; };
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function () { initAuth(init); });
   } else {
-    init();
+    initAuth(init);
   }
 
   // Wait for DMC_COLORS if loaded late
@@ -6720,6 +6914,10 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
 })();
 </script>
+
+<!-- ═══ Vercel Analytics & Speed Insights ═══ -->
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
 
 </body>
 </html>

@@ -36,9 +36,9 @@
   window.getDisplayUnit = function() { return displayUnit; };
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function () { initAuth(init); });
   } else {
-    init();
+    initAuth(init);
   }
 
   // Wait for DMC_COLORS if loaded late
