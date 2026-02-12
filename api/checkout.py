@@ -10,7 +10,7 @@ from http.server import BaseHTTPRequestHandler
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-LS_API_KEY = os.environ.get("LEMONSQUEEZY_API_KEY", "")
+LS_API_KEY = os.environ.get("LEMONSQUEEZY_API_KEY", "").strip()
 
 # Store ID (infinis) and variant IDs from LS dashboard
 STORE_ID = "291180"
