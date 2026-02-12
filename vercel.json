@@ -3,7 +3,7 @@
   "cleanUrls": true,
   "functions": {
     "api/*.py": {
-      "includeFiles": "fonts/**,src/ttf2stitch/**,server_utils.py,auth_utils.py"
+      "includeFiles": "fonts/**,src/ttf2stitch/**,server_utils.py"
     }
   }
 }

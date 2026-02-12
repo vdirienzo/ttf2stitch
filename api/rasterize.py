@@ -1,7 +1,7 @@
 """Vercel Serverless Function: POST /api/rasterize
 
 Rasterizes a TTF/OTF font at a given stitch height using ttf2stitch.
-Public endpoint — no authentication required (preview is free for everyone).
+Public endpoint — no authentication required.
 """
 
 import sys
