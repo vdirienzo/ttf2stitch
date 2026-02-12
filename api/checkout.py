@@ -1,7 +1,7 @@
 """Vercel Serverless Function: POST /api/checkout
 
 Creates a Stripe Checkout Session — supports both one-time payment and subscription.
-Authentication is optional (guest checkout for one-time, Clerk for subscription).
+Subscription mode requires a valid Clerk JWT; one-time payment allows guest checkout.
 """
 
 import os
@@ -25,15 +25,29 @@ PRICE_ID_ONETIME = os.environ.get("STRIPE_PRICE_ID_ONETIME", "")
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
-        # Try to authenticate (optional — guest checkout allowed for one-time)
-        claims = {}
-        if is_auth_enabled():
-            token = get_bearer_token(self)
-            if token:
-                claims = verify_token(token) or {}
-
         body = read_json_body(self) or {}
         mode = body.get("mode", "payment")  # "payment" or "subscription"
+
+        # Subscriptions require authentication (user needs an account)
+        if mode == "subscription":
+            if is_auth_enabled():
+                token = get_bearer_token(self)
+                if not token:
+                    json_error(self, "Sign in required for subscription", 401)
+                    return
+                claims = verify_token(token)
+                if claims is None:
+                    json_error(self, "Invalid or expired session", 401)
+                    return
+            else:
+                claims = {}
+        else:
+            # One-time payment: auth is optional (guest checkout)
+            claims = {}
+            if is_auth_enabled():
+                token = get_bearer_token(self)
+                if token:
+                    claims = verify_token(token) or {}
         success_url = body.get("success_url", "https://word2stitch.vercel.app/?payment=success")
         cancel_url = body.get("cancel_url", "https://word2stitch.vercel.app/?payment=cancelled")
 
