@@ -61,25 +61,38 @@
 
   // -- Lemon Squeezy event handling --
 
+  var _paymentHandled = false;
+
+  function handlePaymentSuccess() {
+    if (_paymentHandled) return;
+    _paymentHandled = true;
+
+    // Close the LS overlay so user sees the app
+    try { window.LemonSqueezy.Url.Close(); } catch (e) { /* ignore */ }
+
+    // Short delay to let overlay close, then trigger PDF download
+    setTimeout(function () {
+      if (_pendingPdfFn) {
+        try {
+          _pendingPdfFn();
+        } catch (err) {
+          console.error('PDF generation after payment failed:', err);
+        }
+        _pendingPdfFn = null;
+      }
+      _paymentHandled = false;
+    }, 600);
+  }
+
   function setupLemonEvents() {
     if (!window.LemonSqueezy) return;
     window.LemonSqueezy.Setup({
-      eventHandler: function (event) {
-        if (event.event === 'Checkout.Success') {
-          // Close the LS overlay immediately so user sees the app
-          try { window.LemonSqueezy.Url.Close(); } catch (e) { /* ignore */ }
-
-          // Short delay to let overlay close, then trigger PDF download
-          setTimeout(function () {
-            if (_pendingPdfFn) {
-              try {
-                _pendingPdfFn();
-              } catch (err) {
-                console.error('PDF generation after payment failed:', err);
-              }
-              _pendingPdfFn = null;
-            }
-          }, 500);
+      eventHandler: function (data) {
+        var eventName = data && data.event ? data.event : String(data);
+        // Checkout.Success = documented LS event (may not fire in all versions)
+        // GA.Purchase = GA4 event that lemon.js always forwards after payment
+        if (eventName === 'Checkout.Success' || eventName === 'GA.Purchase') {
+          handlePaymentSuccess();
         }
       }
     });
