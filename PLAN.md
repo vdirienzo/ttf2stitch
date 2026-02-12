@@ -262,5 +262,12 @@ STRIPE_PRICE_ID=price_xxxxx
 |   Paso 4.3 — /api/webhook | ✅ Hecho | checkout.session.completed + subscription.deleted → Clerk metadata |
 |   Paso 4.4 — Dependencia stripe | ✅ Hecho | stripe 14.3.0 instalado |
 |   Paso 4.5 — Plan UI frontend | ✅ Hecho | Upgrade btn + PRO badge + applyPlanUI + handleUpgrade |
-|   Paso 4.6 — Backend plan check | ⏳ Siguiente | Limitar rasterizaciones para free users |
+|   Paso 4.6 — Backend plan check | ⛔ Descartado | Pivote a modelo "Free to Create, Pay to Download" |
+| **Fase 6**: Pivote — Pay to Download | | |
+|   Paso 6.1 — App abierta (sin auth gate) | ✅ Hecho | Auth gate eliminado, Clerk opcional, Sign In button |
+|   Paso 6.2 — /api/rasterize público | ✅ Hecho | JWT removido, endpoint público |
+|   Paso 6.3 — Precio one-time en Stripe | ✅ Hecho | price_1SzpA3A7T9QA5uNfMZahy0Ed ($1.99) |
+|   Paso 6.4 — Payment modal en frontend | ✅ Hecho | $1.99 This PDF / $4.99/mo Unlimited |
+|   Paso 6.5 — /api/checkout dual mode | ✅ Hecho | mode=payment / mode=subscription |
+|   Paso 6.6 — Post-payment PDF download | ✅ Hecho | localStorage state + auto-download on return |
 | **Fase 5**: Producción | ⬜ Pendiente | |

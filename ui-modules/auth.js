@@ -1,26 +1,19 @@
-// ui-modules/auth.js — Authentication gate + plan management (Clerk + Stripe)
+// ui-modules/auth.js — Optional auth + payment gate (Clerk + Stripe)
+// App is open to everyone. Clerk is optional (for subscription management).
+// PDF download is the monetization point.
 
-  var authGate = document.getElementById('auth-gate');
-  var authSignIn = document.getElementById('auth-sign-in');
   var clerkUserBtn = document.getElementById('clerk-user-button');
-  var upgradeBtn = document.getElementById('btn-upgrade');
-  var proBadge = document.getElementById('pro-badge');
+  var signInBtn = document.getElementById('btn-signin');
   var isAuthenticated = false;
   var userPlan = 'free'; // 'free' | 'pro'
 
-  /**
-   * Returns the current session JWT token (Promise<string|null>).
-   * Called by api.js to attach Authorization header.
-   */
+  // -- Session helpers --
+
   function getSessionToken() {
     if (window.Clerk && window.Clerk.session) {
       return window.Clerk.session.getToken();
     }
     return Promise.resolve(null);
-  }
-
-  function getUserPlan() {
-    return userPlan;
   }
 
   function isProUser() {
@@ -32,18 +25,53 @@
       ? (window.Clerk.user.publicMetadata || {})
       : {};
     userPlan = meta.plan === 'pro' ? 'pro' : 'free';
-
-    if (upgradeBtn) upgradeBtn.style.display = userPlan === 'pro' ? 'none' : '';
-    if (proBadge) proBadge.style.display = userPlan === 'pro' ? '' : 'none';
     document.body.classList.toggle('plan-pro', userPlan === 'pro');
   }
 
-  function handleUpgrade() {
-    if (!upgradeBtn) return;
-    upgradeBtn.disabled = true;
-    upgradeBtn.textContent = 'Loading…';
+  // -- Payment modal --
+
+  var payModalEl = document.getElementById('pay-modal');
+  var payBackdrop = document.getElementById('pay-backdrop');
+  var payBtnOnetime = document.getElementById('pay-onetime');
+  var payBtnSubscribe = document.getElementById('pay-subscribe');
+  var payBtnClose = document.getElementById('pay-close');
+
+  function showPaymentModal() {
+    if (payModalEl) payModalEl.classList.remove('pay-hidden');
+  }
+
+  function hidePaymentModal() {
+    if (payModalEl) payModalEl.classList.add('pay-hidden');
+  }
+
+  function savePendingDownload() {
+    try {
+      localStorage.setItem('w2s_pending_pdf', JSON.stringify({
+        text: currentText,
+        font: currentFontFile,
+        height: currentHeight,
+        color: currentColorCode,
+        aida: currentAida,
+        align: currentAlign
+      }));
+    } catch (e) { /* ignore */ }
+  }
+
+  function clearPendingDownload() {
+    try { localStorage.removeItem('w2s_pending_pdf'); } catch (e) { /* ignore */ }
+  }
+
+  function handlePayment(mode) {
+    // Save pattern state before redirecting to Stripe
+    savePendingDownload();
 
     var origin = window.location.origin;
+    var body = {
+      mode: mode,
+      success_url: origin + '/?payment=success',
+      cancel_url: origin + '/?payment=cancelled'
+    };
+
     getSessionToken().then(function (token) {
       var headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = 'Bearer ' + token;
@@ -51,10 +79,7 @@
       return fetch('/api/checkout', {
         method: 'POST',
         headers: headers,
-        body: JSON.stringify({
-          success_url: origin + '/?payment=success',
-          cancel_url: origin + '/?payment=cancelled'
-        })
+        body: JSON.stringify(body)
       });
     })
     .then(function (res) {
@@ -66,103 +91,103 @@
     })
     .catch(function (err) {
       console.error('Checkout error:', err);
-      upgradeBtn.disabled = false;
-      upgradeBtn.textContent = 'Upgrade to Pro';
+      hidePaymentModal();
     });
   }
 
-  function showApp() {
-    isAuthenticated = true;
-    authGate.classList.add('auth-gate-hidden');
-    document.body.classList.add('authenticated');
-    if (clerkUserBtn) {
-      window.Clerk.mountUserButton(clerkUserBtn);
-    }
-    applyPlanUI();
-
-    // Bind upgrade button
-    if (upgradeBtn) {
-      upgradeBtn.addEventListener('click', handleUpgrade);
-    }
-
-    // Check for payment return
-    var params = new URLSearchParams(window.location.search);
-    if (params.get('payment') === 'success') {
-      // Refresh user data to pick up new plan metadata
-      window.Clerk.user.reload().then(applyPlanUI);
-      // Clean URL
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-  }
-
   /**
-   * Wait for Clerk.session to be fully ready (has getToken method),
-   * then call the callback. Clerk.user can exist before session is populated.
+   * Called by pdf-integration.js instead of directly generating PDF.
+   * If user is pro subscriber → generate PDF immediately.
+   * If not → show payment modal.
    */
-  function waitForSession(callback) {
-    if (window.Clerk.session && window.Clerk.session.getToken) {
-      callback();
+  function requestPdfDownload(generateFn) {
+    if (isProUser()) {
+      generateFn();
       return;
     }
-    // Poll until session is ready (usually 50-200ms after Clerk.load)
-    var sessionCheck = setInterval(function () {
-      if (window.Clerk.session && window.Clerk.session.getToken) {
-        clearInterval(sessionCheck);
-        callback();
-      }
-    }, 50);
-    setTimeout(function () { clearInterval(sessionCheck); }, 10000);
+    // Store the generate function for after payment
+    window._pendingPdfGenerate = generateFn;
+    showPaymentModal();
   }
 
-  /**
-   * Initialize Clerk auth: wait for ClerkJS async script,
-   * then check session and either show app or mount sign-in.
-   * @param {Function} onReady — called once user is authenticated (triggers init)
-   */
+  // -- Bind payment modal buttons --
+
+  if (payBtnOnetime) {
+    payBtnOnetime.addEventListener('click', function () { handlePayment('payment'); });
+  }
+  if (payBtnSubscribe) {
+    payBtnSubscribe.addEventListener('click', function () { handlePayment('subscription'); });
+  }
+  if (payBtnClose) {
+    payBtnClose.addEventListener('click', hidePaymentModal);
+  }
+  if (payBackdrop) {
+    payBackdrop.addEventListener('click', hidePaymentModal);
+  }
+
+  // -- Optional Clerk initialization (non-blocking) --
+
   function initAuth(onReady) {
-    var attempts = 0;
-    var maxAttempts = 150; // 15 seconds at 100ms intervals
+    // App loads immediately — no auth gate
+    onReady();
 
+    // Initialize Clerk in background (optional sign-in)
     var checkInterval = setInterval(function () {
-      attempts++;
-      if (attempts > maxAttempts) {
-        clearInterval(checkInterval);
-        // Clerk failed to load — show error in auth gate
-        if (authSignIn) {
-          authSignIn.innerHTML =
-            '<p style="color:#e74c3c;text-align:center;padding:20px;">' +
-            'Authentication service unavailable. Please refresh the page.</p>';
-        }
-        return;
-      }
-
       if (!window.Clerk) return;
       clearInterval(checkInterval);
 
       window.Clerk.load().then(function () {
         if (window.Clerk.user) {
-          showApp();
-          // Wait for session to be fully populated before calling init
-          waitForSession(onReady);
-        } else {
-          // Mount Clerk's sign-in component
-          authGate.classList.remove('auth-gate-hidden');
-          window.Clerk.mountSignIn(authSignIn, {
-            appearance: {
-              variables: {
-                colorPrimary: '#c0392b'
-              }
-            }
-          });
-
-          // Listen for successful sign-in
-          window.Clerk.addListener(function () {
-            if (window.Clerk.user && !isAuthenticated) {
-              showApp();
-              waitForSession(onReady);
-            }
-          });
+          isAuthenticated = true;
+          document.body.classList.add('authenticated');
+          if (clerkUserBtn) window.Clerk.mountUserButton(clerkUserBtn);
+          if (signInBtn) signInBtn.style.display = 'none';
+          applyPlanUI();
         }
+
+        // Listen for sign-in/sign-out changes
+        window.Clerk.addListener(function () {
+          if (window.Clerk.user && !isAuthenticated) {
+            isAuthenticated = true;
+            document.body.classList.add('authenticated');
+            if (clerkUserBtn) window.Clerk.mountUserButton(clerkUserBtn);
+            if (signInBtn) signInBtn.style.display = 'none';
+            applyPlanUI();
+          } else if (!window.Clerk.user && isAuthenticated) {
+            isAuthenticated = false;
+            document.body.classList.remove('authenticated');
+            if (signInBtn) signInBtn.style.display = '';
+            userPlan = 'free';
+            document.body.classList.remove('plan-pro');
+          }
+        });
       });
     }, 100);
+    setTimeout(function () { clearInterval(checkInterval); }, 15000);
+
+    // Check for payment return
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'success') {
+      window.history.replaceState({}, '', window.location.pathname);
+
+      // If user is logged in, refresh metadata
+      if (window.Clerk && window.Clerk.user) {
+        window.Clerk.user.reload().then(applyPlanUI);
+      }
+
+      // Trigger pending PDF download
+      setTimeout(function () {
+        var pending = null;
+        try { pending = JSON.parse(localStorage.getItem('w2s_pending_pdf')); } catch (e) { /* ignore */ }
+        if (pending && typeof generatePDF === 'function' && currentFontData) {
+          clearPendingDownload();
+          var color = getCurrentColor();
+          try {
+            generatePDF(currentText, currentFontData, color, currentAida);
+          } catch (err) {
+            console.error('Auto PDF download failed:', err);
+          }
+        }
+      }, 2000);
+    }
   }

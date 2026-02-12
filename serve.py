@@ -36,7 +36,7 @@ def _load_dotenv():
 
 _load_dotenv()
 
-from auth_utils import get_bearer_token, is_auth_enabled, verify_token  # noqa: E402
+from auth_utils import is_auth_enabled  # noqa: E402
 from server_utils import (  # noqa: E402
     FONT_ID_RE,
     do_rasterize,
@@ -101,17 +101,7 @@ class FontServerHandler(SimpleHTTPRequestHandler):
         json_response(self, fonts)
 
     def _handle_rasterize(self):
-        # Verify Clerk JWT if auth is configured
-        if _AUTH_ENABLED:
-            token = get_bearer_token(self)
-            if not token:
-                json_error(self, "Authentication required", 401)
-                return
-            claims = verify_token(token)
-            if claims is None:
-                json_error(self, "Invalid or expired token", 401)
-                return
-
+        # Public endpoint — preview is free for everyone
         body = read_json_body(self)
         if body is None:
             return

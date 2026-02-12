@@ -1,7 +1,7 @@
 """Vercel Serverless Function: POST /api/checkout
 
-Creates a Stripe Checkout Session for Word2Stitch Pro subscription.
-Requires Clerk JWT authentication.
+Creates a Stripe Checkout Session — supports both one-time payment and subscription.
+Authentication is optional (guest checkout for one-time, Clerk for subscription).
 """
 
 import os
@@ -19,40 +19,55 @@ from server_utils import json_error, json_response, read_json_body  # noqa: E402
 
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
 
-PRICE_ID = os.environ.get("STRIPE_PRICE_ID", "")
+PRICE_ID_SUBSCRIPTION = os.environ.get("STRIPE_PRICE_ID", "")
+PRICE_ID_ONETIME = os.environ.get("STRIPE_PRICE_ID_ONETIME", "")
 
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
-        # Require authentication
+        # Try to authenticate (optional — guest checkout allowed for one-time)
+        claims = {}
         if is_auth_enabled():
             token = get_bearer_token(self)
-            if not token:
-                json_error(self, "Authentication required", 401)
-                return
-            claims = verify_token(token)
-            if claims is None:
-                json_error(self, "Invalid or expired token", 401)
-                return
-        else:
-            claims = {}
+            if token:
+                claims = verify_token(token) or {}
 
         body = read_json_body(self) or {}
+        mode = body.get("mode", "payment")  # "payment" or "subscription"
         success_url = body.get("success_url", "https://word2stitch.vercel.app/?payment=success")
         cancel_url = body.get("cancel_url", "https://word2stitch.vercel.app/?payment=cancelled")
 
-        user_id = claims.get("sub", "anonymous")
+        user_id = claims.get("sub", "guest")
 
         try:
-            session = stripe.checkout.Session.create(
-                mode="subscription",
-                payment_method_types=["card"],
-                line_items=[{"price": PRICE_ID, "quantity": 1}],
-                success_url=success_url,
-                cancel_url=cancel_url,
-                metadata={"clerk_user_id": user_id},
-                subscription_data={"metadata": {"clerk_user_id": user_id}},
-            )
+            if mode == "subscription":
+                price_id = PRICE_ID_SUBSCRIPTION
+                if not price_id:
+                    json_error(self, "Subscription price not configured", 500)
+                    return
+                session = stripe.checkout.Session.create(
+                    mode="subscription",
+                    payment_method_types=["card"],
+                    line_items=[{"price": price_id, "quantity": 1}],
+                    success_url=success_url,
+                    cancel_url=cancel_url,
+                    metadata={"clerk_user_id": user_id},
+                    subscription_data={"metadata": {"clerk_user_id": user_id}},
+                )
+            else:
+                price_id = PRICE_ID_ONETIME
+                if not price_id:
+                    json_error(self, "One-time price not configured", 500)
+                    return
+                session = stripe.checkout.Session.create(
+                    mode="payment",
+                    payment_method_types=["card"],
+                    line_items=[{"price": price_id, "quantity": 1}],
+                    success_url=success_url,
+                    cancel_url=cancel_url,
+                    metadata={"clerk_user_id": user_id},
+                )
+
             json_response(self, {"url": session.url, "session_id": session.id})
         except stripe.StripeError as e:
             json_error(self, f"Stripe error: {e.user_message or str(e)}", 400)

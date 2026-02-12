@@ -1,5 +1,6 @@
 // ui-modules/pdf-integration.js — Download PDF button handler
-// Calls generatePDF from pdf-engine
+// Calls requestPdfDownload (from auth.js) which checks plan status
+// before allowing PDF generation.
 
   // -- Download PDF --
 
@@ -17,10 +18,14 @@
       alert(t('alert_no_jspdf'));
       return;
     }
-    try {
-      generatePDF(currentText, currentFontData, color, currentAida);
-    } catch (err) {
-      alert(t('alert_pdf_fail') + err.message);
-      console.error('PDF error:', err);
-    }
+
+    // Delegate to auth.js — shows payment modal if not pro
+    requestPdfDownload(function () {
+      try {
+        generatePDF(currentText, currentFontData, color, currentAida);
+      } catch (err) {
+        alert(t('alert_pdf_fail') + err.message);
+        console.error('PDF error:', err);
+      }
+    });
   });

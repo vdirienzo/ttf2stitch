@@ -1,93 +1,29 @@
-/* Auth gate — full-screen overlay for Clerk sign-in */
+/* Auth (optional) + Payment modal styles */
 @layer components {
 
-  #auth-gate {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-main, #1a1a2e);
-    transition: opacity 0.4s ease, visibility 0.4s ease;
-  }
-
-  #auth-gate.auth-gate-hidden {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-  }
-
-  .auth-gate-logo {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
-    user-select: none;
-  }
-
-  .auth-gate-logo .logo-x {
-    font-size: 2rem;
-    color: var(--accent, #c0392b);
-  }
-
-  .auth-gate-logo .logo-text {
-    font-family: 'DM Serif Display', serif;
-    font-size: 1.8rem;
-    color: var(--text-primary, #e8e8e8);
-  }
-
-  .auth-gate-logo .logo-text em {
-    font-style: italic;
-    color: var(--accent, #c0392b);
-  }
-
-  #auth-sign-in {
-    min-width: 320px;
-    max-width: 440px;
-    width: 100%;
-  }
-
-  /* Hide main app until authenticated */
-  body:not(.authenticated) .topbar,
-  body:not(.authenticated) .main-layout,
-  body:not(.authenticated) .mobile-input-bar,
-  body:not(.authenticated) .mobile-toolbar {
-    display: none !important;
-  }
-
-  /* Upgrade button in topbar */
-  .btn-upgrade {
+  /* Sign-in button in topbar (optional) */
+  .btn-signin {
     padding: 0.35rem 0.75rem;
     margin-left: 0.5rem;
-    border: none;
+    border: 1px solid var(--border, #3a3a4a);
     border-radius: 6px;
-    background: linear-gradient(135deg, #c0392b, #e74c3c);
-    color: #fff;
+    background: transparent;
+    color: var(--text-primary, #e8e8e8);
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     white-space: nowrap;
     flex-shrink: 0;
-    transition: opacity 0.2s;
+    transition: background 0.2s, border-color 0.2s;
   }
 
-  .btn-upgrade:hover { opacity: 0.85; }
-  .btn-upgrade:disabled { opacity: 0.5; cursor: wait; }
-
-  /* PRO badge in topbar */
-  .pro-badge {
-    padding: 0.2rem 0.5rem;
-    margin-left: 0.5rem;
-    border-radius: 4px;
-    background: linear-gradient(135deg, #f39c12, #e67e22);
-    color: #fff;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    flex-shrink: 0;
+  .btn-signin:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--accent, #c0392b);
   }
+
+  /* Hide sign-in when authenticated */
+  body.authenticated .btn-signin { display: none !important; }
 
   /* User button in topbar */
   #clerk-user-button {
@@ -95,5 +31,145 @@
     align-items: center;
     margin-left: 0.5rem;
     flex-shrink: 0;
+  }
+
+  /* ── Payment Modal ── */
+
+  #pay-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+  }
+
+  #pay-modal.pay-hidden {
+    display: none;
+  }
+
+  .pay-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+  }
+
+  .pay-dialog {
+    position: relative;
+    background: #faf8f5;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 480px;
+    width: 90vw;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    text-align: center;
+  }
+
+  .pay-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    color: #a99e8f;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .pay-close:hover {
+    background: rgba(184, 58, 42, 0.08);
+    color: #b83a2a;
+  }
+
+  .pay-title {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 1.4rem;
+    color: #3d3229;
+    margin-bottom: 0.3rem;
+  }
+
+  .pay-subtitle {
+    font-size: 0.85rem;
+    color: #7a6e60;
+    margin-bottom: 1.5rem;
+  }
+
+  .pay-options {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .pay-option {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 1.5rem 1rem;
+    border: 2px solid #e0d6c8;
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+    font-family: 'Anybody', system-ui, sans-serif;
+  }
+
+  .pay-option:hover {
+    border-color: #b83a2a;
+    transform: translateY(-2px);
+  }
+
+  .pay-option-featured {
+    border-color: #c0392b;
+    background: linear-gradient(180deg, #fff7f5, #fff);
+  }
+
+  .pay-option-badge {
+    position: absolute;
+    top: -10px;
+    background: linear-gradient(135deg, #c0392b, #e74c3c);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 10px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .pay-option-price {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #3d3229;
+  }
+
+  .pay-option-price small {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #7a6e60;
+  }
+
+  .pay-option-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #3d3229;
+  }
+
+  .pay-option-desc {
+    font-size: 0.7rem;
+    color: #a99e8f;
+    line-height: 1.3;
+  }
+
+  /* Mobile: stack vertically */
+  @media (max-width: 480px) {
+    .pay-options { flex-direction: column; }
+    .pay-dialog { padding: 1.5rem; }
   }
 }
