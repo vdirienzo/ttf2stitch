@@ -1727,40 +1727,8 @@
 }
 
 
-/* Auth (optional) + Payment modal styles */
+/* Payment modal styles */
 @layer components {
-
-  /* Sign-in button in topbar (optional) */
-  .btn-signin {
-    padding: 0.35rem 0.75rem;
-    margin-left: 0.5rem;
-    border: 1px solid var(--border, #3a3a4a);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--text-primary, #e8e8e8);
-    font-size: 0.75rem;
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap;
-    flex-shrink: 0;
-    transition: background 0.2s, border-color 0.2s;
-  }
-
-  .btn-signin:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: var(--accent, #c0392b);
-  }
-
-  /* Hide sign-in when authenticated */
-  body.authenticated .btn-signin { display: none !important; }
-
-  /* User button in topbar */
-  #clerk-user-button {
-    display: flex;
-    align-items: center;
-    margin-left: 0.5rem;
-    flex-shrink: 0;
-  }
 
   /* ── Payment Modal ── */
 
@@ -1771,7 +1739,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.3s ease;
   }
 
   #pay-modal.pay-hidden {
@@ -1790,7 +1757,7 @@
     background: #faf8f5;
     border-radius: 16px;
     padding: 2rem;
-    max-width: 480px;
+    max-width: 380px;
     width: 90vw;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
     text-align: center;
@@ -1828,60 +1795,29 @@
     margin-bottom: 1.5rem;
   }
 
-  .pay-options {
-    display: flex;
-    gap: 1rem;
-  }
-
-  .pay-option {
-    flex: 1;
-    position: relative;
+  .pay-option-featured {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.3rem;
+    width: 100%;
     padding: 1.5rem 1rem;
-    border: 2px solid #e0d6c8;
+    border: 2px solid #c0392b;
     border-radius: 12px;
-    background: #fff;
+    background: linear-gradient(180deg, #fff7f5, #fff);
     cursor: pointer;
-    transition: border-color 0.2s, transform 0.15s;
+    transition: transform 0.15s;
     font-family: 'Anybody', system-ui, sans-serif;
   }
 
-  .pay-option:hover {
-    border-color: #b83a2a;
+  .pay-option-featured:hover {
     transform: translateY(-2px);
-  }
-
-  .pay-option-featured {
-    border-color: #c0392b;
-    background: linear-gradient(180deg, #fff7f5, #fff);
-  }
-
-  .pay-option-badge {
-    position: absolute;
-    top: -10px;
-    background: linear-gradient(135deg, #c0392b, #e74c3c);
-    color: #fff;
-    font-size: 0.6rem;
-    font-weight: 700;
-    padding: 2px 10px;
-    border-radius: 10px;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
   }
 
   .pay-option-price {
     font-size: 1.6rem;
     font-weight: 700;
     color: #3d3229;
-  }
-
-  .pay-option-price small {
-    font-size: 0.7rem;
-    font-weight: 500;
-    color: #7a6e60;
   }
 
   .pay-option-label {
@@ -1893,13 +1829,6 @@
   .pay-option-desc {
     font-size: 0.7rem;
     color: #a99e8f;
-    line-height: 1.3;
-  }
-
-  /* Mobile: stack vertically */
-  @media (max-width: 480px) {
-    .pay-options { flex-direction: column; }
-    .pay-dialog { padding: 1.5rem; }
   }
 }
 
@@ -1964,8 +1893,6 @@
     <span class="dl-label">PDF</span>
   </button>
 
-  <button class="btn-signin" id="btn-signin" aria-label="Sign In" onclick="window.Clerk && window.Clerk.openSignIn()">Sign In</button>
-  <div id="clerk-user-button"></div>
 </header>
 
 <!-- -- Main Split Layout -- -->
@@ -2370,34 +2297,17 @@
   <div class="pay-dialog">
     <button class="pay-close" id="pay-close">&times;</button>
     <div class="pay-title">Download Your Pattern</div>
-    <div class="pay-subtitle">Choose how you'd like to get your cross-stitch PDF</div>
-    <div class="pay-options">
-      <button class="pay-option" id="pay-onetime">
-        <span class="pay-option-price">$1.99</span>
-        <span class="pay-option-label">This PDF</span>
-        <span class="pay-option-desc">One-time download, no account needed</span>
-      </button>
-      <button class="pay-option pay-option-featured" id="pay-subscribe">
-        <span class="pay-option-badge">Best Value</span>
-        <span class="pay-option-price">$4.99<small>/mo</small></span>
-        <span class="pay-option-label">Unlimited</span>
-        <span class="pay-option-desc">All PDFs, cancel anytime</span>
-      </button>
-    </div>
+    <div class="pay-subtitle">Get your cross-stitch PDF pattern ready to print</div>
+    <button class="pay-option pay-option-featured" id="pay-onetime">
+      <span class="pay-option-price">$1.99</span>
+      <span class="pay-option-label">Download PDF</span>
+      <span class="pay-option-desc">One-time purchase, no account needed</span>
+    </button>
   </div>
 </div>
 
 <!-- JS loaded via assemble.js from ui-modules/ -->
 
-
-<!-- ═══ Clerk Auth SDK ═══ -->
-<script
-  async
-  crossorigin="anonymous"
-  data-clerk-publishable-key="pk_test_bWFpbi13b21iYXQtNzIuY2xlcmsuYWNjb3VudHMuZGV2JA"
-  src="https://main-wombat-72.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
-  type="text/javascript"
-></script>
 
 <!-- ═══ jsPDF CDN ═══ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
@@ -5276,42 +5186,14 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   }
 
 
-// ui-modules/auth.js — Optional auth + payment gate (Clerk + Stripe)
-// App is open to everyone. Clerk is optional (for subscription management).
-// PDF download is the monetization point.
-
-  var clerkUserBtn = document.getElementById('clerk-user-button');
-  var signInBtn = document.getElementById('btn-signin');
-  var isAuthenticated = false;
-  var userPlan = 'free'; // 'free' | 'pro'
-
-  // -- Session helpers --
-
-  function getSessionToken() {
-    if (window.Clerk && window.Clerk.session) {
-      return window.Clerk.session.getToken();
-    }
-    return Promise.resolve(null);
-  }
-
-  function isProUser() {
-    return userPlan === 'pro';
-  }
-
-  function applyPlanUI() {
-    var meta = window.Clerk && window.Clerk.user
-      ? (window.Clerk.user.publicMetadata || {})
-      : {};
-    userPlan = meta.plan === 'pro' ? 'pro' : 'free';
-    document.body.classList.toggle('plan-pro', userPlan === 'pro');
-  }
+// ui-modules/auth.js — Payment gate (Stripe one-time per PDF)
+// App is open to everyone. No accounts needed. Pay $1.99 per PDF download.
 
   // -- Payment modal --
 
   var payModalEl = document.getElementById('pay-modal');
   var payBackdrop = document.getElementById('pay-backdrop');
   var payBtnOnetime = document.getElementById('pay-onetime');
-  var payBtnSubscribe = document.getElementById('pay-subscribe');
   var payBtnClose = document.getElementById('pay-close');
 
   function showPaymentModal() {
@@ -5339,49 +5221,19 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     try { localStorage.removeItem('w2s_pending_pdf'); } catch (e) { /* ignore */ }
   }
 
-  function handlePayment(mode) {
-    // For subscriptions, require sign-in first
-    if (mode === 'subscription' && !isAuthenticated) {
-      // Open Clerk sign-in and wait for completion
-      if (window.Clerk) {
-        window.Clerk.openSignIn();
-        // Listen for sign-in, then retry
-        var _subWait = setInterval(function () {
-          if (window.Clerk.user) {
-            clearInterval(_subWait);
-            isAuthenticated = true;
-            document.body.classList.add('authenticated');
-            if (clerkUserBtn) window.Clerk.mountUserButton(clerkUserBtn);
-            if (signInBtn) signInBtn.style.display = 'none';
-            applyPlanUI();
-            // Now proceed with subscription checkout
-            handlePayment(mode);
-          }
-        }, 500);
-        setTimeout(function () { clearInterval(_subWait); }, 120000);
-        return;
-      }
-    }
-
-    // Save pattern state before redirecting to Stripe
+  function handlePayment() {
     savePendingDownload();
 
     var origin = window.location.origin;
-    var body = {
-      mode: mode,
-      success_url: origin + '/?payment=success',
-      cancel_url: origin + '/?payment=cancelled'
-    };
 
-    getSessionToken().then(function (token) {
-      var headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = 'Bearer ' + token;
-
-      return fetch('/api/checkout', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(body)
-      });
+    fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'payment',
+        success_url: origin + '/?payment=success',
+        cancel_url: origin + '/?payment=cancelled'
+      })
     })
     .then(function (res) {
       if (!res.ok) throw new Error('Checkout failed');
@@ -5398,15 +5250,9 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
   /**
    * Called by pdf-integration.js instead of directly generating PDF.
-   * If user is pro subscriber → generate PDF immediately.
-   * If not → show payment modal.
+   * Always shows payment modal — every PDF costs $1.99.
    */
   function requestPdfDownload(generateFn) {
-    if (isProUser()) {
-      generateFn();
-      return;
-    }
-    // Store the generate function for after payment
     window._pendingPdfGenerate = generateFn;
     showPaymentModal();
   }
@@ -5414,10 +5260,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   // -- Bind payment modal buttons --
 
   if (payBtnOnetime) {
-    payBtnOnetime.addEventListener('click', function () { handlePayment('payment'); });
-  }
-  if (payBtnSubscribe) {
-    payBtnSubscribe.addEventListener('click', function () { handlePayment('subscription'); });
+    payBtnOnetime.addEventListener('click', handlePayment);
   }
   if (payBtnClose) {
     payBtnClose.addEventListener('click', hidePaymentModal);
@@ -5426,55 +5269,15 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     payBackdrop.addEventListener('click', hidePaymentModal);
   }
 
-  // -- Optional Clerk initialization (non-blocking) --
+  // -- Init (no auth gate, app loads immediately) --
 
   function initAuth(onReady) {
-    // App loads immediately — no auth gate
     onReady();
-
-    // Initialize Clerk in background (optional sign-in)
-    var checkInterval = setInterval(function () {
-      if (!window.Clerk) return;
-      clearInterval(checkInterval);
-
-      window.Clerk.load().then(function () {
-        if (window.Clerk.user) {
-          isAuthenticated = true;
-          document.body.classList.add('authenticated');
-          if (clerkUserBtn) window.Clerk.mountUserButton(clerkUserBtn);
-          if (signInBtn) signInBtn.style.display = 'none';
-          applyPlanUI();
-        }
-
-        // Listen for sign-in/sign-out changes
-        window.Clerk.addListener(function () {
-          if (window.Clerk.user && !isAuthenticated) {
-            isAuthenticated = true;
-            document.body.classList.add('authenticated');
-            if (clerkUserBtn) window.Clerk.mountUserButton(clerkUserBtn);
-            if (signInBtn) signInBtn.style.display = 'none';
-            applyPlanUI();
-          } else if (!window.Clerk.user && isAuthenticated) {
-            isAuthenticated = false;
-            document.body.classList.remove('authenticated');
-            if (signInBtn) signInBtn.style.display = '';
-            userPlan = 'free';
-            document.body.classList.remove('plan-pro');
-          }
-        });
-      });
-    }, 100);
-    setTimeout(function () { clearInterval(checkInterval); }, 15000);
 
     // Check for payment return
     var params = new URLSearchParams(window.location.search);
     if (params.get('payment') === 'success') {
       window.history.replaceState({}, '', window.location.pathname);
-
-      // If user is logged in, refresh metadata
-      if (window.Clerk && window.Clerk.user) {
-        window.Clerk.user.reload().then(applyPlanUI);
-      }
 
       // Trigger pending PDF download
       setTimeout(function () {
