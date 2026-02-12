@@ -151,3 +151,53 @@ class TestRasterizeCLI:
             assert result.exit_code == 0
             data = json.loads(Path(output).read_text())
             assert data["height"] <= height + 2  # close to target
+
+
+class TestVerticalProportions:
+    """Tests that the uniform vertical frame preserves typographic proportions."""
+
+    @skip_no_font
+    def test_uppercase_has_more_ink_rows_than_lowercase(self):
+        """'H' should have strictly more rows containing '1' than 'o'."""
+        from PIL import ImageFont
+
+        font = ImageFont.truetype(SYSTEM_FONT, size=320)
+        bitmap_h = _render_char_bitmap(font, "H", target_height=16)
+        bitmap_o = _render_char_bitmap(font, "o", target_height=16)
+        assert bitmap_h is not None
+        assert bitmap_o is not None
+        ink_rows_h = sum(1 for row in bitmap_h if "1" in row)
+        ink_rows_o = sum(1 for row in bitmap_o if "1" in row)
+        assert ink_rows_h > ink_rows_o
+
+    @skip_no_font
+    def test_all_glyphs_uniform_bitmap_height(self):
+        """All glyphs from rasterize_font should have exactly the same bitmap height."""
+        result = rasterize_font(SYSTEM_FONT, target_height=12)
+        heights = {len(g.bitmap) for g in result.font.glyphs.values()}
+        assert len(heights) == 1, f"Expected uniform height, got {heights}"
+
+    @skip_no_font
+    def test_font_height_equals_target(self):
+        """result.font.height should equal target_height exactly."""
+        for target in (8, 10, 12, 16):
+            result = rasterize_font(SYSTEM_FONT, target_height=target)
+            assert result.font.height == target
+
+    @skip_no_font
+    def test_vertical_proportions_preserved(self):
+        """Uppercase letters should consistently have more ink rows than lowercase."""
+        from PIL import ImageFont
+
+        font = ImageFont.truetype(SYSTEM_FONT, size=320)
+        pairs = [("H", "o"), ("T", "a"), ("L", "e"), ("B", "c")]
+        for upper, lower in pairs:
+            bitmap_up = _render_char_bitmap(font, upper, target_height=16)
+            bitmap_lo = _render_char_bitmap(font, lower, target_height=16)
+            assert bitmap_up is not None, f"Failed to render '{upper}'"
+            assert bitmap_lo is not None, f"Failed to render '{lower}'"
+            ink_up = sum(1 for row in bitmap_up if "1" in row)
+            ink_lo = sum(1 for row in bitmap_lo if "1" in row)
+            assert ink_up > ink_lo, (
+                f"'{upper}' should have more ink rows ({ink_up}) than '{lower}' ({ink_lo})"
+            )

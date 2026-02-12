@@ -75,6 +75,16 @@ export async function rasterizeTTF(arrayBuffer, filename, opts, onProgress = () 
   const glyphs = {};
   let maxH = 0;
 
+  // Compute common vertical frame from font metrics (BEFORE the loop)
+  const frameCanvas = document.createElement('canvas');
+  frameCanvas.width = renderSize * 3;
+  frameCanvas.height = renderSize * 3;
+  const frameCtx = frameCanvas.getContext('2d');
+  frameCtx.textBaseline = 'top';
+  frameCtx.font = `${renderSize}px "${familyName}"`;
+  const refMetrics = frameCtx.measureText('M');
+  const lineHeight = (refMetrics.fontBoundingBoxAscent || 0) + (refMetrics.fontBoundingBoxDescent || renderSize);
+
   for (let i = 0; i < CHARSET.length; i++) {
     const char = CHARSET[i];
     if (i % 10 === 0) {
@@ -100,20 +110,23 @@ export async function rasterizeTTF(arrayBuffer, filename, opts, onProgress = () 
     ctx.font = `${renderSize}px "${familyName}"`;
     ctx.fillText(char, renderSize, renderSize);
 
-    // Get text metrics for precise bbox
+    // Get only HORIZONTAL bounds from per-glyph metrics
     const metrics = ctx.measureText(char);
-    const left = Math.floor(renderSize + (metrics.actualBoundingBoxLeft ? -metrics.actualBoundingBoxLeft : 0));
-    const top2 = Math.floor(renderSize + (metrics.actualBoundingBoxAscent ? -metrics.actualBoundingBoxAscent : 0));
+    const left = Math.floor(renderSize - (metrics.actualBoundingBoxLeft || 0));
     const right = Math.ceil(renderSize + (metrics.actualBoundingBoxRight || metrics.width || renderSize));
-    const bottom = Math.ceil(renderSize + (metrics.actualBoundingBoxDescent || renderSize));
+
+    // Common vertical frame (same for ALL glyphs)
+    const frameTop = Math.floor(renderSize - (refMetrics.fontBoundingBoxAscent || 0));
+    const frameBottom = Math.ceil(renderSize + (refMetrics.fontBoundingBoxDescent || renderSize));
 
     const cw = right - left;
-    const ch = bottom - top2;
+    const ch = frameBottom - frameTop;
     if (cw <= 0 || ch <= 0) continue;
 
-    // Extract content region
-    const contentData = ctx.getImageData(left, top2, cw, ch);
+    // Extract content with common vertical frame
+    const contentData = ctx.getImageData(left, frameTop, cw, ch);
 
+    // Uniform scale factor (same ratio for all glyphs)
     const targetW = Math.max(1, Math.round(cw * height / ch));
     let bitmap = [];
 
@@ -165,7 +178,7 @@ export async function rasterizeTTF(arrayBuffer, filename, opts, onProgress = () 
     if (bold > 0) bitmap = dilateBitmap(bitmap, bold);
 
     // Trim empty borders
-    const trimmed = trimBitmap(bitmap);
+    const trimmed = trimColumns(bitmap);
     if (trimmed.length === 0 || trimmed[0].length === 0) continue;
 
     glyphs[char] = { width: trimmed[0].length, bitmap: trimmed };
@@ -185,7 +198,7 @@ export async function rasterizeTTF(arrayBuffer, filename, opts, onProgress = () 
     version: 2,
     id: slug,
     name: filename.replace(/\.(ttf|otf|woff2?)$/i, ''),
-    height: maxH || height,
+    height: height,
     letterSpacing: spacing,
     spaceWidth: Math.max(1, Math.round(height * 0.4)),
     source: '',
@@ -215,4 +228,20 @@ export function trimBitmap(bitmap) {
   for (let c = w - 1; c >= left; c--) { if (bm.every(r => r[c] === '0')) right++; else break; }
   if (left > 0 || right > 0) bm = bm.map(r => r.slice(left, w - right));
   return bm;
+}
+
+/**
+ * Trim empty left/right columns only, preserving all rows.
+ * Used with uniform vertical frame to maintain glyph height.
+ */
+export function trimColumns(bitmap) {
+  if (bitmap.length === 0) return [];
+  const w = bitmap[0].length;
+  if (w === 0) return bitmap;
+  let left = 0;
+  for (let c = 0; c < w; c++) { if (bitmap.every(r => r[c] === '0')) left++; else break; }
+  let right = 0;
+  for (let c = w - 1; c >= left; c--) { if (bitmap.every(r => r[c] === '0')) right++; else break; }
+  if (left > 0 || right > 0) bitmap = bitmap.map(r => r.slice(left, w - right));
+  return bitmap;
 }

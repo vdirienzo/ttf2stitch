@@ -22,7 +22,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from ttf2stitch.config import DEFAULT_EXCLUDE_CHARS
 from ttf2stitch.filters import filter_glyphs
-from ttf2stitch.sampler import trim_bitmap
+from ttf2stitch.sampler import trim_columns
 from ttf2stitch.schema import FontV2, GlyphV2, build_font_v2
 from ttf2stitch.utils import FontConversionOptions, resolve_font_metadata
 
@@ -185,6 +185,10 @@ def _render_char_bitmap(
 ) -> list[str] | None:
     """Render a single character at target_height pixels and binarize.
 
+    Uses a uniform vertical frame based on font metrics (ascent + descent)
+    so all glyphs share the same coordinate system, preserving typographic
+    proportions (cap-height vs x-height).
+
     Returns list of bitmap strings, or None if empty.
     """
     ascent, descent = pil_font.getmetrics()
@@ -199,15 +203,19 @@ def _render_char_bitmap(
     draw.text((render_h, render_h), char, font=pil_font, fill=0)
 
     bbox = draw.textbbox((render_h, render_h), char, font=pil_font)
-    left, top, right, bottom = bbox
+    left, _top, right, _bottom = bbox
     content_w = right - left
-    content_h = bottom - top
 
-    if content_w <= 0 or content_h <= 0:
+    if content_w <= 0:
         return None
 
-    content = img.crop((left, top, right, bottom))
-    target_w = max(1, round(content_w * target_height / content_h))
+    # Common vertical frame based on font metrics (not per-glyph ink bounds)
+    frame_top = render_h
+    frame_bottom = render_h + line_height
+    content = img.crop((left, frame_top, right, frame_bottom))
+
+    # Uniform scale factor: same ratio for all glyphs
+    target_w = max(1, round(content_w * target_height / line_height))
 
     if strategy == "max-ink":
         bitmap = _rasterize_max_ink(content, target_height, target_w, threshold)
@@ -235,7 +243,7 @@ def _rasterize_single_char(
         return None
 
     if do_trim:
-        bitmap = trim_bitmap(bitmap)
+        bitmap = trim_columns(bitmap)
 
     if not bitmap or not bitmap[0]:
         return None

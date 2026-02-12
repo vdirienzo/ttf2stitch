@@ -2,7 +2,7 @@
 
 from PIL import Image
 
-from ttf2stitch.sampler import sample_bitmap, trim_bitmap
+from ttf2stitch.sampler import sample_bitmap, trim_bitmap, trim_columns
 
 
 class TestSampleBitmap:
@@ -115,3 +115,55 @@ class TestTrimBitmap:
         bitmap = ["111", "111", "111"]
         result = trim_bitmap(bitmap)
         assert result == ["111", "111", "111"]
+
+
+class TestTrimColumns:
+    def test_trims_only_columns(self):
+        """Rows are preserved, only empty left/right columns are trimmed."""
+        bitmap = [
+            "0110",
+            "0100",
+            "0110",
+        ]
+        result = trim_columns(bitmap)
+        assert result == ["11", "10", "11"]
+        assert len(result) == 3  # all rows preserved
+
+    def test_preserves_empty_rows(self):
+        """Empty rows at top/bottom are NOT removed (unlike trim_bitmap)."""
+        bitmap = [
+            "0000",
+            "0110",
+            "0100",
+            "0000",
+        ]
+        result = trim_columns(bitmap)
+        assert len(result) == 4  # all 4 rows preserved
+        assert result[0] == "00"  # empty row kept, but columns trimmed
+        assert result[3] == "00"  # empty row kept
+
+    def test_empty_input(self):
+        result = trim_columns([])
+        assert result == []
+
+    def test_all_zeros_preserves_rows(self):
+        """All-zero bitmap keeps rows but trims all columns to empty strings."""
+        bitmap = ["000", "000"]
+        result = trim_columns(bitmap)
+        assert len(result) == 2  # rows preserved
+        assert result == ["", ""]  # all columns trimmed away
+
+    def test_already_trimmed(self):
+        bitmap = ["10", "01"]
+        result = trim_columns(bitmap)
+        assert result == ["10", "01"]
+
+    def test_single_column_of_ink(self):
+        """Trims to width 1 when only one column has ink."""
+        bitmap = [
+            "0010",
+            "0010",
+            "0010",
+        ]
+        result = trim_columns(bitmap)
+        assert result == ["1", "1", "1"]
