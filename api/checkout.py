@@ -79,8 +79,8 @@ class handler(BaseHTTPRequestHandler):
                         },
                         "checkout_options": {
                             "embed": True,
-                            "accent_color": "#b83a2a",
                             "button_color": "#b83a2a",
+                            "active_state_color": "#b83a2a",
                         },
                         "checkout_data": {
                             "custom": {"source": "word2stitch"},
