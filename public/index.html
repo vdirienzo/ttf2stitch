@@ -5321,33 +5321,51 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
   // -- Init (app loads immediately, no auth gate) --
 
-  function initAuth(onReady) {
-    onReady();
+  var _pendingReturn = null;
 
-    // Check for payment return — auto-download PDF
+  function initAuth(onReady) {
+    // Check for payment return BEFORE init so state is set before fetchFontList
     var params = new URLSearchParams(window.location.search);
     if (params.get('payment') === 'success') {
       window.history.replaceState({}, '', window.location.pathname);
+      try { _pendingReturn = JSON.parse(localStorage.getItem('w2s_pending_pdf')); } catch (e) { /* ignore */ }
+      if (_pendingReturn) {
+        // Restore state variables before init() runs (so fetchFontList uses them)
+        currentText = _pendingReturn.text || currentText;
+        currentFontFile = _pendingReturn.font || currentFontFile;
+        currentHeight = _pendingReturn.height || currentHeight;
+        currentColorCode = _pendingReturn.color || currentColorCode;
+        currentAida = _pendingReturn.aida || currentAida;
+        currentAlign = _pendingReturn.align || currentAlign;
+        // Update DOM inputs so they match restored state
+        if (textInput) textInput.value = currentText;
+        if (heightSlider) { heightSlider.value = currentHeight; }
+        if (heightValue) { heightValue.textContent = currentHeight; }
+      }
+    }
 
-      // Wait for fonts and pattern to load, then trigger PDF
-      setTimeout(function () {
-        var pending = null;
-        try { pending = JSON.parse(localStorage.getItem('w2s_pending_pdf')); } catch (e) { /* ignore */ }
-        if (pending) {
-          clearPendingDownload();
-          // Wait for font data to be ready after page restore
-          setTimeout(function () {
-            if (typeof generatePDF === 'function' && currentFontData) {
-              var color = getCurrentColor();
-              try {
-                generatePDF(currentText, currentFontData, color, currentAida);
-              } catch (err) {
-                console.error('Auto PDF download failed:', err);
-              }
-            }
-          }, 2000);
+    // Now run init() — fetchFontList will use the restored state
+    onReady();
+
+    // After init, trigger PDF download if returning from payment
+    if (_pendingReturn) {
+      clearPendingDownload();
+      // Poll until font data is loaded, then generate PDF
+      var pdfAttempts = 0;
+      var pdfInterval = setInterval(function () {
+        pdfAttempts++;
+        if (currentFontData && typeof generatePDF === 'function') {
+          clearInterval(pdfInterval);
+          var color = getCurrentColor();
+          try {
+            generatePDF(currentText, currentFontData, color, currentAida);
+          } catch (err) {
+            console.error('Auto PDF download failed:', err);
+          }
+          _pendingReturn = null;
         }
-      }, 2500);
+        if (pdfAttempts > 30) { clearInterval(pdfInterval); } // 15s timeout
+      }, 500);
     }
   }
 
