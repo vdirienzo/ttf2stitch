@@ -87,7 +87,7 @@ def shared_rasterize_options(func):
     """Decorator that adds rasterize-specific + common font options to a command."""
     options = [
         click.option(
-            "--height", type=int, default=8, help="Target height in stitches (default: 8)"
+            "--height", type=int, default=18, help="Target height in stitches (default: 18)"
         ),
         click.option(
             "--threshold",
