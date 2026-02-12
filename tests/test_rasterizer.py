@@ -201,3 +201,48 @@ class TestVerticalProportions:
             assert ink_up > ink_lo, (
                 f"'{upper}' should have more ink rows ({ink_up}) than '{lower}' ({ink_lo})"
             )
+
+    @skip_no_font
+    def test_cap_height_frame_metrics(self):
+        """_compute_frame_metrics should produce a tighter frame than full line height."""
+        from fontTools.ttLib import TTFont
+        from PIL import ImageFont
+
+        from ttf2stitch.rasterizer import _compute_frame_metrics
+
+        render_size = 320
+        pil_font = ImageFont.truetype(SYSTEM_FONT, size=render_size)
+        ascent_px, descent_px = pil_font.getmetrics()
+        full_line = ascent_px + descent_px
+
+        font_obj = TTFont(SYSTEM_FONT)
+        try:
+            offset, frame_h = _compute_frame_metrics(font_obj, pil_font, render_size)
+        finally:
+            font_obj.close()
+
+        # Tight frame should be smaller than full line height
+        assert frame_h < full_line, f"Tight frame {frame_h} should be < full line {full_line}"
+        # Offset should be positive (accent space to skip)
+        assert offset > 0, f"Frame offset {offset} should be > 0"
+        # Frame should still include descent
+        assert frame_h > descent_px, f"Frame {frame_h} should include descent {descent_px}"
+
+    @skip_no_font
+    def test_cap_height_proportions_via_rasterize_font(self):
+        """rasterize_font should produce clearly different ink spans for upper vs lower."""
+        result = rasterize_font(SYSTEM_FONT, target_height=16)
+        glyph_a = result.font.glyphs.get("A")
+        glyph_o = result.font.glyphs.get("o")
+        assert glyph_a is not None
+        assert glyph_o is not None
+
+        ink_a = sum(1 for row in glyph_a.bitmap if "1" in row)
+        ink_o = sum(1 for row in glyph_o.bitmap if "1" in row)
+
+        # With cap-height frame, uppercase should fill >65% of target height
+        assert ink_a >= 11, f"'A' should have >= 11 ink rows at 16h, got {ink_a}"
+        # Lowercase should have visibly fewer ink rows (at least 2 fewer)
+        assert ink_a - ink_o >= 2, (
+            f"'A' ({ink_a}) should have >= 2 more ink rows than 'o' ({ink_o})"
+        )

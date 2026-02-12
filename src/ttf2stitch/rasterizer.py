@@ -108,6 +108,53 @@ def _auto_threshold(img: Image.Image) -> int:
     return best_threshold
 
 
+def _compute_frame_metrics(
+    font_obj: TTFont,
+    pil_font: ImageFont.FreeTypeFont,
+    render_size: int,
+) -> tuple[float, float]:
+    """Compute cap-height-based vertical frame for proportional scaling.
+
+    Uses a tighter frame (cap_height + descent) instead of the full
+    line_height (ascent + descent). This skips the accent space above
+    cap-height, giving more vertical resolution to the actual content
+    and making uppercase/lowercase size differences more visible.
+
+    Returns (frame_top_offset, frame_height) in pixels at render_size:
+    - frame_top_offset: accent space to skip above PIL ascent line
+    - frame_height: cap_height + descent (tighter than full line_height)
+
+    Cascade: OS/2 sCapHeight → measure "H" ink bounds → full line_height.
+    """
+    ascent_px, descent_px = pil_font.getmetrics()
+    cap_height_px = 0.0
+
+    # 1) Try OS/2 sCapHeight (most accurate, available in OS/2 v2+)
+    os2 = font_obj.get("OS/2")
+    head = font_obj.get("head")
+    if os2 and head and getattr(os2, "sCapHeight", 0) > 0:
+        scale = render_size / head.unitsPerEm
+        cap_height_px = os2.sCapHeight * scale
+
+    # 2) Fallback: measure "H" ink bounds as cap height
+    if cap_height_px <= 0:
+        canvas_size = render_size * 4
+        img = Image.new("L", (canvas_size, canvas_size), 255)
+        draw = ImageDraw.Draw(img)
+        draw.text((render_size, render_size), "H", font=pil_font, fill=0)
+        bbox = draw.textbbox((render_size, render_size), "H", font=pil_font)
+        if bbox[3] > bbox[1]:
+            cap_height_px = float(bbox[3] - bbox[1])
+
+    # 3) Final fallback: full line height (no improvement)
+    if cap_height_px <= 0:
+        return 0.0, float(ascent_px + descent_px)
+
+    frame_top_offset = ascent_px - cap_height_px
+    frame_height = cap_height_px + descent_px
+    return max(0.0, frame_top_offset), frame_height
+
+
 def _rasterize_max_ink(
     content: Image.Image,
     target_height: int,
@@ -182,12 +229,16 @@ def _render_char_bitmap(
     threshold: int | None = None,
     bold: int = 0,
     strategy: str = "average",
+    frame_top_offset: float | None = None,
+    frame_height: float | None = None,
 ) -> list[str] | None:
     """Render a single character at target_height pixels and binarize.
 
-    Uses a uniform vertical frame based on font metrics (ascent + descent)
-    so all glyphs share the same coordinate system, preserving typographic
-    proportions (cap-height vs x-height).
+    Uses a uniform vertical frame so all glyphs share the same coordinate
+    system, preserving typographic proportions (cap-height vs x-height).
+
+    When frame_top_offset/frame_height are provided (from _compute_frame_metrics),
+    uses a cap-height-based tight frame. Otherwise falls back to full line_height.
 
     Returns list of bitmap strings, or None if empty.
     """
@@ -195,6 +246,10 @@ def _render_char_bitmap(
     line_height = ascent + descent
     if line_height <= 0:
         return None
+
+    # Use provided frame metrics or fall back to full line height
+    eff_offset = frame_top_offset if frame_top_offset is not None else 0.0
+    eff_frame = frame_height if frame_height is not None else float(line_height)
 
     render_h = target_height * 20
     canvas_size = render_h * 4
@@ -209,13 +264,13 @@ def _render_char_bitmap(
     if content_w <= 0:
         return None
 
-    # Common vertical frame based on font metrics (not per-glyph ink bounds)
-    frame_top = render_h
-    frame_bottom = render_h + line_height
+    # Uniform vertical frame: same for all glyphs (cap-height-based when available)
+    frame_top = render_h + int(eff_offset)
+    frame_bottom = render_h + int(eff_offset + eff_frame)
     content = img.crop((left, frame_top, right, frame_bottom))
 
     # Uniform scale factor: same ratio for all glyphs
-    target_w = max(1, round(content_w * target_height / line_height))
+    target_w = max(1, round(content_w * target_height / eff_frame))
 
     if strategy == "max-ink":
         bitmap = _rasterize_max_ink(content, target_height, target_w, threshold)
@@ -236,9 +291,20 @@ def _rasterize_single_char(
     bold: int,
     strategy: str,
     do_trim: bool,
+    frame_top_offset: float | None = None,
+    frame_height: float | None = None,
 ) -> GlyphV2 | None:
     """Rasterize one character and return a GlyphV2, or None if empty."""
-    bitmap = _render_char_bitmap(pil_font, char, target_height, threshold, bold, strategy)
+    bitmap = _render_char_bitmap(
+        pil_font,
+        char,
+        target_height,
+        threshold,
+        bold,
+        strategy,
+        frame_top_offset,
+        frame_height,
+    )
     if bitmap is None:
         return None
 
@@ -285,6 +351,7 @@ def rasterize_font(
     try:
         cmap = font_obj.getBestCmap()
         filtered = filter_glyphs(cmap, opts.charset, exclude)
+        frame_top_offset, frame_height = _compute_frame_metrics(font_obj, pil_font, render_size)
     finally:
         font_obj.close()
 
@@ -307,6 +374,8 @@ def rasterize_font(
             bold,
             strategy,
             trim,
+            frame_top_offset,
+            frame_height,
         )
 
         if glyph is None:

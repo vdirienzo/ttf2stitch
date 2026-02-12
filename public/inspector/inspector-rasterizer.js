@@ -75,15 +75,21 @@ export async function rasterizeTTF(arrayBuffer, filename, opts, onProgress = () 
   const glyphs = {};
   let maxH = 0;
 
-  // Compute common vertical frame from font metrics (BEFORE the loop)
+  // Compute cap-height-based vertical frame (BEFORE the loop)
+  // Measures "H" to get cap height, skipping accent space above for better
+  // vertical resolution (makes uppercase visibly taller than lowercase).
   const frameCanvas = document.createElement('canvas');
   frameCanvas.width = renderSize * 3;
   frameCanvas.height = renderSize * 3;
   const frameCtx = frameCanvas.getContext('2d');
-  frameCtx.textBaseline = 'top';
+  frameCtx.textBaseline = 'alphabetic';
   frameCtx.font = `${renderSize}px "${familyName}"`;
-  const refMetrics = frameCtx.measureText('M');
-  const lineHeight = (refMetrics.fontBoundingBoxAscent || 0) + (refMetrics.fontBoundingBoxDescent || renderSize);
+  const hMetrics = frameCtx.measureText('H');
+  const capHeight = hMetrics.actualBoundingBoxAscent || renderSize * 0.7;
+  const fontAscent = hMetrics.fontBoundingBoxAscent || renderSize;
+  const fontDescent = hMetrics.fontBoundingBoxDescent || renderSize * 0.25;
+  const accentSpace = Math.max(0, fontAscent - capHeight);
+  const tightFrameHeight = capHeight + fontDescent;
 
   for (let i = 0; i < CHARSET.length; i++) {
     const char = CHARSET[i];
@@ -115,9 +121,9 @@ export async function rasterizeTTF(arrayBuffer, filename, opts, onProgress = () 
     const left = Math.floor(renderSize - (metrics.actualBoundingBoxLeft || 0));
     const right = Math.ceil(renderSize + (metrics.actualBoundingBoxRight || metrics.width || renderSize));
 
-    // Common vertical frame (same for ALL glyphs)
-    const frameTop = Math.floor(renderSize - (refMetrics.fontBoundingBoxAscent || 0));
-    const frameBottom = Math.ceil(renderSize + (refMetrics.fontBoundingBoxDescent || renderSize));
+    // Cap-height-based vertical frame (same for ALL glyphs, skips accent space)
+    const frameTop = Math.floor(renderSize + accentSpace);
+    const frameBottom = Math.ceil(renderSize + accentSpace + tightFrameHeight);
 
     const cw = right - left;
     const ch = frameBottom - frameTop;
