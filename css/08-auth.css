@@ -57,6 +57,38 @@
     display: none !important;
   }
 
+  /* Upgrade button in topbar */
+  .btn-upgrade {
+    padding: 0.35rem 0.75rem;
+    margin-left: 0.5rem;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #c0392b, #e74c3c);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+  }
+
+  .btn-upgrade:hover { opacity: 0.85; }
+  .btn-upgrade:disabled { opacity: 0.5; cursor: wait; }
+
+  /* PRO badge in topbar */
+  .pro-badge {
+    padding: 0.2rem 0.5rem;
+    margin-left: 0.5rem;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+
   /* User button in topbar */
   #clerk-user-button {
     display: flex;

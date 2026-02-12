@@ -129,8 +129,8 @@
 - [ ] Crear `api/checkout.py`: serverless function que crea una Stripe Checkout Session
 - [ ] Requiere auth (JWT) — solo usuarios autenticados pueden iniciar checkout
 - [ ] Redirect a Stripe Checkout hosted page
-- [ ] success_url → `https://stitchx.vercel.app/?payment=success`
-- [ ] cancel_url → `https://stitchx.vercel.app/?payment=cancelled`
+- [ ] success_url → `https://word2stitch.vercel.app/?payment=success`
+- [ ] cancel_url → `https://word2stitch.vercel.app/?payment=cancelled`
 
 **Archivo nuevo:**
 - `api/checkout.py` — crear sesión de Stripe Checkout (~50 líneas)
@@ -180,7 +180,7 @@
   - `X-Frame-Options: DENY`
   - `Referrer-Policy: strict-origin-when-cross-origin`
   - `Content-Security-Policy` (permitir Clerk CDN, Stripe, jsPDF CDN)
-- [ ] Configurar `Access-Control-Allow-Origin` restrictivo (solo `stitchx.vercel.app`)
+- [ ] Configurar `Access-Control-Allow-Origin` restrictivo (solo `word2stitch.vercel.app`)
 
 ### Paso 5.2 — Actualizar vercel.json con nuevas functions
 - [ ] Agregar `auth_utils.py` y `stripe` a `includeFiles`
@@ -256,5 +256,11 @@ STRIPE_PRICE_ID=price_xxxxx
 |   Paso 3.1 — Web Analytics | ✅ Hecho | Habilitado en Vercel Dashboard |
 |   Paso 3.2 — Speed Insights | ✅ Hecho | Habilitado en Vercel Dashboard |
 |   Paso 3.3 — Script tags | ✅ Hecho | `/_vercel/insights/script.js` + `speed-insights/script.js` en `assemble.js` |
-| **Fase 4**: Pagos (Stripe) | ⬜ Pendiente | |
+| **Fase 4**: Pagos (Stripe) | | |
+|   Paso 4.1 — Producto Stripe | ✅ Hecho | prod_TxjlC6DFz5EqhH / price_1SzoHlA7T9QA5uNfbqJHR8h7 ($5/mo) |
+|   Paso 4.2 — /api/checkout | ✅ Hecho | Crea Stripe Checkout Session con Clerk user_id en metadata |
+|   Paso 4.3 — /api/webhook | ✅ Hecho | checkout.session.completed + subscription.deleted → Clerk metadata |
+|   Paso 4.4 — Dependencia stripe | ✅ Hecho | stripe 14.3.0 instalado |
+|   Paso 4.5 — Plan UI frontend | ✅ Hecho | Upgrade btn + PRO badge + applyPlanUI + handleUpgrade |
+|   Paso 4.6 — Backend plan check | ⏳ Siguiente | Limitar rasterizaciones para free users |
 | **Fase 5**: Producción | ⬜ Pendiente | |

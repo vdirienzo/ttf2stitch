@@ -1786,6 +1786,38 @@
     display: none !important;
   }
 
+  /* Upgrade button in topbar */
+  .btn-upgrade {
+    padding: 0.35rem 0.75rem;
+    margin-left: 0.5rem;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #c0392b, #e74c3c);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+  }
+
+  .btn-upgrade:hover { opacity: 0.85; }
+  .btn-upgrade:disabled { opacity: 0.5; cursor: wait; }
+
+  /* PRO badge in topbar */
+  .pro-badge {
+    padding: 0.2rem 0.5rem;
+    margin-left: 0.5rem;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+
   /* User button in topbar */
   #clerk-user-button {
     display: flex;
@@ -1865,6 +1897,8 @@
     <span class="dl-label">PDF</span>
   </button>
 
+  <button class="btn-upgrade" id="btn-upgrade" aria-label="Upgrade to Pro">Upgrade to Pro</button>
+  <span class="pro-badge" id="pro-badge" style="display:none">PRO</span>
   <div id="clerk-user-button"></div>
 </header>
 
@@ -5153,12 +5187,15 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   }
 
 
-// ui-modules/auth.js — Authentication gate (Clerk)
+// ui-modules/auth.js — Authentication gate + plan management (Clerk + Stripe)
 
   var authGate = document.getElementById('auth-gate');
   var authSignIn = document.getElementById('auth-sign-in');
   var clerkUserBtn = document.getElementById('clerk-user-button');
+  var upgradeBtn = document.getElementById('btn-upgrade');
+  var proBadge = document.getElementById('pro-badge');
   var isAuthenticated = false;
+  var userPlan = 'free'; // 'free' | 'pro'
 
   /**
    * Returns the current session JWT token (Promise<string|null>).
@@ -5171,12 +5208,79 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     return Promise.resolve(null);
   }
 
+  function getUserPlan() {
+    return userPlan;
+  }
+
+  function isProUser() {
+    return userPlan === 'pro';
+  }
+
+  function applyPlanUI() {
+    var meta = window.Clerk && window.Clerk.user
+      ? (window.Clerk.user.publicMetadata || {})
+      : {};
+    userPlan = meta.plan === 'pro' ? 'pro' : 'free';
+
+    if (upgradeBtn) upgradeBtn.style.display = userPlan === 'pro' ? 'none' : '';
+    if (proBadge) proBadge.style.display = userPlan === 'pro' ? '' : 'none';
+    document.body.classList.toggle('plan-pro', userPlan === 'pro');
+  }
+
+  function handleUpgrade() {
+    if (!upgradeBtn) return;
+    upgradeBtn.disabled = true;
+    upgradeBtn.textContent = 'Loading…';
+
+    var origin = window.location.origin;
+    getSessionToken().then(function (token) {
+      var headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+
+      return fetch('/api/checkout', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          success_url: origin + '/?payment=success',
+          cancel_url: origin + '/?payment=cancelled'
+        })
+      });
+    })
+    .then(function (res) {
+      if (!res.ok) throw new Error('Checkout failed');
+      return res.json();
+    })
+    .then(function (data) {
+      if (data.url) window.location.href = data.url;
+    })
+    .catch(function (err) {
+      console.error('Checkout error:', err);
+      upgradeBtn.disabled = false;
+      upgradeBtn.textContent = 'Upgrade to Pro';
+    });
+  }
+
   function showApp() {
     isAuthenticated = true;
     authGate.classList.add('auth-gate-hidden');
     document.body.classList.add('authenticated');
     if (clerkUserBtn) {
       window.Clerk.mountUserButton(clerkUserBtn);
+    }
+    applyPlanUI();
+
+    // Bind upgrade button
+    if (upgradeBtn) {
+      upgradeBtn.addEventListener('click', handleUpgrade);
+    }
+
+    // Check for payment return
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'success') {
+      // Refresh user data to pick up new plan metadata
+      window.Clerk.user.reload().then(applyPlanUI);
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
     }
   }
 
