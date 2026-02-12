@@ -2990,6 +2990,7 @@ function getTextBitmap(text, fontData, options) {
 
   var height = fontData.height || 9;
   var falseVal = (format === 'string') ? '0' : false;
+  var trueVal = (format === 'string') ? '1' : true;
 
   var lines = text.split('\n');
   var lineBitmaps = [];
@@ -3053,6 +3054,17 @@ function getTextBitmap(text, fontData, options) {
       totalHeight += lineGap;
     }
   }
+
+  // Trim empty rows from top and bottom of composed bitmap.
+  // Removes unused descent/accent rows when the text has no descenders/accents,
+  // so the stitch count reflects actual ink, not font padding.
+  while (finalBitmap.length > 0 && finalBitmap[0].indexOf(trueVal) === -1) {
+    finalBitmap.shift();
+  }
+  while (finalBitmap.length > 0 && finalBitmap[finalBitmap.length - 1].indexOf(trueVal) === -1) {
+    finalBitmap.pop();
+  }
+  totalHeight = finalBitmap.length;
 
   return { bitmap: finalBitmap, width: maxWidth, height: totalHeight };
 }
