@@ -237,6 +237,9 @@ body {
 .editor-canvas-wrap canvas {
   image-rendering: pixelated; cursor: crosshair;
 }
+.editor-canvas-wrap canvas.no-tool {
+  cursor: default;
+}
 .editor-dim-controls {
   display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;
 }

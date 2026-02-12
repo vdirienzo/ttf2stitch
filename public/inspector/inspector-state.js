@@ -23,6 +23,7 @@ export const editorState = {
     drawMode: null,
     saveTimer: null,
     saveStatus: 'idle',
+    activeTool: 'pencil',
 };
 
 export const EDITOR_SCALE = 30;
