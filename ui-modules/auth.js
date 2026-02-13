@@ -47,7 +47,10 @@
 
     if (payModalEl) {
       payModalEl.classList.remove('pay-hidden');
-      // Reset subtitle to default
+      payModalEl.classList.remove('pay-key-only');
+      // Reset title and subtitle to defaults
+      var title = payModalEl.querySelector('.pay-title');
+      if (title) title.textContent = 'Your pattern is ready to stitch \u2728';
       var subtitle = payModalEl.querySelector('.pay-subtitle');
       if (subtitle) {
         subtitle.textContent = 'Get your thread list, color codes, and print-ready PDF \u2014 everything you need to start stitching.';
@@ -55,11 +58,13 @@
     }
   }
 
-  function hidePaymentModal() {
+  function hidePaymentModal(restorePrint) {
     if (payModalEl) payModalEl.classList.add('pay-hidden');
-    // Restore print modal if it exists (user cancelled payment)
-    var printModal = document.getElementById('printModal');
-    if (printModal) printModal.classList.remove('pm-hidden');
+    // Restore print modal only on cancel (not after successful payment)
+    if (restorePrint !== false) {
+      var printModal = document.getElementById('printModal');
+      if (printModal) printModal.classList.remove('pm-hidden');
+    }
   }
 
   // -- Payment flow --
@@ -112,6 +117,17 @@
     _checkoutOverlay = document.createElement('div');
     _checkoutOverlay.className = 'ls-overlay';
 
+    // Escape button (fades in after 1.5s so it doesn't interfere with iframe load)
+    var closeBtn = document.createElement('button');
+    closeBtn.className = 'ls-overlay-close';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.title = 'Close checkout';
+    closeBtn.addEventListener('click', function() {
+      closeCheckoutOverlay();
+      showPaymentModal();
+    });
+    _checkoutOverlay.appendChild(closeBtn);
+
     var loader = document.createElement('div');
     loader.className = 'ls-overlay-loader';
     loader.innerHTML = '<div class="ls-overlay-spinner"></div>';
@@ -147,6 +163,10 @@
 
   function showLicenseKeyPrompt() {
     showPaymentModal();
+    // Switch to key-only mode: hide plan cards, show only key input
+    if (payModalEl) payModalEl.classList.add('pay-key-only');
+    var title = payModalEl.querySelector('.pay-title');
+    if (title) title.textContent = 'Payment received! \u2713';
     var subtitle = payModalEl.querySelector('.pay-subtitle');
     if (subtitle) {
       subtitle.textContent = 'Check your inbox \u2014 your pattern key is on its way! Paste it below.';
@@ -169,6 +189,7 @@
 
     if (data === 'close') {
       closeCheckoutOverlay();
+      showPaymentModal();
     }
 
     var eventName = data && data.event ? data.event : '';
@@ -185,7 +206,7 @@
   };
 
   function goToCheckout(plan) {
-    hidePaymentModal();
+    hidePaymentModal(false);
 
     var directUrl = CHECKOUT_URLS[plan];
     if (directUrl) {
@@ -262,7 +283,7 @@
 
         if (result.allowed) {
           storeLicenseKey(key);
-          hidePaymentModal();
+          hidePaymentModal(false);
           updateCreditsDisplay(result.remaining);
           if (_pendingPdfFn) {
             _pendingPdfFn();
@@ -278,6 +299,12 @@
   // -- Init --
 
   function initAuth(onReady) {
+    // Handle ?payment=success redirect (from API fallback checkout path)
+    if (window.location.search.indexOf('payment=success') !== -1) {
+      window.history.replaceState({}, '', window.location.pathname);
+      setTimeout(function() { showLicenseKeyPrompt(); }, 300);
+    }
+
     // Check if user already has a key and show credits
     var existingKey = getLicenseKey();
     if (existingKey) {
