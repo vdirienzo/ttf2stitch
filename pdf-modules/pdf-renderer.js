@@ -462,16 +462,36 @@ function buildPDF(text, fontData, dmcColor, aidaCount, orientation, options) {
     }
   }
 
-  pdf.addPage();
   if (isPreview) {
+    // Preview: redacted legend (shows structure, hides values) + upgrade CTA
+    const totalPagesPreview = totalGridPages + 2;
+
+    pdf.addPage();
+    drawRedactedLegend(pdf, {
+      color: dmcColor,
+      stitchCount: stitchCount,
+      aidaCount: aidaCount,
+      width: patternWidth,
+      height: patternHeight,
+      fontName: fontName,
+      text: text,
+      pageNum: totalGridPages + 1,
+      totalPages: totalPagesPreview,
+      pageW: pageW,
+      pageH: pageH,
+    });
+
+    pdf.addPage();
     drawUpgradePage(pdf, {
       margin: margin,
       pageW: pageW,
       pageH: pageH,
-      pageNum: totalPagesWithLegend,
-      totalPages: totalPagesWithLegend,
+      pageNum: totalPagesPreview,
+      totalPages: totalPagesPreview,
     });
   } else {
+    // Paid: full legend with all data
+    pdf.addPage();
     drawLegend(pdf, {
       color: dmcColor,
       stitchCount: stitchCount,
@@ -487,9 +507,10 @@ function buildPDF(text, fontData, dmcColor, aidaCount, orientation, options) {
     });
   }
 
+  const finalPageCount = isPreview ? totalGridPages + 2 : totalPagesWithLegend;
   const safeText = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').substring(0, 40);
   const safeId = (fontData.id || 'font').replace(/[^a-z0-9-]/g, '');
   const filename = 'word2stitch-' + (safeText || 'pattern') + '-' + safeId + '.pdf';
 
-  return { pdf, filename, pages: totalPagesWithLegend, stitches: stitchCount, patternWidth, patternHeight };
+  return { pdf, filename, pages: finalPageCount, stitches: stitchCount, patternWidth, patternHeight };
 }
