@@ -113,19 +113,16 @@ def _compute_frame_metrics(
     pil_font: ImageFont.FreeTypeFont,
     render_size: int,
 ) -> tuple[float, float]:
-    """Compute uniform vertical frame using full line height.
+    """Return None metrics to signal per-glyph scaling.
 
-    Uses the full line_height (ascent + descent) so all glyphs—uppercase
-    and lowercase—are rendered at similar visual sizes.  Empty rows from
-    unused descent/accent zones are trimmed at the text composition level
-    (getTextBitmap) rather than here.
+    Per-glyph scaling: each character is individually scaled to fill the
+    target height based on its own ink bounding box.  This makes lowercase
+    letters appear the same height as uppercase (every glyph fills 100%
+    of the target).
 
-    Returns (frame_top_offset, frame_height) in pixels at render_size:
-    - frame_top_offset: always 0 (no accent skipping)
-    - frame_height: full line height (ascent + descent)
+    Returns (None, None) to signal _render_char_bitmap to use per-glyph mode.
     """
-    ascent_px, descent_px = pil_font.getmetrics()
-    return 0.0, float(ascent_px + descent_px)
+    return None, None
 
 
 def _rasterize_max_ink(
@@ -207,23 +204,15 @@ def _render_char_bitmap(
 ) -> list[str] | None:
     """Render a single character at target_height pixels and binarize.
 
-    Uses a uniform vertical frame so all glyphs share the same coordinate
-    system, preserving typographic proportions (cap-height vs x-height).
+    Per-glyph mode (frame_height is None): each glyph is individually scaled
+    to fill 100% of the target height based on its own ink bounding box.
+    This makes all letters (uppercase and lowercase) the same height.
 
-    When frame_top_offset/frame_height are provided (from _compute_frame_metrics),
-    uses a cap-height-based tight frame. Otherwise falls back to full line_height.
+    Uniform mode (frame_height provided): all glyphs share the same vertical
+    frame, preserving typographic proportions.
 
     Returns list of bitmap strings, or None if empty.
     """
-    ascent, descent = pil_font.getmetrics()
-    line_height = ascent + descent
-    if line_height <= 0:
-        return None
-
-    # Use provided frame metrics or fall back to full line height
-    eff_offset = frame_top_offset if frame_top_offset is not None else 0.0
-    eff_frame = frame_height if frame_height is not None else float(line_height)
-
     render_h = target_height * 20
     canvas_size = render_h * 4
     img = Image.new("L", (canvas_size, canvas_size), 255)
@@ -231,19 +220,25 @@ def _render_char_bitmap(
     draw.text((render_h, render_h), char, font=pil_font, fill=0)
 
     bbox = draw.textbbox((render_h, render_h), char, font=pil_font)
-    left, _top, right, _bottom = bbox
+    left, top, right, bottom = bbox
     content_w = right - left
+    content_h = bottom - top
 
-    if content_w <= 0:
+    if content_w <= 0 or content_h <= 0:
         return None
 
-    # Uniform vertical frame: same for all glyphs (cap-height-based when available)
-    frame_top = render_h + int(eff_offset)
-    frame_bottom = render_h + int(eff_offset + eff_frame)
-    content = img.crop((left, frame_top, right, frame_bottom))
-
-    # Uniform scale factor: same ratio for all glyphs
-    target_w = max(1, round(content_w * target_height / eff_frame))
+    if frame_height is not None:
+        # Uniform frame mode: same vertical frame for all glyphs
+        eff_offset = frame_top_offset if frame_top_offset is not None else 0.0
+        eff_frame = frame_height
+        frame_top = render_h + int(eff_offset)
+        frame_bottom = render_h + int(eff_offset + eff_frame)
+        content = img.crop((left, frame_top, right, frame_bottom))
+        target_w = max(1, round(content_w * target_height / eff_frame))
+    else:
+        # Per-glyph mode: each glyph fills 100% of target height
+        content = img.crop((left, top, right, bottom))
+        target_w = max(1, round(content_w * target_height / content_h))
 
     if strategy == "max-ink":
         bitmap = _rasterize_max_ink(content, target_height, target_w, threshold)
