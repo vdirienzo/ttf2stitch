@@ -171,8 +171,8 @@ class TestVerticalFrame:
             assert result.font.height == target
 
     @skip_no_font
-    def test_frame_metrics_returns_full_line_height(self):
-        """_compute_frame_metrics should return full line height (no cap-height cropping)."""
+    def test_frame_metrics_returns_none_for_per_glyph(self):
+        """_compute_frame_metrics should return (None, None) for per-glyph scaling."""
         from fontTools.ttLib import TTFont
         from PIL import ImageFont
 
@@ -180,8 +180,6 @@ class TestVerticalFrame:
 
         render_size = 320
         pil_font = ImageFont.truetype(SYSTEM_FONT, size=render_size)
-        ascent_px, descent_px = pil_font.getmetrics()
-        full_line = ascent_px + descent_px
 
         font_obj = TTFont(SYSTEM_FONT)
         try:
@@ -189,5 +187,5 @@ class TestVerticalFrame:
         finally:
             font_obj.close()
 
-        assert offset == 0.0, f"Frame offset should be 0, got {offset}"
-        assert frame_h == float(full_line), f"Frame {frame_h} should equal full line {full_line}"
+        assert offset is None, "Per-glyph mode: offset should be None"
+        assert frame_h is None, "Per-glyph mode: frame_h should be None"
