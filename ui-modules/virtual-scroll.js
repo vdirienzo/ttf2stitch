@@ -242,6 +242,19 @@
     renderPreview(canvas, text, fontData, color, { cellSize: 2, maxWidth: 260 });
   }
 
+  // Re-render desktop sidebar previews using already-cached font data (no server requests)
+  function refreshSidebarPreviews() {
+    var canvases = document.querySelectorAll('.font-item-preview');
+    for (var i = 0; i < canvases.length; i++) {
+      var fontFile = canvases[i].dataset.fontFile;
+      if (!fontFile) continue;
+      var cacheKey = getCacheKey(fontFile, currentHeight);
+      if (fontCache.has(cacheKey)) {
+        renderFontPreviewCanvas(canvases[i], fontCache.get(cacheKey));
+      }
+    }
+  }
+
   // Scroll handler (RAF-throttled)
   var sheetFontListWrap = document.getElementById('sheetFontListWrap');
   if (sheetFontListWrap) {
