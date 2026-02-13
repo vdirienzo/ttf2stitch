@@ -16,9 +16,9 @@ LS_LICENSE_URL = "https://api.lemonsqueezy.com/v1/licenses"
 
 # Map LS variant IDs to plan names
 VARIANT_PLANS = {
-    "827221": "single",
-    "827222": "pack10",
-    "827223": "annual",
+    "1303798": "single",
+    "1303800": "pack10",
+    "1303802": "annual",
 }
 
 ALLOWED_ORIGINS = {"https://word2stitch.vercel.app"}

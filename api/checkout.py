@@ -15,9 +15,9 @@ LS_API_KEY = os.environ.get("LEMONSQUEEZY_API_KEY", "").strip()
 # Store ID (infinis) and variant IDs from LS dashboard
 STORE_ID = "291180"
 VARIANTS = {
-    "single": "827221",  # $1.99 one-time
-    "pack10": "827222",  # $9.99 one-time
-    "annual": "827223",  # $24.99/year subscription
+    "single": "1303798",  # $1.99 one-time
+    "pack10": "1303800",  # $9.99 one-time
+    "annual": "1303802",  # $24.99/year subscription
 }
 # Legacy aliases (backward compat with existing frontend)
 VARIANTS["onetime"] = VARIANTS["single"]
