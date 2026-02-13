@@ -41,6 +41,10 @@
   // -- Payment modal --
 
   function showPaymentModal() {
+    // Hide print modal if it's open (avoid overlapping modals)
+    var printModal = document.getElementById('printModal');
+    if (printModal) printModal.classList.add('pm-hidden');
+
     if (payModalEl) {
       payModalEl.classList.remove('pay-hidden');
       // Reset subtitle to default
@@ -53,6 +57,9 @@
 
   function hidePaymentModal() {
     if (payModalEl) payModalEl.classList.add('pay-hidden');
+    // Restore print modal if it exists (user cancelled payment)
+    var printModal = document.getElementById('printModal');
+    if (printModal) printModal.classList.remove('pm-hidden');
   }
 
   // -- Payment flow --
