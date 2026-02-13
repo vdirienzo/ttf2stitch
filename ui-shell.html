@@ -470,21 +470,32 @@
   <div class="pay-backdrop" id="pay-backdrop"></div>
   <div class="pay-dialog">
     <button class="pay-close" id="pay-close">&times;</button>
-    <div class="pay-title">Download Your Pattern</div>
-    <div class="pay-subtitle">Choose how you'd like to get your cross-stitch PDF</div>
+    <div class="pay-title">Download Complete Pattern</div>
+    <div class="pay-subtitle">Your preview is ready. Unlock the full pattern with materials list.</div>
     <div class="pay-options">
-      <button class="pay-option" id="pay-onetime">
+      <button class="pay-option" id="pay-single">
         <span class="pay-option-price">$1.99</span>
-        <span class="pay-option-label">This PDF</span>
-        <span class="pay-option-desc">One-time download, no account needed</span>
+        <span class="pay-option-label">This Pattern</span>
+        <span class="pay-option-desc">One-time download</span>
       </button>
-      <button class="pay-option pay-option-featured" id="pay-subscribe">
-        <span class="pay-option-badge">Best Value</span>
-        <span class="pay-option-price">$4.99<small>/mo</small></span>
+      <button class="pay-option pay-option-featured" id="pay-pack10">
+        <span class="pay-option-badge">Save 44%</span>
+        <span class="pay-option-price">$9.99</span>
+        <span class="pay-option-label">10 Patterns</span>
+        <span class="pay-option-desc">Best for regular stitchers</span>
+      </button>
+      <button class="pay-option" id="pay-annual">
+        <span class="pay-option-price">$24.99<small>/yr</small></span>
         <span class="pay-option-label">Unlimited</span>
-        <span class="pay-option-desc">All PDFs, cancel anytime</span>
+        <span class="pay-option-desc">All patterns, one year</span>
       </button>
     </div>
+    <div class="pay-divider"><span>Already purchased?</span></div>
+    <div class="pay-key-input">
+      <input type="text" id="pay-key-field" placeholder="Paste your license key" />
+      <button id="pay-key-submit">Activate</button>
+    </div>
+    <div id="credits-display" class="pay-hidden"></div>
   </div>
 </div>
 

@@ -35,7 +35,11 @@ function _createPrintModal() {
     '  <div class="pm-actions">',
     '    <button class="pm-btn pm-btn-secondary" id="pmDownload">',
     '      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
-    '      Download PDF',
+    '      Download Preview',
+    '    </button>',
+    '    <button class="pm-btn pm-btn-accent" id="pmDownloadComplete">',
+    '      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+    '      Download Complete \u2B50',
     '    </button>',
     '    <button class="pm-btn pm-btn-primary" id="pmPrint">',
     '      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
@@ -62,12 +66,14 @@ function _createPrintModal() {
     '.pm-preview { flex:1; min-height:0; padding:0 18px; overflow:hidden; }',
     '.pm-iframe { width:100%; height:350px; border:1px solid #e0d6c8; border-radius:8px; background:#fff; }',
     '.pm-info { padding:8px 18px; font-size:12px; color:#7a6e60; text-align:center; }',
-    '.pm-actions { display:flex; gap:10px; padding:14px 18px; border-top:1px solid #e0d6c8; justify-content:flex-end; }',
+    '.pm-actions { display:flex; gap:10px; padding:14px 18px; border-top:1px solid #e0d6c8; justify-content:flex-end; flex-wrap:wrap; }',
     '.pm-btn { display:flex; align-items:center; gap:6px; padding:10px 20px; border-radius:10px; font-family:"Anybody",system-ui,sans-serif; font-size:14px; font-weight:600; cursor:pointer; border:none; transition:background 0.15s, color 0.15s, box-shadow 0.15s; min-height:48px; }',
     '.pm-btn-secondary { background:#fff; color:#3d3229; border:2px solid #e0d6c8; }',
     '.pm-btn-secondary:hover { border-color:#b83a2a; color:#b83a2a; }',
-    '.pm-btn-primary { background:#b83a2a; color:#fff; }',
-    '.pm-btn-primary:hover { background:#9c3023; box-shadow:0 3px 12px rgba(184,58,42,0.25); }',
+    '.pm-btn-accent { background:#b83a2a; color:#fff; }',
+    '.pm-btn-accent:hover { background:#9c3023; box-shadow:0 3px 12px rgba(184,58,42,0.25); }',
+    '.pm-btn-primary { background:#3d3229; color:#fff; }',
+    '.pm-btn-primary:hover { background:#2a231c; box-shadow:0 3px 12px rgba(61,50,41,0.25); }',
     '@media(max-width:640px) { .pm-dialog { width:96vw; max-height:95vh; border-radius:10px; } .pm-preview { display:none; } .pm-orient-btn { padding:8px 14px; font-size:12px; } .pm-actions { flex-direction:column; } .pm-btn { justify-content:center; } }',
   ].join('\n');
 
@@ -78,13 +84,15 @@ function _createPrintModal() {
   modal.querySelector('.pm-title').textContent = '\u2715 ' + pt('pdf_print_preview', 'Print Preview');
   modal.querySelector('[data-orient="portrait"]').lastChild.textContent = ' ' + pt('pdf_orient_portrait', 'Portrait');
   modal.querySelector('[data-orient="landscape"]').lastChild.textContent = ' ' + pt('pdf_orient_landscape', 'Landscape');
-  document.getElementById('pmDownload').lastChild.textContent = ' ' + pt('pdf_btn_download', 'Download PDF');
+  document.getElementById('pmDownload').lastChild.textContent = ' ' + pt('pdf_btn_download_preview', 'Download Preview');
+  document.getElementById('pmDownloadComplete').lastChild.textContent = ' ' + pt('pdf_btn_download_complete', 'Download Complete \u2B50');
   document.getElementById('pmPrint').lastChild.textContent = ' ' + pt('pdf_btn_print', 'Print');
 }
 
 /**
  * Show the print preview modal.
- * Generates PDF in chosen orientation and displays in iframe.
+ * Generates PREVIEW PDF (watermark, no legend) and displays in iframe.
+ * Complete PDF requires payment via requestPdfDownload().
  */
 function generatePDF(text, fontData, dmcColor, aidaCount) {
   if (!text || !text.trim()) { alert(pt('pdf_alert_no_text', 'Please enter some text.')); return; }
@@ -100,7 +108,8 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   var currentBlobUrl = null;
 
   function buildAndShow(orient) {
-    var result = buildPDF(text, fontData, dmcColor, aidaCount, orient);
+    // Build PREVIEW version (watermark, no legend, upgrade CTA)
+    var result = buildPDF(text, fontData, dmcColor, aidaCount, orient, { preview: true });
     if (!result) { alert(pt('pdf_alert_no_render', 'Could not render pattern.')); return; }
 
     if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
@@ -119,8 +128,8 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       ' ' + pt('pdf_unit_stitches', 'stitches') + ' \u00b7 ' + sizeStr + ' \u00b7 ' +
       result.pages + ' ' + pt('pdf_unit_pages', 'pages') + ' \u00b7 ' + result.stitches + ' ' + pt('pdf_unit_crosses', 'crosses');
 
-    // Store for download/print
-    modal._pdfResult = result;
+    // Store preview result for free download
+    modal._previewResult = result;
     modal._blobUrl = currentBlobUrl;
   }
 
@@ -153,22 +162,37 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   modal.querySelector('.pm-backdrop').onclick = closeModal;
   document.getElementById('pmClose').onclick = closeModal;
 
-  // Download
+  // Download Preview (free)
   document.getElementById('pmDownload').onclick = function() {
-    if (modal._pdfResult) {
-      modal._pdfResult.pdf.save(modal._pdfResult.filename);
+    if (modal._previewResult) {
+      modal._previewResult.pdf.save('preview-' + modal._previewResult.filename);
     }
   };
 
-  // Print
-  document.getElementById('pmPrint').onclick = function() {
-    if (modal._blobUrl) {
-      var printWin = window.open(modal._blobUrl, '_blank');
-      if (printWin) {
-        printWin.addEventListener('load', function() {
-          setTimeout(function() { printWin.print(); }, 500);
-        });
+  // Download Complete (paid)
+  document.getElementById('pmDownloadComplete').onclick = function() {
+    window.requestPdfDownload(function() {
+      var complete = buildPDF(text, fontData, dmcColor, aidaCount, currentOrientation, { preview: false });
+      if (complete) {
+        complete.pdf.save(complete.filename);
       }
-    }
+    });
+  };
+
+  // Print (paid)
+  document.getElementById('pmPrint').onclick = function() {
+    window.requestPdfDownload(function() {
+      var complete = buildPDF(text, fontData, dmcColor, aidaCount, currentOrientation, { preview: false });
+      if (complete) {
+        var blob = complete.pdf.output('blob');
+        var url = URL.createObjectURL(blob);
+        var printWin = window.open(url, '_blank');
+        if (printWin) {
+          printWin.addEventListener('load', function() {
+            setTimeout(function() { printWin.print(); }, 500);
+          });
+        }
+      }
+    });
   };
 }

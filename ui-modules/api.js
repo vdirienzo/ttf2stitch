@@ -22,7 +22,7 @@
         msg.style.cssText = 'padding:20px;color:var(--text-muted);font-size:12px;text-align:center';
         msg.textContent = t('server_error');
         fontList.appendChild(msg);
-        console.error('fetchFontList:', err);
+        console.error('Font list unavailable');
       });
   }
 
@@ -62,7 +62,7 @@
     })
     .catch(function (err) {
       hideLoading();
-      console.error('rasterizeFont:', err);
+      console.error('Rasterization failed');
       return null;
     })
     .finally(function () {

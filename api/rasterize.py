@@ -4,6 +4,7 @@ Rasterizes a TTF/OTF font at a given stitch height using ttf2stitch.
 Public endpoint — no authentication required.
 """
 
+import os
 import sys
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
@@ -26,6 +27,20 @@ FONTS_DIR = str(PROJECT_ROOT / "fonts")
 
 # Module-level cache (persists across warm invocations)
 _rasterize_cache: dict[tuple[str, int, int, str], dict] = {}
+
+ALLOWED_ORIGINS = {"https://word2stitch.vercel.app"}
+if os.environ.get("VERCEL_ENV") != "production":
+    ALLOWED_ORIGINS.add("http://localhost:8042")
+
+
+def _cors_headers(origin):
+    if origin in ALLOWED_ORIGINS:
+        return {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }
+    return {}
 
 
 class handler(BaseHTTPRequestHandler):
@@ -62,8 +77,8 @@ class handler(BaseHTTPRequestHandler):
             json_error(self, f"Rasterization failed: {e}", 500)
 
     def do_OPTIONS(self):
+        origin = self.headers.get("Origin", "")
         self.send_response(204)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        for k, v in _cors_headers(origin).items():
+            self.send_header(k, v)
         self.end_headers()

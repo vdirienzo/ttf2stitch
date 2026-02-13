@@ -1,6 +1,6 @@
 // ui-modules/pdf-integration.js — Download PDF button handler
-// Calls requestPdfDownload (from auth.js) which checks plan status
-// before allowing PDF generation.
+// Opens the print preview modal (free preview). Payment gate is inside
+// the modal for Download Complete and Print actions.
 
   // -- Download PDF --
 
@@ -19,13 +19,6 @@
       return;
     }
 
-    // Delegate to auth.js — shows payment modal if not pro
-    requestPdfDownload(function () {
-      try {
-        generatePDF(currentText, currentFontData, color, currentAida);
-      } catch (err) {
-        alert(t('alert_pdf_fail') + err.message);
-        console.error('PDF error:', err);
-      }
-    });
+    // Always show preview (free, no payment needed)
+    generatePDF(currentText, currentFontData, color, currentAida);
   });
