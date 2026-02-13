@@ -95,5 +95,6 @@
     desktopInputDebounce = setTimeout(function () {
       updatePreview();
       renderVirtualFontList();
+      refreshSidebarPreviews();
     }, 300);
   });
