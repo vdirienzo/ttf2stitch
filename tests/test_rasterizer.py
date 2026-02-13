@@ -153,22 +153,8 @@ class TestRasterizeCLI:
             assert data["height"] <= height + 2  # close to target
 
 
-class TestVerticalProportions:
-    """Tests that the uniform vertical frame preserves typographic proportions."""
-
-    @skip_no_font
-    def test_uppercase_has_more_ink_rows_than_lowercase(self):
-        """'H' should have strictly more rows containing '1' than 'o'."""
-        from PIL import ImageFont
-
-        font = ImageFont.truetype(SYSTEM_FONT, size=320)
-        bitmap_h = _render_char_bitmap(font, "H", target_height=16)
-        bitmap_o = _render_char_bitmap(font, "o", target_height=16)
-        assert bitmap_h is not None
-        assert bitmap_o is not None
-        ink_rows_h = sum(1 for row in bitmap_h if "1" in row)
-        ink_rows_o = sum(1 for row in bitmap_o if "1" in row)
-        assert ink_rows_h > ink_rows_o
+class TestVerticalFrame:
+    """Tests that the uniform vertical frame produces consistent glyph heights."""
 
     @skip_no_font
     def test_all_glyphs_uniform_bitmap_height(self):
@@ -185,26 +171,8 @@ class TestVerticalProportions:
             assert result.font.height == target
 
     @skip_no_font
-    def test_vertical_proportions_preserved(self):
-        """Uppercase letters should consistently have more ink rows than lowercase."""
-        from PIL import ImageFont
-
-        font = ImageFont.truetype(SYSTEM_FONT, size=320)
-        pairs = [("H", "o"), ("T", "a"), ("L", "e"), ("B", "c")]
-        for upper, lower in pairs:
-            bitmap_up = _render_char_bitmap(font, upper, target_height=16)
-            bitmap_lo = _render_char_bitmap(font, lower, target_height=16)
-            assert bitmap_up is not None, f"Failed to render '{upper}'"
-            assert bitmap_lo is not None, f"Failed to render '{lower}'"
-            ink_up = sum(1 for row in bitmap_up if "1" in row)
-            ink_lo = sum(1 for row in bitmap_lo if "1" in row)
-            assert ink_up > ink_lo, (
-                f"'{upper}' should have more ink rows ({ink_up}) than '{lower}' ({ink_lo})"
-            )
-
-    @skip_no_font
-    def test_cap_height_frame_metrics(self):
-        """_compute_frame_metrics should produce a tighter frame than full line height."""
+    def test_frame_metrics_returns_full_line_height(self):
+        """_compute_frame_metrics should return full line height (no cap-height cropping)."""
         from fontTools.ttLib import TTFont
         from PIL import ImageFont
 
@@ -221,28 +189,5 @@ class TestVerticalProportions:
         finally:
             font_obj.close()
 
-        # Tight frame should be smaller than full line height
-        assert frame_h < full_line, f"Tight frame {frame_h} should be < full line {full_line}"
-        # Offset should be positive (accent space to skip)
-        assert offset > 0, f"Frame offset {offset} should be > 0"
-        # Frame should still include descent
-        assert frame_h > descent_px, f"Frame {frame_h} should include descent {descent_px}"
-
-    @skip_no_font
-    def test_cap_height_proportions_via_rasterize_font(self):
-        """rasterize_font should produce clearly different ink spans for upper vs lower."""
-        result = rasterize_font(SYSTEM_FONT, target_height=16)
-        glyph_a = result.font.glyphs.get("A")
-        glyph_o = result.font.glyphs.get("o")
-        assert glyph_a is not None
-        assert glyph_o is not None
-
-        ink_a = sum(1 for row in glyph_a.bitmap if "1" in row)
-        ink_o = sum(1 for row in glyph_o.bitmap if "1" in row)
-
-        # With cap-height frame, uppercase should fill >65% of target height
-        assert ink_a >= 11, f"'A' should have >= 11 ink rows at 16h, got {ink_a}"
-        # Lowercase should have visibly fewer ink rows (at least 2 fewer)
-        assert ink_a - ink_o >= 2, (
-            f"'A' ({ink_a}) should have >= 2 more ink rows than 'o' ({ink_o})"
-        )
+        assert offset == 0.0, f"Frame offset should be 0, got {offset}"
+        assert frame_h == float(full_line), f"Frame {frame_h} should equal full line {full_line}"

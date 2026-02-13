@@ -108,80 +108,24 @@ def _auto_threshold(img: Image.Image) -> int:
     return best_threshold
 
 
-def _measure_ink_descent(
-    pil_font: ImageFont.FreeTypeFont,
-    render_size: int,
-    ascent_px: float,
-) -> float:
-    """Measure actual ink descent below baseline from descender characters.
-
-    Instead of using the font's declared descent (padded for line spacing),
-    uses textbbox() on known descender characters to measure how far their
-    ink actually extends below the baseline.  Returns 0 if no descenders found.
-    """
-    descender_chars = "gjpqy"
-    canvas_size = render_size * 4
-    baseline_y = render_size + ascent_px
-    max_ink_bottom = baseline_y
-
-    img = Image.new("L", (canvas_size, canvas_size), 255)
-    draw = ImageDraw.Draw(img)
-    for char in descender_chars:
-        bbox = draw.textbbox((render_size, render_size), char, font=pil_font)
-        if bbox[3] > max_ink_bottom:
-            max_ink_bottom = bbox[3]
-
-    return max(0.0, float(max_ink_bottom - baseline_y))
-
-
 def _compute_frame_metrics(
     font_obj: TTFont,
     pil_font: ImageFont.FreeTypeFont,
     render_size: int,
 ) -> tuple[float, float]:
-    """Compute cap-height-based vertical frame for proportional scaling.
+    """Compute uniform vertical frame using full line height.
 
-    Uses a tight frame (cap_height + actual_ink_descent) instead of the full
-    line_height (ascent + descent). This skips the accent space above
-    cap-height AND the unused descent padding, giving maximum vertical
-    resolution to the actual content.
+    Uses the full line_height (ascent + descent) so all glyphs—uppercase
+    and lowercase—are rendered at similar visual sizes.  Empty rows from
+    unused descent/accent zones are trimmed at the text composition level
+    (getTextBitmap) rather than here.
 
     Returns (frame_top_offset, frame_height) in pixels at render_size:
-    - frame_top_offset: accent space to skip above PIL ascent line
-    - frame_height: cap_height + actual_ink_descent
-
-    Cascade: OS/2 sCapHeight → measure "H" ink bounds → full line_height.
+    - frame_top_offset: always 0 (no accent skipping)
+    - frame_height: full line height (ascent + descent)
     """
     ascent_px, descent_px = pil_font.getmetrics()
-    cap_height_px = 0.0
-
-    # 1) Try OS/2 sCapHeight (most accurate, available in OS/2 v2+)
-    os2 = font_obj.get("OS/2")
-    head = font_obj.get("head")
-    if os2 and head and getattr(os2, "sCapHeight", 0) > 0:
-        scale = render_size / head.unitsPerEm
-        cap_height_px = os2.sCapHeight * scale
-
-    # 2) Fallback: measure "H" ink bounds as cap height
-    if cap_height_px <= 0:
-        canvas_size = render_size * 4
-        img = Image.new("L", (canvas_size, canvas_size), 255)
-        draw = ImageDraw.Draw(img)
-        draw.text((render_size, render_size), "H", font=pil_font, fill=0)
-        bbox = draw.textbbox((render_size, render_size), "H", font=pil_font)
-        if bbox[3] > bbox[1]:
-            cap_height_px = float(bbox[3] - bbox[1])
-
-    # 3) Final fallback: full line height (no improvement)
-    if cap_height_px <= 0:
-        return 0.0, float(ascent_px + descent_px)
-
-    # Measure actual ink descent instead of using padded font descent
-    actual_descent = _measure_ink_descent(pil_font, render_size, ascent_px)
-
-    frame_top_offset = ascent_px - cap_height_px
-    frame_height = cap_height_px + actual_descent
-    return max(0.0, frame_top_offset), frame_height
+    return 0.0, float(ascent_px + descent_px)
 
 
 def _rasterize_max_ink(

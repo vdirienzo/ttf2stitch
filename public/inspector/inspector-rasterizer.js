@@ -75,11 +75,9 @@ export async function rasterizeTTF(arrayBuffer, filename, opts, onProgress = () 
   const glyphs = {};
   let maxH = 0;
 
-  // Compute cap-height-based vertical frame (BEFORE the loop)
-  // Measures "H" to get cap height, skipping accent space above for better
-  // vertical resolution (makes uppercase visibly taller than lowercase).
-  // Also measures actual ink descent from descender chars instead of using
-  // the font's declared descent (which includes line-spacing padding).
+  // Compute uniform vertical frame using full line height (BEFORE the loop).
+  // All glyphs share the same frame so uppercase and lowercase render at
+  // similar visual sizes.  Empty rows are trimmed at text composition level.
   const frameCanvas = document.createElement('canvas');
   frameCanvas.width = renderSize * 3;
   frameCanvas.height = renderSize * 3;
@@ -87,19 +85,10 @@ export async function rasterizeTTF(arrayBuffer, filename, opts, onProgress = () 
   frameCtx.textBaseline = 'alphabetic';
   frameCtx.font = `${renderSize}px "${familyName}"`;
   const hMetrics = frameCtx.measureText('H');
-  const capHeight = hMetrics.actualBoundingBoxAscent || renderSize * 0.7;
   const fontAscent = hMetrics.fontBoundingBoxAscent || renderSize;
-  const accentSpace = Math.max(0, fontAscent - capHeight);
-
-  // Measure actual ink descent from descender characters
-  let actualDescent = 0;
-  for (const ch of 'gjpqy') {
-    const m = frameCtx.measureText(ch);
-    if (m.actualBoundingBoxDescent > actualDescent) {
-      actualDescent = m.actualBoundingBoxDescent;
-    }
-  }
-  const tightFrameHeight = capHeight + actualDescent;
+  const fontDescent = hMetrics.fontBoundingBoxDescent || renderSize * 0.25;
+  const accentSpace = 0;
+  const tightFrameHeight = fontAscent + fontDescent;
 
   for (let i = 0; i < CHARSET.length; i++) {
     const char = CHARSET[i];
