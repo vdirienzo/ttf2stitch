@@ -193,7 +193,7 @@ def validate_rasterize_params(body: dict) -> tuple[dict | None, str | None]:
     The params_dict contains keys: font, height, bold, strategy.
     """
     font_file = body.get("font", "")
-    if not font_file or ".." in font_file or "/" in font_file:
+    if not font_file or ".." in font_file or "/" in font_file or "\\" in font_file:
         return None, f"Invalid font filename: '{font_file}'"
 
     height = body.get("height", 12)

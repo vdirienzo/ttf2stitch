@@ -15,14 +15,17 @@ LS_API_KEY = os.environ.get("LEMONSQUEEZY_API_KEY", "").strip()
 # Store ID (infinis) and variant IDs from LS dashboard
 STORE_ID = "291180"
 VARIANTS = {
-    "onetime": "1300617",
-    "subscribe": "1300610",
+    "single": "827221",  # $1.99 one-time
+    "pack10": "827222",  # $9.99 one-time
+    "annual": "827223",  # $24.99/year subscription
 }
+# Legacy aliases (backward compat with existing frontend)
+VARIANTS["onetime"] = VARIANTS["single"]
+VARIANTS["subscribe"] = VARIANTS["annual"]
 
-ALLOWED_ORIGINS = {
-    "https://word2stitch.vercel.app",
-    "http://localhost:8042",
-}
+ALLOWED_ORIGINS = {"https://word2stitch.vercel.app"}
+if os.environ.get("VERCEL_ENV") != "production":
+    ALLOWED_ORIGINS.add("http://localhost:8042")
 
 
 def cors_headers(origin):
@@ -48,11 +51,15 @@ class handler(BaseHTTPRequestHandler):
         headers = cors_headers(origin)
 
         if not LS_API_KEY:
-            self._json(500, {"error": "LEMONSQUEEZY_API_KEY not configured"}, headers)
+            self._json(500, {"error": "Service configuration error"}, headers)
             return
 
         try:
+            MAX_BODY = 4096
             length = int(self.headers.get("Content-Length", 0))
+            if length > MAX_BODY or length < 0:
+                self._json(413, {"error": "Payload too large"}, headers)
+                return
             body = json.loads(self.rfile.read(length)) if length else {}
         except (json.JSONDecodeError, ValueError):
             self._json(400, {"error": "Invalid JSON body"}, headers)
@@ -112,9 +119,11 @@ class handler(BaseHTTPRequestHandler):
                 self._json(200, {"url": checkout_url}, headers)
         except HTTPError as e:
             error_body = e.read().decode() if e.fp else str(e)
-            self._json(e.code, {"error": "LS API error", "detail": error_body}, headers)
+            print(f"[checkout] LS API error: {error_body}")
+            self._json(502, {"error": "Payment service temporarily unavailable"}, headers)
         except Exception as e:
-            self._json(500, {"error": str(e)}, headers)
+            print(f"[checkout] Unexpected error: {e}")
+            self._json(500, {"error": "Internal server error"}, headers)
 
     def _json(self, status, data, extra_headers=None):
         body = json.dumps(data).encode()

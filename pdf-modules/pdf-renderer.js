@@ -260,10 +260,130 @@ function drawBrandedFooter(pdf, margin, pageW, pageH) {
 }
 
 /**
+ * Draw a semi-transparent diagonal watermark on a grid page.
+ * Uses jsPDF GState for transparency when available, falls back to light gray.
+ *
+ * @param {jsPDF} pdf - jsPDF instance
+ * @param {number} pageW - Page width in mm
+ * @param {number} pageH - Page height in mm
+ */
+function drawWatermark(pdf, pageW, pageH) {
+  pdf.saveGraphicsState();
+
+  // Try to apply transparency via GState (jsPDF 2.x)
+  let usedGState = false;
+  try {
+    const GState = (window.jspdf && window.jspdf.jsPDF && window.jspdf.jsPDF.API &&
+      window.jspdf.jsPDF.API.GState) || (pdf.GState);
+    if (typeof GState === 'function') {
+      pdf.setGState(new GState({ opacity: 0.08 }));
+      pdf.setTextColor(184, 58, 42);
+      usedGState = true;
+    }
+  } catch (e) {
+    // GState not supported — fall through to fallback
+  }
+
+  if (!usedGState) {
+    // Fallback: very light gray simulates low opacity on white background
+    pdf.setTextColor(235, 225, 224);
+  }
+
+  pdf.setFontSize(48);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Word2Stitch', pageW / 2, pageH / 2, {
+    align: 'center',
+    angle: 35,
+  });
+
+  pdf.restoreGraphicsState();
+}
+
+/**
+ * Draw the upgrade CTA page (replaces legend in preview mode).
+ * Branded header/footer + call-to-action with feature list and pricing.
+ *
+ * @param {jsPDF} pdf - jsPDF instance
+ * @param {object} opts - Page options
+ * @param {number} opts.margin - Page margin in mm
+ * @param {number} opts.pageW - Page width in mm
+ * @param {number} opts.pageH - Page height in mm
+ * @param {number} opts.pageNum - Current page number
+ * @param {number} opts.totalPages - Total page count
+ */
+function drawUpgradePage(pdf, opts) {
+  const margin = opts.margin;
+  const pageW = opts.pageW;
+  const pageH = opts.pageH;
+
+  // Branded header (no pattern info — this is a CTA page)
+  drawBrandedHeader(pdf, '', '', 0, 0, opts.pageNum, opts.totalPages, margin, pageW);
+  drawBrandedFooter(pdf, margin, pageW, pageH);
+
+  const centerX = pageW / 2;
+  let y = pageH * 0.3;
+
+  // Title
+  pdf.setFontSize(22);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(184, 58, 42);
+  pdf.text('Get the Complete Pattern', centerX, y, { align: 'center' });
+  y += 12;
+
+  // Subtitle
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(100, 100, 100);
+  pdf.text('Your pattern preview is ready! Unlock the full version to start stitching.', centerX, y, { align: 'center' });
+  y += 20;
+
+  // Feature checklist
+  const items = [
+    'Thread legend with exact DMC color codes',
+    'Thread length calculation (meters + skeins)',
+    'Finished size and cut fabric dimensions',
+    'Pattern without watermark',
+    'Print-ready at 1:1 scale',
+  ];
+
+  pdf.setFontSize(11);
+  pdf.setTextColor(60, 60, 60);
+  pdf.setFont('helvetica', 'normal');
+  for (let i = 0; i < items.length; i++) {
+    pdf.text('\u2713  ' + items[i], centerX - 60, y);
+    y += 7;
+  }
+  y += 10;
+
+  // Pricing
+  pdf.setFontSize(14);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(184, 58, 42);
+  pdf.text('From just $1.99', centerX, y, { align: 'center' });
+  y += 8;
+
+  // URL
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(120, 120, 120);
+  pdf.text('word2stitch.vercel.app', centerX, y, { align: 'center' });
+}
+
+/**
  * Build the PDF document with given orientation.
  * Returns { pdf, filename } without saving.
+ *
+ * @param {string} text - Pattern text
+ * @param {object} fontData - Font data with glyphs
+ * @param {object} dmcColor - DMC color { code, name, hex, r, g, b }
+ * @param {number} aidaCount - Fabric count (e.g. 14)
+ * @param {string} orientation - 'portrait' or 'landscape'
+ * @param {object} [options] - Optional settings
+ * @param {boolean} [options.preview] - When true: watermark + no legend + upgrade CTA page
  */
-function buildPDF(text, fontData, dmcColor, aidaCount, orientation) {
+function buildPDF(text, fontData, dmcColor, aidaCount, orientation, options) {
+  const opts = options || {};
+  const isPreview = !!opts.preview;
   const bitmap = getTextBitmapForPDF(text, fontData);
   if (bitmap.length === 0 || !bitmap[0] || bitmap[0].length === 0) {
     return null;
@@ -328,23 +448,37 @@ function buildPDF(text, fontData, dmcColor, aidaCount, orientation) {
         margins: { left: margin, top: margin + headerHeight },
         layout: layout,
       });
+
+      if (isPreview) {
+        drawWatermark(pdf, pageW, pageH);
+      }
     }
   }
 
   pdf.addPage();
-  drawLegend(pdf, {
-    color: dmcColor,
-    stitchCount: stitchCount,
-    aidaCount: aidaCount,
-    width: patternWidth,
-    height: patternHeight,
-    fontName: fontName,
-    text: text,
-    pageNum: totalPagesWithLegend,
-    totalPages: totalPagesWithLegend,
-    pageW: pageW,
-    pageH: pageH,
-  });
+  if (isPreview) {
+    drawUpgradePage(pdf, {
+      margin: margin,
+      pageW: pageW,
+      pageH: pageH,
+      pageNum: totalPagesWithLegend,
+      totalPages: totalPagesWithLegend,
+    });
+  } else {
+    drawLegend(pdf, {
+      color: dmcColor,
+      stitchCount: stitchCount,
+      aidaCount: aidaCount,
+      width: patternWidth,
+      height: patternHeight,
+      fontName: fontName,
+      text: text,
+      pageNum: totalPagesWithLegend,
+      totalPages: totalPagesWithLegend,
+      pageW: pageW,
+      pageH: pageH,
+    });
+  }
 
   const safeText = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').substring(0, 40);
   const safeId = (fontData.id || 'font').replace(/[^a-z0-9-]/g, '');
