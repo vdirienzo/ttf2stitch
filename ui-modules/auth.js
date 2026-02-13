@@ -177,9 +177,24 @@
     }
   });
 
+  // Direct checkout URLs from Lemon Squeezy dashboard
+  var CHECKOUT_URLS = {
+    single: 'https://infinis.lemonsqueezy.com/checkout/buy/54636d22-edf5-4542-bb96-096f8421c872',
+    pack10: 'https://infinis.lemonsqueezy.com/checkout/buy/8e42106f-beb8-4780-8d19-39ac427f4430',
+    annual: 'https://infinis.lemonsqueezy.com/checkout/buy/dcb8543d-c293-42bd-875e-ec7029e2ab95'
+  };
+
   function goToCheckout(plan) {
     hidePaymentModal();
 
+    var directUrl = CHECKOUT_URLS[plan];
+    if (directUrl) {
+      // Use direct checkout URL with embed parameter
+      showCheckoutOverlay(directUrl + '?embed=1');
+      return;
+    }
+
+    // Fallback: create checkout via API (for custom plans or future use)
     fetch('/api/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
