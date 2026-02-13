@@ -134,6 +134,15 @@
 
   /* -- Divider ("Already purchased?") -- */
 
+  .pay-indie-note {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #a99e8f;
+    margin: 1rem 0 0.25rem;
+    line-height: 1.4;
+    font-style: italic;
+  }
+
   .pay-divider {
     display: flex;
     align-items: center;

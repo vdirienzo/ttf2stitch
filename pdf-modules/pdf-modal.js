@@ -35,11 +35,11 @@ function _createPrintModal() {
     '  <div class="pm-actions">',
     '    <button class="pm-btn pm-btn-secondary" id="pmDownload">',
     '      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
-    '      Download Preview',
+    '      Download Preview (free)',
     '    </button>',
     '    <button class="pm-btn pm-btn-accent" id="pmDownloadComplete">',
     '      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
-    '      Download Complete \u2B50',
+    '      Download Full Pattern \u2728',
     '    </button>',
     '    <button class="pm-btn pm-btn-primary" id="pmPrint">',
     '      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
@@ -84,8 +84,8 @@ function _createPrintModal() {
   modal.querySelector('.pm-title').textContent = '\u2715 ' + pt('pdf_print_preview', 'Print Preview');
   modal.querySelector('[data-orient="portrait"]').lastChild.textContent = ' ' + pt('pdf_orient_portrait', 'Portrait');
   modal.querySelector('[data-orient="landscape"]').lastChild.textContent = ' ' + pt('pdf_orient_landscape', 'Landscape');
-  document.getElementById('pmDownload').lastChild.textContent = ' ' + pt('pdf_btn_download_preview', 'Download Preview');
-  document.getElementById('pmDownloadComplete').lastChild.textContent = ' ' + pt('pdf_btn_download_complete', 'Download Complete \u2B50');
+  document.getElementById('pmDownload').lastChild.textContent = ' ' + pt('pdf_btn_download_preview', 'Download Preview (free)');
+  document.getElementById('pmDownloadComplete').lastChild.textContent = ' ' + pt('pdf_btn_download_complete', 'Download Full Pattern \u2728');
   document.getElementById('pmPrint').lastChild.textContent = ' ' + pt('pdf_btn_print', 'Print');
 }
 

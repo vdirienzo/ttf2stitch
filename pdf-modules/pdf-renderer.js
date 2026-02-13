@@ -327,23 +327,23 @@ function drawUpgradePage(pdf, opts) {
   pdf.setFontSize(22);
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(184, 58, 42);
-  pdf.text('Get the Complete Pattern', centerX, y, { align: 'center' });
+  pdf.text('Your pattern is ready to come to life', centerX, y, { align: 'center' });
   y += 12;
 
   // Subtitle
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'normal');
   pdf.setTextColor(100, 100, 100);
-  pdf.text('Your pattern preview is ready! Unlock the full version to start stitching.', centerX, y, { align: 'center' });
+  pdf.text('Everything you need to start stitching \u2014 thread colors, quantities, and dimensions.', centerX, y, { align: 'center' });
   y += 20;
 
   // Feature checklist
   const items = [
-    'Thread legend with exact DMC color codes',
-    'Thread length calculation (meters + skeins)',
-    'Finished size and cut fabric dimensions',
-    'Pattern without watermark',
-    'Print-ready at 1:1 scale',
+    'Exact DMC thread colors you\u2019ll need',
+    'How much thread to buy (meters + skeins)',
+    'Finished size & fabric cutting guide',
+    'Clean pattern, no watermark',
+    'Print & stitch at true 1:1 scale',
   ];
 
   pdf.setFontSize(11);
@@ -355,11 +355,18 @@ function drawUpgradePage(pdf, opts) {
   }
   y += 10;
 
+  // Indie support message
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(140, 130, 120);
+  pdf.text('Made with love by one person. Your support keeps Word2Stitch free for everyone.', centerX, y, { align: 'center' });
+  y += 12;
+
   // Pricing
   pdf.setFontSize(14);
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(184, 58, 42);
-  pdf.text('From just $1.99', centerX, y, { align: 'center' });
+  pdf.text('Support an indie maker \u2014 from $1.99', centerX, y, { align: 'center' });
   y += 8;
 
   // URL

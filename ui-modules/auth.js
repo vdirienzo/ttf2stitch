@@ -46,7 +46,7 @@
       // Reset subtitle to default
       var subtitle = payModalEl.querySelector('.pay-subtitle');
       if (subtitle) {
-        subtitle.textContent = 'Your preview is ready. Unlock the full pattern with materials list.';
+        subtitle.textContent = 'Get your thread list, color codes, and print-ready PDF \u2014 everything you need to start stitching.';
       }
     }
   }
@@ -142,7 +142,7 @@
     showPaymentModal();
     var subtitle = payModalEl.querySelector('.pay-subtitle');
     if (subtitle) {
-      subtitle.textContent = 'Check your email for your license key and paste it below.';
+      subtitle.textContent = 'Check your inbox \u2014 your pattern key is on its way! Paste it below.';
     }
     var keyField = document.getElementById('pay-key-field');
     if (keyField) keyField.focus();
