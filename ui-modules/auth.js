@@ -190,7 +190,7 @@
     var directUrl = CHECKOUT_URLS[plan];
     if (directUrl) {
       // Use direct checkout URL with embed parameter
-      showCheckoutOverlay(directUrl + '?embed=1');
+      showCheckoutOverlay(directUrl + '?embed=1&checkout[accent_color]=%23b83a2a');
       return;
     }
 
