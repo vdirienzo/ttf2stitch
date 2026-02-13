@@ -248,6 +248,13 @@ function drawRedactedLegend(pdf, opts) {
   var pageH = opts.pageH || 297;
   var margin = 15;
 
+  // Rounded pill placeholder bar (skeleton-style) to redact premium values
+  function blurBar(x, baselineY, w, h) {
+    h = h || 3.5;
+    pdf.setFillColor(225, 218, 210);
+    pdf.roundedRect(x, baselineY - h + 1, w, h, 1.2, 1.2, 'F');
+  }
+
   drawBrandedHeader(pdf, text || '', fontName, width, height, pageNum, totalPages, margin, pageW);
   drawBrandedFooter(pdf, margin, pageW, pageH);
 
@@ -279,7 +286,7 @@ function drawRedactedLegend(pdf, opts) {
   pdf.setLineWidth(0.3);
   pdf.line(margin, y - 2, margin + tW, y - 2);
 
-  // -- Data row: symbol + swatch real, values redacted --
+  // -- Data row: symbol + swatch real, values as clean blur bars --
   var luminance = getLuminance(color);
 
   // Symbol cell (real)
@@ -297,17 +304,28 @@ function drawRedactedLegend(pdf, opts) {
   pdf.setLineWidth(0.15);
   pdf.rect(colX[1] + 1, y - 2, 14, 7, 'S');
 
-  // Redacted values
+  // Redacted values: clean blur bars instead of block characters
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(9);
-  pdf.setTextColor(190, 180, 170);
-  pdf.text('DMC \u2588\u2588\u2588\u2588', colX[2] + 1, y + 2.5);
-  pdf.text('\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588', colX[3] + 1, y + 2.5);
+
+  // DMC code: label + blur bar
+  pdf.setTextColor(60, 60, 60);
+  pdf.text('DMC', colX[2] + 1, y + 2.5);
+  blurBar(colX[2] + 1 + pdf.getTextWidth('DMC '), y + 2.5, 14);
+
+  // Color name: blur bar
+  blurBar(colX[3] + 1, y + 2.5, 28);
+
+  // Stitches: real value
   pdf.setTextColor(60, 60, 60);
   pdf.text(String(stitchCount), colX[4] + 1, y + 2.5);
-  pdf.setTextColor(190, 180, 170);
-  pdf.text('\u2588\u2588\u2588 m', colX[5] + 1, y + 2.5);
-  pdf.text('\u2588', colX[6] + 1, y + 2.5);
+
+  // Thread: blur bar
+  blurBar(colX[5] + 1, y + 2.5, 18);
+
+  // Skeins: blur bar
+  blurBar(colX[6] + 1, y + 2.5, 8);
+
   y += 12;
 
   pdf.setDrawColor(200, 190, 175);
@@ -315,7 +333,7 @@ function drawRedactedLegend(pdf, opts) {
   pdf.line(margin, y - 3, margin + tW, y - 3);
   y += 8;
 
-  // -- Pattern Information (partially redacted) --
+  // -- Pattern Information (clean blur bars for redacted values) --
   pdf.setFontSize(13);
   pdf.setTextColor(184, 58, 42);
   pdf.setFont('helvetica', 'bold');
@@ -325,25 +343,48 @@ function drawRedactedLegend(pdf, opts) {
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(9);
 
-  var redactedNotes = [
-    { text: pt('pdf_note_strands', 'Use 2 strands of DMC thread for cross stitches'), redact: false },
-    { text: pt('pdf_note_center', 'Start from the center of the fabric for best results'), redact: false },
-    { text: pt('pdf_info_fabric_aida', 'Fabric: Aida') + ' \u2588\u2588 ct \u2014 ' + pt('pdf_info_each_stitch', 'Each stitch') + ' = \u2588\u2588 mm', redact: true },
-    { text: pt('pdf_info_pattern_size', 'Pattern size') + ': ' + width + ' \u00D7 ' + height + ' ' + pt('pdf_unit_stitches', 'stitches'), redact: false },
-    { text: pt('pdf_info_finished_size', 'Finished size') + ': \u2588\u2588 \u00D7 \u2588\u2588 cm', redact: true },
-    { text: pt('pdf_info_total_crosses', 'Total crosses') + ': ' + stitchCount, redact: false },
-    { text: pt('pdf_info_thread_required', 'Thread required') + ': \u2588\u2588\u2588 m (\u2588 ' + pt('pdf_unit_skeins', 'skeins') + ')', redact: true },
-    { text: '\u26a0 ' + pt('pdf_note_print', 'Print at 100% scale (no fit-to-page) for 1:1 stitch size'), redact: false },
-  ];
-
-  for (var j = 0; j < redactedNotes.length; j++) {
-    pdf.setTextColor(redactedNotes[j].redact ? 190 : 70, redactedNotes[j].redact ? 180 : 70, redactedNotes[j].redact ? 170 : 70);
-    pdf.text('\u2022  ' + redactedNotes[j].text, margin + 2, y);
+  // Render bullet with text segments and inline blur bars
+  function bulletLine(segments) {
+    var x = margin + 2;
+    pdf.setTextColor(70, 70, 70);
+    pdf.text('\u2022', x, y);
+    x += pdf.getTextWidth('\u2022') + 2;
+    for (var s = 0; s < segments.length; s++) {
+      if (segments[s].bar) {
+        blurBar(x, y, segments[s].bar);
+        x += segments[s].bar + 1;
+      } else {
+        pdf.setTextColor(70, 70, 70);
+        pdf.text(segments[s].text, x, y);
+        x += pdf.getTextWidth(segments[s].text);
+      }
+    }
     y += 5.8;
   }
+
+  bulletLine([{ text: pt('pdf_note_strands', 'Use 2 strands of DMC thread for cross stitches') }]);
+  bulletLine([{ text: pt('pdf_note_center', 'Start from the center of the fabric for best results') }]);
+  bulletLine([
+    { text: pt('pdf_info_fabric_aida', 'Fabric: Aida') + ' ' },
+    { bar: 10 },
+    { text: ' ct \u2014 ' + pt('pdf_info_each_stitch', 'Each stitch') + ' = ' },
+    { bar: 12 },
+    { text: ' mm' },
+  ]);
+  bulletLine([{ text: pt('pdf_info_pattern_size', 'Pattern size') + ': ' + width + ' \u00D7 ' + height + ' ' + pt('pdf_unit_stitches', 'stitches') }]);
+  bulletLine([
+    { text: pt('pdf_info_finished_size', 'Finished size') + ': ' },
+    { bar: 32 },
+  ]);
+  bulletLine([{ text: pt('pdf_info_total_crosses', 'Total crosses') + ': ' + stitchCount }]);
+  bulletLine([
+    { text: pt('pdf_info_thread_required', 'Thread required') + ': ' },
+    { bar: 38 },
+  ]);
+  bulletLine([{ text: '\u26a0 ' + pt('pdf_note_print', 'Print at 100% scale (no fit-to-page) for 1:1 stitch size') }]);
   y += 6;
 
-  // -- Size boxes (redacted) --
+  // -- Size boxes (blur bars instead of block chars) --
   var boxW = Math.min(tW / 2 - 4, 90);
 
   pdf.setDrawColor(184, 58, 42);
@@ -354,10 +395,7 @@ function drawRedactedLegend(pdf, opts) {
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(184, 58, 42);
   pdf.text(pt('pdf_finished_size', 'Finished Size'), margin + 4, y + 6);
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(11);
-  pdf.setTextColor(190, 180, 170);
-  pdf.text('\u2588\u2588 \u00D7 \u2588\u2588 cm', margin + 4, y + 13);
+  blurBar(margin + 4, y + 13, 42, 4);
 
   var cutX = margin + boxW + 8;
   pdf.setDrawColor(184, 58, 42);
@@ -367,10 +405,7 @@ function drawRedactedLegend(pdf, opts) {
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(184, 58, 42);
   pdf.text(pt('pdf_cut_fabric', 'Cut Fabric'), cutX + 4, y + 6);
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(11);
-  pdf.setTextColor(190, 180, 170);
-  pdf.text('\u2588\u2588 \u00D7 \u2588\u2588 cm', cutX + 4, y + 13);
+  blurBar(cutX + 4, y + 13, 42, 4);
 
   y += 28;
 
