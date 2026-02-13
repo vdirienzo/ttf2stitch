@@ -3616,7 +3616,16 @@ function drawRedactedLegend(pdf, opts) {
   pdf.setTextColor(190, 180, 170);
   pdf.text('\u2588\u2588 \u00D7 \u2588\u2588 cm', cutX + 4, y + 13);
 
-  y += 30;
+  y += 28;
+
+  // -- Indie note --
+  pdf.setFontSize(8);
+  pdf.setFont('helvetica', 'italic');
+  pdf.setTextColor(160, 150, 140);
+  pdf.text('Word2Stitch is an indie project by one stitching enthusiast.', margin + (tW / 2), y, { align: 'center' });
+  y += 4;
+  pdf.text('Every pattern you get helps keep this tool free for everyone.', margin + (tW / 2), y, { align: 'center' });
+  y += 10;
 
   // -- CTA box --
   var ctaW = tW * 0.7;
@@ -3692,6 +3701,14 @@ function drawLegend(pdf, opts) {
 
   // Size boxes
   drawSizeBoxes(pdf, legendOpts, y, patternResult, threadResult.preferImperial);
+  y += 30;
+
+  // Indie thank-you note (post-purchase validation)
+  pdf.setFontSize(8);
+  pdf.setFont('helvetica', 'italic');
+  pdf.setTextColor(170, 160, 150);
+  pdf.text('Thank you for supporting Word2Stitch \u2014 an indie project made with love for the stitching community.', margin, y);
+  pdf.text('Your support helps me keep building and improving this tool for crafters everywhere. Happy stitching! \u2764', margin, y + 4);
 }
 
 
