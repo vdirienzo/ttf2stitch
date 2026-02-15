@@ -13,6 +13,9 @@
     document.querySelectorAll('[data-i18n]').forEach(function(el) {
       el.textContent = t(el.dataset.i18n);
     });
+    document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
+      el.innerHTML = t(el.dataset.i18nHtml);
+    });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
       el.placeholder = t(el.dataset.i18nPlaceholder);
     });

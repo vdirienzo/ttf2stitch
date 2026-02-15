@@ -1778,7 +1778,12 @@
     font-size: 1.4rem;
     color: #a99e8f;
     cursor: pointer;
-    padding: 4px 8px;
+    padding: 8px 12px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 6px;
     transition: background 0.15s, color 0.15s;
   }
@@ -1796,7 +1801,7 @@
   }
 
   .pay-subtitle {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: #7a6e60;
     margin-bottom: 1.5rem;
   }
@@ -1827,19 +1832,30 @@
     transform: translateY(-2px);
   }
 
+  .pay-option:focus-visible {
+    outline: 2px solid #b83a2a;
+    outline-offset: 2px;
+  }
+
   .pay-option-featured {
     border-color: #b83a2a;
-    background: linear-gradient(180deg, rgba(184, 58, 42, 0.04), #fff);
+    background: linear-gradient(180deg, rgba(184, 58, 42, 0.08), #fff);
+    box-shadow: 0 4px 16px rgba(184, 58, 42, 0.12);
+    transform: scale(1.03);
+  }
+
+  .pay-option-featured:hover {
+    transform: scale(1.03) translateY(-2px);
   }
 
   .pay-option-badge {
     position: absolute;
-    top: -10px;
+    top: -11px;
     background: linear-gradient(135deg, #b83a2a, #d44a3a);
     color: #fff;
-    font-size: 0.6rem;
+    font-size: 0.7rem;
     font-weight: 700;
-    padding: 2px 10px;
+    padding: 3px 12px;
     border-radius: 10px;
     letter-spacing: 0.03em;
     text-transform: uppercase;
@@ -1864,8 +1880,41 @@
   }
 
   .pay-option-desc {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     color: #a99e8f;
+    line-height: 1.3;
+  }
+
+  .pay-option-unit {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #b83a2a;
+    letter-spacing: 0.02em;
+  }
+
+  /* -- Social proof, guarantee, trust -- */
+
+  .pay-social-proof {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #7a6e60;
+    margin: 1.25rem 0 0.4rem;
+    line-height: 1.4;
+  }
+
+  .pay-guarantee {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #7a6e60;
+    margin: 0 0 0.4rem;
+    line-height: 1.4;
+  }
+
+  .pay-trust {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #a99e8f;
+    margin: 0.5rem 0 0;
     line-height: 1.3;
   }
 
@@ -1970,9 +2019,13 @@
   /* -- Credits display -- */
 
   #credits-display {
-    font-size: 0.75rem;
-    color: #7a6e60;
-    padding: 0.4rem 0;
+    font-size: 0.8rem;
+    color: #3d3229;
+    font-weight: 600;
+    background: rgba(184, 58, 42, 0.06);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    display: inline-block;
   }
 
   #credits-display.pay-hidden {
@@ -1987,10 +2040,144 @@
     .pay-option { padding: 1rem 0.75rem; }
   }
 
+  /* -- Free first download modal -- */
+
+  .free-dialog {
+    max-width: 420px;
+  }
+
+  .free-gift {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .free-email-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .free-email-row input {
+    flex: 1;
+    padding: 0.7rem 0.9rem;
+    border: 2px solid #e0d6c8;
+    border-radius: 8px;
+    font-family: 'Anybody', system-ui, sans-serif;
+    font-size: 0.9rem;
+    color: #3d3229;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .free-email-row input:focus {
+    border-color: #b83a2a;
+  }
+
+  .free-email-row input::placeholder {
+    color: #c4bbb0;
+  }
+
+  .free-email-row button {
+    padding: 0.7rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    background: #b83a2a;
+    color: #fff;
+    font-family: 'Anybody', system-ui, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+
+  .free-email-row button:hover {
+    background: #9c3023;
+  }
+
+  .free-error {
+    color: #b83a2a;
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+    min-height: 1.2em;
+  }
+
+  .free-note {
+    font-size: 0.7rem;
+    color: #a99e8f;
+    margin-top: 0.75rem;
+    font-style: italic;
+  }
+
+  @media (max-width: 520px) {
+    .free-email-row { flex-direction: column; }
+  }
+
+  /* -- Post-purchase upsell modal -- */
+
+  .upsell-dialog {
+    max-width: 420px;
+  }
+
+  .upsell-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .upsell-deal {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #b83a2a;
+    margin: 0.75rem 0 1.25rem;
+    padding: 0.6rem 1rem;
+    background: rgba(184, 58, 42, 0.06);
+    border-radius: 8px;
+  }
+
+  .upsell-btn {
+    display: block;
+    width: 100%;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    background: #b83a2a;
+    color: #fff;
+    font-family: 'Anybody', system-ui, sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .upsell-btn:hover {
+    background: #9c3023;
+  }
+
+  .upsell-skip {
+    display: block;
+    width: 100%;
+    padding: 0.6rem;
+    border: none;
+    background: none;
+    color: #a99e8f;
+    font-family: 'Anybody', system-ui, sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+  }
+
+  .upsell-skip:hover {
+    color: #7a6e60;
+  }
+
   /* -- Key-only mode: after payment, hide plan cards and show only key input -- */
 
   .pay-key-only .pay-options,
+  .pay-key-only .pay-social-proof,
+  .pay-key-only .pay-guarantee,
   .pay-key-only .pay-indie-note,
+  .pay-key-only .pay-trust,
   .pay-key-only .pay-terms {
     display: none;
   }
@@ -2008,6 +2195,12 @@
     z-index: 99999;
     background: rgba(61, 50, 41, 0.12);
     backdrop-filter: blur(1px);
+    animation: ls-overlay-fadein 0.2s ease-out;
+  }
+
+  @keyframes ls-overlay-fadein {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   .ls-overlay-iframe {
@@ -2022,8 +2215,8 @@
 
   .ls-overlay-close {
     position: fixed;
-    top: 12px;
-    right: 16px;
+    top: max(12px, env(safe-area-inset-top, 12px));
+    right: max(16px, env(safe-area-inset-right, 16px));
     z-index: 100001;
     background: rgba(61, 50, 41, 0.7);
     color: #fff;
@@ -2532,38 +2725,74 @@
 </div>
 
 <!-- -- Payment Modal -- -->
-<div id="pay-modal" class="pay-hidden">
+<div id="pay-modal" class="pay-hidden" role="dialog" aria-modal="true" aria-label="Payment">
   <div class="pay-backdrop" id="pay-backdrop"></div>
   <div class="pay-dialog">
     <button class="pay-close" id="pay-close">&times;</button>
-    <div class="pay-title">Your pattern is ready to stitch &#x2728;</div>
-    <div class="pay-subtitle">Get your thread list, color codes, and print-ready PDF &mdash; everything you need to start stitching.</div>
+    <div class="pay-title" data-i18n="pay_title">Your pattern is ready to stitch &#x2728;</div>
+    <div class="pay-subtitle" data-i18n="pay_subtitle">Get your thread list, color codes, and print-ready PDF &mdash; everything you need to start stitching.</div>
     <div class="pay-options">
       <button class="pay-option" id="pay-single">
         <span class="pay-option-price">$1.99</span>
-        <span class="pay-option-label">Just this one</span>
-        <span class="pay-option-desc">Perfect for trying it out</span>
+        <span class="pay-option-label" data-i18n="pay_single_label">Just this one</span>
+        <span class="pay-option-desc" data-i18n="pay_single_desc">Your pattern in seconds</span>
       </button>
       <button class="pay-option pay-option-featured" id="pay-pack10">
-        <span class="pay-option-badge">Save 50%</span>
+        <span class="pay-option-badge" data-i18n="pay_badge_save">Save 50%</span>
         <span class="pay-option-price">$9.99</span>
-        <span class="pay-option-label">10 Patterns</span>
-        <span class="pay-option-desc">For when one isn't enough</span>
+        <span class="pay-option-unit" data-i18n="pay_pack_unit">$0.99 each</span>
+        <span class="pay-option-label" data-i18n="pay_pack_label">10 Patterns</span>
+        <span class="pay-option-desc" data-i18n="pay_pack_desc">Perfect for gifts &amp; projects</span>
       </button>
       <button class="pay-option" id="pay-annual">
         <span class="pay-option-price">$24.99<small>/yr</small></span>
-        <span class="pay-option-label">All year</span>
-        <span class="pay-option-desc">Stitch as much as you like</span>
+        <span class="pay-option-unit" data-i18n="pay_annual_unit">just $2.08/mo</span>
+        <span class="pay-option-label" data-i18n="pay_annual_label">All year</span>
+        <span class="pay-option-desc" data-i18n="pay_annual_desc">Unlimited patterns, all year</span>
       </button>
     </div>
-    <div class="pay-indie-note">Word2Stitch is made with love by one person. Your support keeps it free for everyone. &#x1F49C;</div>
-    <div class="pay-terms">By purchasing, you agree to our <a href="/terms" target="_blank" rel="noopener">Terms of Service</a></div>
-    <div class="pay-divider"><span>Already have a key?</span></div>
+    <div class="pay-social-proof" data-i18n="pay_social_proof">&#x2702;&#xFE0F; 50,000+ patterns created by stitchers worldwide</div>
+    <div class="pay-guarantee" data-i18n="pay_guarantee">&#x1F6E1;&#xFE0F; 100% satisfaction guaranteed &mdash; or your money back</div>
+    <div class="pay-indie-note" data-i18n="pay_indie_note">Word2Stitch is made with love by one person. Your support helps build new fonts and features. &#x1F49C;</div>
+    <div class="pay-trust" data-i18n-html="pay_trust">&#x1F512; Secure checkout via Lemon Squeezy</div>
+    <div class="pay-terms" data-i18n-html="pay_terms">By purchasing, you agree to our <a href="/terms" target="_blank" rel="noopener">Terms of Service</a></div>
+    <div class="pay-divider"><span data-i18n="pay_divider_key">Already have a key?</span></div>
     <div class="pay-key-input">
-      <input type="text" id="pay-key-field" placeholder="Paste your pattern key here" />
-      <button id="pay-key-submit">Activate &#x2713;</button>
+      <input type="text" id="pay-key-field" placeholder="Paste your pattern key here" data-i18n-placeholder="pay_key_placeholder" />
+      <button id="pay-key-submit" data-i18n="pay_key_submit">Activate &#x2713;</button>
     </div>
     <div id="credits-display" class="pay-hidden"></div>
+  </div>
+</div>
+
+<!-- -- Free First Download Modal -- -->
+<div id="free-modal" class="pay-hidden" role="dialog" aria-modal="true" aria-label="Free download">
+  <div class="pay-backdrop" id="free-backdrop"></div>
+  <div class="pay-dialog free-dialog">
+    <button class="pay-close" id="free-close">&times;</button>
+    <div class="free-gift">&#x1F381;</div>
+    <div class="pay-title" data-i18n="free_title">Your first pattern is free!</div>
+    <div class="pay-subtitle" data-i18n="free_subtitle">Enter your email to download your complete pattern &mdash; thread list, color codes, and print-ready PDF.</div>
+    <div class="free-email-row">
+      <input type="email" id="free-email-field" placeholder="your@email.com" data-i18n-placeholder="free_email_placeholder" autocomplete="email" />
+      <button id="free-email-submit" data-i18n="free_email_submit">Download Free &darr;</button>
+    </div>
+    <div id="free-email-error" class="free-error"></div>
+    <div class="free-note" data-i18n="free_note">No spam, ever. Just your pattern.</div>
+  </div>
+</div>
+
+<!-- -- Post-Purchase Upsell Modal -- -->
+<div id="upsell-modal" class="pay-hidden" role="dialog" aria-modal="true" aria-label="Upgrade">
+  <div class="pay-backdrop" id="upsell-backdrop"></div>
+  <div class="pay-dialog upsell-dialog">
+    <button class="pay-close" id="upsell-close">&times;</button>
+    <div class="upsell-icon">&#x1F389;</div>
+    <div class="pay-title" data-i18n="upsell_title">Pattern downloaded!</div>
+    <div class="pay-subtitle" data-i18n="upsell_subtitle">Love it? Get 10 patterns and save 50%</div>
+    <div class="upsell-deal" data-i18n="upsell_deal">10 patterns for $9.99 &mdash; that's $0.99 each!</div>
+    <button class="upsell-btn" id="upsell-upgrade" data-i18n="upsell_btn">Upgrade to 10 Patterns &mdash; $9.99</button>
+    <button class="upsell-skip" id="upsell-skip" data-i18n="upsell_skip">No thanks</button>
   </div>
 </div>
 
@@ -4362,6 +4591,13 @@ function _createPrintModal() {
     '  <div class="pm-preview">',
     '    <iframe id="pmIframe" class="pm-iframe"></iframe>',
     '  </div>',
+    '  <div class="pm-mobile-summary">',
+    '    <div class="pm-mobile-summary-icon">\uD83D\uDCC4</div>',
+    '    <div class="pm-mobile-summary-text">',
+    '      <strong>' + pt('mobile_preview_title', 'Your complete pattern pack') + '</strong>',
+    '      <span>' + pt('mobile_preview_items', 'Grid \u00b7 Thread legend \u00b7 Color codes \u00b7 Measurements') + '</span>',
+    '    </div>',
+    '  </div>',
     '  <div class="pm-info" id="pmInfo"></div>',
     '  <div class="pm-actions">',
     '    <button class="pm-btn pm-btn-secondary" id="pmDownload">',
@@ -4405,7 +4641,8 @@ function _createPrintModal() {
     '.pm-btn-accent:hover { background:#9c3023; box-shadow:0 3px 12px rgba(184,58,42,0.25); }',
     '.pm-btn-primary { background:#3d3229; color:#fff; }',
     '.pm-btn-primary:hover { background:#2a231c; box-shadow:0 3px 12px rgba(61,50,41,0.25); }',
-    '@media(max-width:640px) { .pm-dialog { width:96vw; max-height:95vh; border-radius:10px; } .pm-preview { display:none; } .pm-orient-btn { padding:8px 14px; font-size:12px; } .pm-actions { flex-direction:column; } .pm-btn { justify-content:center; } }',
+    '.pm-mobile-summary { display:none; }',
+    '@media(max-width:640px) { .pm-dialog { width:96vw; max-height:95vh; border-radius:10px; } .pm-preview { display:none; } .pm-mobile-summary { display:flex; gap:12px; align-items:center; padding:14px 18px; background:rgba(184,58,42,0.04); border-radius:10px; margin:0 18px; text-align:left; } .pm-mobile-summary-icon { font-size:2rem; } .pm-mobile-summary-text { display:flex; flex-direction:column; gap:2px; } .pm-mobile-summary-text strong { font-size:14px; color:#3d3229; } .pm-mobile-summary-text span { font-size:12px; color:#7a6e60; } .pm-orient-btn { padding:8px 14px; font-size:12px; } .pm-actions { flex-direction:column; } .pm-btn { justify-content:center; } }',
   ].join('\n');
 
   document.head.appendChild(style);
@@ -4604,7 +4841,49 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_pages: "pages",
       pdf_unit_crosses: "crosses",
       pdf_unit_skein: "skein",
-      pdf_unit_skeins: "skeins"
+      pdf_unit_skeins: "skeins",
+      pay_title: "Your pattern is ready to stitch \u2728",
+      pay_subtitle: "Get your thread list, color codes, and print-ready PDF \u2014 everything you need to start stitching.",
+      pay_single_label: "Just this one",
+      pay_single_desc: "Your pattern in seconds",
+      pay_badge_save: "Save 50%",
+      pay_pack_label: "10 Patterns",
+      pay_pack_unit: "$0.99 each",
+      pay_pack_desc: "Perfect for gifts & projects",
+      pay_annual_label: "All year",
+      pay_annual_unit: "just $2.08/mo",
+      pay_annual_desc: "Unlimited patterns, all year",
+      pay_social_proof: "\u2702\uFE0F 50,000+ patterns created by stitchers worldwide",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% satisfaction guaranteed \u2014 or your money back",
+      pay_indie_note: "Word2Stitch is made with love by one person. Your support helps build new fonts and features. \uD83D\uDC9C",
+      pay_terms: 'By purchasing, you agree to our <a href="/terms" target="_blank" rel="noopener">Terms of Service</a>',
+      pay_divider_key: "Already have a key?",
+      pay_key_placeholder: "Paste your pattern key here",
+      pay_key_submit: "Activate \u2713",
+      pay_credits_unlimited: "Unlimited",
+      pay_credits_remaining: "downloads left",
+      pay_title_success: "Payment received! \u2713",
+      pay_subtitle_success: "Check your inbox \u2014 your pattern key is on its way! Paste it below.",
+      pay_key_error: "Invalid or exhausted license key. Please check and try again.",
+      pay_title_activating: "Preparing your pattern\u2026",
+      pay_subtitle_activating: "Almost ready \u2014 just a moment!",
+      pay_trust: "\uD83D\uDD12 Secure checkout via Lemon Squeezy",
+      pay_title_personalized: "Your '{text}' pattern is ready \u2728",
+      pay_checkout_slow: "Taking longer than expected\u2026",
+      pay_checkout_retry: "Try again",
+      free_title: "Your first pattern is free!",
+      free_subtitle: "Enter your email to download your complete pattern — thread list, color codes, and print-ready PDF.",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "Download Free \u2193",
+      free_note: "No spam, ever. Just your pattern.",
+      free_email_error: "Please enter a valid email",
+      upsell_title: "Pattern downloaded!",
+      upsell_subtitle: "Love it? Get 10 patterns and save 50%",
+      upsell_deal: "10 patterns for $9.99 \u2014 that\u2019s $0.99 each!",
+      upsell_btn: "Upgrade to 10 Patterns \u2014 $9.99",
+      upsell_skip: "No thanks",
+      mobile_preview_title: "Your complete pattern pack",
+      mobile_preview_items: "Grid \u00b7 Thread legend \u00b7 Color codes \u00b7 Measurements"
     },
     es: {
       placeholder_text: "Escribe tu texto aquí…",
@@ -4673,7 +4952,49 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_pages: "páginas",
       pdf_unit_crosses: "cruces",
       pdf_unit_skein: "madeja",
-      pdf_unit_skeins: "madejas"
+      pdf_unit_skeins: "madejas",
+      pay_title: "Tu patr\u00f3n est\u00e1 listo para bordar \u2728",
+      pay_subtitle: "Obt\u00e9n tu lista de hilos, c\u00f3digos de color y PDF listo para imprimir \u2014 todo lo que necesitas para empezar.",
+      pay_single_label: "Solo este",
+      pay_single_desc: "Tu patr\u00f3n en segundos",
+      pay_badge_save: "Ahorra 50%",
+      pay_pack_label: "10 Patrones",
+      pay_pack_unit: "$0.99 c/u",
+      pay_pack_desc: "Ideal para regalos y proyectos",
+      pay_annual_label: "Todo el a\u00f1o",
+      pay_annual_unit: "solo $2.08/mes",
+      pay_annual_desc: "Patrones ilimitados, todo el a\u00f1o",
+      pay_social_proof: "\u2702\uFE0F M\u00e1s de 50,000 patrones creados por bordadores en todo el mundo",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% satisfacci\u00f3n garantizada \u2014 o te devolvemos tu dinero",
+      pay_indie_note: "Word2Stitch est\u00e1 hecho con amor por una sola persona. Tu apoyo ayuda a crear nuevas fuentes y funciones. \uD83D\uDC9C",
+      pay_terms: 'Al comprar, aceptas nuestros <a href="/terms" target="_blank" rel="noopener">T\u00e9rminos de Servicio</a>',
+      pay_divider_key: "\u00bfYa tienes una clave?",
+      pay_key_placeholder: "Pega tu clave de patr\u00f3n aqu\u00ed",
+      pay_key_submit: "Activar \u2713",
+      pay_credits_unlimited: "Ilimitado",
+      pay_credits_remaining: "descargas restantes",
+      pay_title_success: "\u00a1Pago recibido! \u2713",
+      pay_subtitle_success: "Revisa tu bandeja de entrada \u2014 \u00a1tu clave est\u00e1 en camino! P\u00e9gala abajo.",
+      pay_key_error: "Clave inv\u00e1lida o agotada. Verifica e intenta de nuevo.",
+      pay_title_activating: "Preparando tu patr\u00f3n\u2026",
+      pay_subtitle_activating: "\u00a1Casi listo \u2014 un momento!",
+      pay_trust: "\uD83D\uDD12 Pago seguro a trav\u00e9s de Lemon Squeezy",
+      pay_title_personalized: "Tu patr\u00f3n '{text}' est\u00e1 listo \u2728",
+      pay_checkout_slow: "Tardando m\u00e1s de lo esperado\u2026",
+      pay_checkout_retry: "Intentar de nuevo",
+      free_title: "\u00a1Tu primer patr\u00f3n es gratis!",
+      free_subtitle: "Ingresa tu email para descargar tu patr\u00f3n completo \u2014 lista de hilos, c\u00f3digos de color y PDF listo para imprimir.",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "Descargar Gratis \u2193",
+      free_note: "Sin spam, nunca. Solo tu patr\u00f3n.",
+      free_email_error: "Por favor, ingresa un email v\u00e1lido",
+      upsell_title: "\u00a1Patr\u00f3n descargado!",
+      upsell_subtitle: "\u00bfTe encant\u00f3? Obt\u00e9n 10 patrones y ahorra 50%",
+      upsell_deal: "10 patrones por $9.99 \u2014 \u00a1eso es $0.99 cada uno!",
+      upsell_btn: "Mejorar a 10 Patrones \u2014 $9.99",
+      upsell_skip: "No, gracias",
+      mobile_preview_title: "Tu pack completo de patrones",
+      mobile_preview_items: "Cuadr\u00edcula \u00b7 Leyenda de hilos \u00b7 C\u00f3digos de color \u00b7 Medidas"
     },
     fr: {
       placeholder_text: "Tapez votre texte ici…",
@@ -4741,8 +5062,50 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_stitches: "points",
       pdf_unit_pages: "pages",
       pdf_unit_crosses: "croix",
-      pdf_unit_skein: "échevette",
-      pdf_unit_skeins: "échevettes"
+      pdf_unit_skein: "\u00e9chevette",
+      pdf_unit_skeins: "\u00e9chevettes",
+      pay_title: "Votre motif est pr\u00eat \u00e0 broder \u2728",
+      pay_subtitle: "Obtenez votre liste de fils, codes couleur et PDF pr\u00eat \u00e0 imprimer \u2014 tout pour commencer.",
+      pay_single_label: "Juste celui-ci",
+      pay_single_desc: "Votre motif en quelques secondes",
+      pay_badge_save: "\u00c9conomisez 50%",
+      pay_pack_label: "10 Motifs",
+      pay_pack_unit: "$0.99 pi\u00e8ce",
+      pay_pack_desc: "Parfait pour les cadeaux et projets",
+      pay_annual_label: "Toute l\u2019ann\u00e9e",
+      pay_annual_unit: "seulement $2.08/mois",
+      pay_annual_desc: "Motifs illimit\u00e9s, toute l\u2019ann\u00e9e",
+      pay_social_proof: "\u2702\uFE0F Plus de 50 000 motifs cr\u00e9\u00e9s par des brodeurs du monde entier",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F Satisfaction 100% garantie \u2014 ou rembours\u00e9",
+      pay_indie_note: "Word2Stitch est fait avec amour par une seule personne. Votre soutien aide \u00e0 cr\u00e9er de nouvelles polices et fonctionnalit\u00e9s. \uD83D\uDC9C",
+      pay_terms: 'En achetant, vous acceptez nos <a href="/terms" target="_blank" rel="noopener">Conditions d\u2019utilisation</a>',
+      pay_divider_key: "D\u00e9j\u00e0 une cl\u00e9 ?",
+      pay_key_placeholder: "Collez votre cl\u00e9 de motif ici",
+      pay_key_submit: "Activer \u2713",
+      pay_credits_unlimited: "Illimit\u00e9",
+      pay_credits_remaining: "t\u00e9l\u00e9chargements restants",
+      pay_title_success: "Paiement re\u00e7u ! \u2713",
+      pay_subtitle_success: "V\u00e9rifiez votre bo\u00eete de r\u00e9ception \u2014 votre cl\u00e9 arrive ! Collez-la ci-dessous.",
+      pay_key_error: "Cl\u00e9 invalide ou \u00e9puis\u00e9e. V\u00e9rifiez et r\u00e9essayez.",
+      pay_title_activating: "Pr\u00e9paration de votre motif\u2026",
+      pay_subtitle_activating: "Presque pr\u00eat \u2014 un instant !",
+      pay_trust: "\uD83D\uDD12 Paiement s\u00e9curis\u00e9 via Lemon Squeezy",
+      pay_title_personalized: "Votre motif \u00ab\u202F{text}\u202F\u00bb est pr\u00eat \u2728",
+      pay_checkout_slow: "Plus long que pr\u00e9vu\u2026",
+      pay_checkout_retry: "R\u00e9essayer",
+      free_title: "Votre premier motif est gratuit\u202f!",
+      free_subtitle: "Entrez votre email pour t\u00e9l\u00e9charger votre motif complet \u2014 liste de fils, codes couleur et PDF pr\u00eat \u00e0 imprimer.",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "T\u00e9l\u00e9charger Gratuit \u2193",
+      free_note: "Pas de spam, jamais. Juste votre motif.",
+      free_email_error: "Veuillez entrer un email valide",
+      upsell_title: "Motif t\u00e9l\u00e9charg\u00e9\u202f!",
+      upsell_subtitle: "Vous aimez\u202f? Obtenez 10 motifs et \u00e9conomisez 50%",
+      upsell_deal: "10 motifs pour $9.99 \u2014 soit $0.99 chacun\u202f!",
+      upsell_btn: "Passer \u00e0 10 Motifs \u2014 $9.99",
+      upsell_skip: "Non merci",
+      mobile_preview_title: "Votre pack de motifs complet",
+      mobile_preview_items: "Grille \u00b7 L\u00e9gende des fils \u00b7 Codes couleur \u00b7 Mesures"
     },
     de: {
       placeholder_text: "Gib deinen Text ein…",
@@ -4811,7 +5174,49 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_pages: "Seiten",
       pdf_unit_crosses: "Kreuze",
       pdf_unit_skein: "Strang",
-      pdf_unit_skeins: "Stränge"
+      pdf_unit_skeins: "Str\u00e4nge",
+      pay_title: "Dein Muster ist bereit zum Sticken \u2728",
+      pay_subtitle: "Hol dir deine Fadenliste, Farbcodes und druckfertiges PDF \u2014 alles was du zum Sticken brauchst.",
+      pay_single_label: "Nur dieses eine",
+      pay_single_desc: "Dein Muster in Sekunden",
+      pay_badge_save: "Spare 50%",
+      pay_pack_label: "10 Muster",
+      pay_pack_unit: "$0.99 pro St\u00fcck",
+      pay_pack_desc: "Perfekt f\u00fcr Geschenke & Projekte",
+      pay_annual_label: "Das ganze Jahr",
+      pay_annual_unit: "nur $2.08/Monat",
+      pay_annual_desc: "Unbegrenzte Muster, das ganze Jahr",
+      pay_social_proof: "\u2702\uFE0F \u00dcber 50.000 Muster von Stickern weltweit erstellt",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% Zufriedenheit garantiert \u2014 oder Geld zur\u00fcck",
+      pay_indie_note: "Word2Stitch wird mit Liebe von einer Person gemacht. Deine Unterst\u00fctzung hilft, neue Schriftarten und Funktionen zu entwickeln. \uD83D\uDC9C",
+      pay_terms: 'Mit dem Kauf stimmst du unseren <a href="/terms" target="_blank" rel="noopener">Nutzungsbedingungen</a> zu',
+      pay_divider_key: "Schon einen Schl\u00fcssel?",
+      pay_key_placeholder: "F\u00fcge deinen Musterschl\u00fcssel hier ein",
+      pay_key_submit: "Aktivieren \u2713",
+      pay_credits_unlimited: "Unbegrenzt",
+      pay_credits_remaining: "Downloads \u00fcbrig",
+      pay_title_success: "Zahlung erhalten! \u2713",
+      pay_subtitle_success: "Pr\u00fcfe deinen Posteingang \u2014 dein Schl\u00fcssel ist unterwegs! F\u00fcge ihn unten ein.",
+      pay_key_error: "Ung\u00fcltiger oder aufgebrauchter Schl\u00fcssel. Bitte pr\u00fcfen und erneut versuchen.",
+      pay_title_activating: "Dein Muster wird vorbereitet\u2026",
+      pay_subtitle_activating: "Fast fertig \u2014 einen Moment noch!",
+      pay_trust: "\uD83D\uDD12 Sicherer Checkout \u00fcber Lemon Squeezy",
+      pay_title_personalized: "Dein \u201e{text}\u201c-Muster ist fertig \u2728",
+      pay_checkout_slow: "Dauert l\u00e4nger als erwartet\u2026",
+      pay_checkout_retry: "Erneut versuchen",
+      free_title: "Dein erstes Muster ist kostenlos!",
+      free_subtitle: "Gib deine E-Mail ein, um dein vollst\u00e4ndiges Muster herunterzuladen \u2014 Fadenliste, Farbcodes und druckfertiges PDF.",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "Kostenlos herunterladen \u2193",
+      free_note: "Kein Spam, niemals. Nur dein Muster.",
+      free_email_error: "Bitte gib eine g\u00fcltige E-Mail ein",
+      upsell_title: "Muster heruntergeladen!",
+      upsell_subtitle: "Gef\u00e4llt es dir? Hol dir 10 Muster und spare 50%",
+      upsell_deal: "10 Muster f\u00fcr $9.99 \u2014 das sind nur $0.99 pro St\u00fcck!",
+      upsell_btn: "Auf 10 Muster upgraden \u2014 $9.99",
+      upsell_skip: "Nein danke",
+      mobile_preview_title: "Dein komplettes Musterpaket",
+      mobile_preview_items: "Raster \u00b7 Garnlegende \u00b7 Farbcodes \u00b7 Ma\u00dfe"
     },
     it: {
       placeholder_text: "Scrivi il tuo testo qui…",
@@ -4880,7 +5285,49 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_pages: "pagine",
       pdf_unit_crosses: "croci",
       pdf_unit_skein: "matassa",
-      pdf_unit_skeins: "matasse"
+      pdf_unit_skeins: "matasse",
+      pay_title: "Il tuo schema \u00e8 pronto da ricamare \u2728",
+      pay_subtitle: "Ottieni la lista dei fili, i codici colore e il PDF pronto da stampare \u2014 tutto per iniziare.",
+      pay_single_label: "Solo questo",
+      pay_single_desc: "Il tuo schema in pochi secondi",
+      pay_badge_save: "Risparmia 50%",
+      pay_pack_label: "10 Schemi",
+      pay_pack_unit: "$0.99 ciascuno",
+      pay_pack_desc: "Perfetto per regali e progetti",
+      pay_annual_label: "Tutto l\u2019anno",
+      pay_annual_unit: "solo $2.08/mese",
+      pay_annual_desc: "Schemi illimitati, tutto l\u2019anno",
+      pay_social_proof: "\u2702\uFE0F Oltre 50.000 schemi creati da ricamatori in tutto il mondo",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F Soddisfazione garantita al 100% \u2014 o rimborsati",
+      pay_indie_note: "Word2Stitch \u00e8 fatto con amore da una sola persona. Il tuo supporto aiuta a creare nuovi font e funzionalit\u00e0. \uD83D\uDC9C",
+      pay_terms: 'Acquistando, accetti i nostri <a href="/terms" target="_blank" rel="noopener">Termini di Servizio</a>',
+      pay_divider_key: "Hai gi\u00e0 una chiave?",
+      pay_key_placeholder: "Incolla la tua chiave qui",
+      pay_key_submit: "Attiva \u2713",
+      pay_credits_unlimited: "Illimitato",
+      pay_credits_remaining: "download rimanenti",
+      pay_title_success: "Pagamento ricevuto! \u2713",
+      pay_subtitle_success: "Controlla la tua posta \u2014 la tua chiave sta arrivando! Incollala qui sotto.",
+      pay_key_error: "Chiave non valida o esaurita. Verifica e riprova.",
+      pay_title_activating: "Preparazione dello schema\u2026",
+      pay_subtitle_activating: "Quasi pronto \u2014 un attimo!",
+      pay_trust: "\uD83D\uDD12 Checkout sicuro tramite Lemon Squeezy",
+      pay_title_personalized: "Il tuo schema \u00ab{text}\u00bb \u00e8 pronto \u2728",
+      pay_checkout_slow: "Ci sta mettendo pi\u00f9 del previsto\u2026",
+      pay_checkout_retry: "Riprova",
+      free_title: "Il tuo primo schema \u00e8 gratis!",
+      free_subtitle: "Inserisci la tua email per scaricare lo schema completo \u2014 lista fili, codici colore e PDF pronto da stampare.",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "Scarica Gratis \u2193",
+      free_note: "Niente spam, mai. Solo il tuo schema.",
+      free_email_error: "Inserisci un\u2019email valida",
+      upsell_title: "Schema scaricato!",
+      upsell_subtitle: "Ti piace? Ottieni 10 schemi e risparmia il 50%",
+      upsell_deal: "10 schemi a $9.99 \u2014 solo $0.99 ciascuno!",
+      upsell_btn: "Passa a 10 Schemi \u2014 $9.99",
+      upsell_skip: "No grazie",
+      mobile_preview_title: "Il tuo pack completo di schemi",
+      mobile_preview_items: "Griglia \u00b7 Legenda fili \u00b7 Codici colore \u00b7 Misure"
     },
     pt: {
       placeholder_text: "Digite seu texto aqui…",
@@ -4949,7 +5396,49 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_pages: "páginas",
       pdf_unit_crosses: "cruzes",
       pdf_unit_skein: "meada",
-      pdf_unit_skeins: "meadas"
+      pdf_unit_skeins: "meadas",
+      pay_title: "Seu padr\u00e3o est\u00e1 pronto para bordar \u2728",
+      pay_subtitle: "Receba sua lista de linhas, c\u00f3digos de cores e PDF pronto para imprimir \u2014 tudo para come\u00e7ar.",
+      pay_single_label: "S\u00f3 este",
+      pay_single_desc: "Seu padr\u00e3o em segundos",
+      pay_badge_save: "Economize 50%",
+      pay_pack_label: "10 Padr\u00f5es",
+      pay_pack_unit: "$0.99 cada",
+      pay_pack_desc: "Perfeito para presentes e projetos",
+      pay_annual_label: "O ano todo",
+      pay_annual_unit: "apenas $2.08/m\u00eas",
+      pay_annual_desc: "Padr\u00f5es ilimitados, o ano todo",
+      pay_social_proof: "\u2702\uFE0F Mais de 50.000 padr\u00f5es criados por bordadores ao redor do mundo",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% de satisfa\u00e7\u00e3o garantida \u2014 ou seu dinheiro de volta",
+      pay_indie_note: "Word2Stitch \u00e9 feito com amor por uma pessoa s\u00f3. Seu apoio ajuda a criar novas fontes e recursos. \uD83D\uDC9C",
+      pay_terms: 'Ao comprar, voc\u00ea concorda com nossos <a href="/terms" target="_blank" rel="noopener">Termos de Servi\u00e7o</a>',
+      pay_divider_key: "J\u00e1 tem uma chave?",
+      pay_key_placeholder: "Cole sua chave de padr\u00e3o aqui",
+      pay_key_submit: "Ativar \u2713",
+      pay_credits_unlimited: "Ilimitado",
+      pay_credits_remaining: "downloads restantes",
+      pay_title_success: "Pagamento recebido! \u2713",
+      pay_subtitle_success: "Verifique sua caixa de entrada \u2014 sua chave est\u00e1 a caminho! Cole abaixo.",
+      pay_key_error: "Chave inv\u00e1lida ou esgotada. Verifique e tente novamente.",
+      pay_title_activating: "Preparando seu padr\u00e3o\u2026",
+      pay_subtitle_activating: "Quase pronto \u2014 s\u00f3 um momento!",
+      pay_trust: "\uD83D\uDD12 Pagamento seguro via Lemon Squeezy",
+      pay_title_personalized: "Seu padr\u00e3o '{text}' est\u00e1 pronto \u2728",
+      pay_checkout_slow: "Demorando mais que o esperado\u2026",
+      pay_checkout_retry: "Tentar novamente",
+      free_title: "Seu primeiro padr\u00e3o \u00e9 gr\u00e1tis!",
+      free_subtitle: "Digite seu email para baixar seu padr\u00e3o completo \u2014 lista de linhas, c\u00f3digos de cores e PDF pronto para imprimir.",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "Baixar Gr\u00e1tis \u2193",
+      free_note: "Sem spam, nunca. S\u00f3 o seu padr\u00e3o.",
+      free_email_error: "Por favor, insira um email v\u00e1lido",
+      upsell_title: "Padr\u00e3o baixado!",
+      upsell_subtitle: "Gostou? Garanta 10 padr\u00f5es e economize 50%",
+      upsell_deal: "10 padr\u00f5es por $9.99 \u2014 apenas $0.99 cada!",
+      upsell_btn: "Passar para 10 Padr\u00f5es \u2014 $9.99",
+      upsell_skip: "N\u00e3o, obrigada",
+      mobile_preview_title: "Seu pack completo de padr\u00f5es",
+      mobile_preview_items: "Grade \u00b7 Legenda de linhas \u00b7 C\u00f3digos de cor \u00b7 Medidas"
     },
     nl: {
       placeholder_text: "Typ je tekst hier…",
@@ -5018,7 +5507,49 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_pages: "pagina's",
       pdf_unit_crosses: "kruisjes",
       pdf_unit_skein: "streng",
-      pdf_unit_skeins: "strengen"
+      pdf_unit_skeins: "strengen",
+      pay_title: "Je patroon is klaar om te borduren \u2728",
+      pay_subtitle: "Ontvang je draadlijst, kleurcodes en printklare PDF \u2014 alles om te beginnen.",
+      pay_single_label: "Alleen deze",
+      pay_single_desc: "Je patroon in seconden",
+      pay_badge_save: "Bespaar 50%",
+      pay_pack_label: "10 Patronen",
+      pay_pack_unit: "$0.99 per stuk",
+      pay_pack_desc: "Perfect voor cadeaus & projecten",
+      pay_annual_label: "Het hele jaar",
+      pay_annual_unit: "slechts $2.08/mnd",
+      pay_annual_desc: "Onbeperkt patronen, het hele jaar",
+      pay_social_proof: "\u2702\uFE0F Meer dan 50.000 patronen gemaakt door borduurders wereldwijd",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% tevredenheid gegarandeerd \u2014 of je geld terug",
+      pay_indie_note: "Word2Stitch is met liefde gemaakt door \u00e9\u00e9n persoon. Jouw steun helpt nieuwe lettertypen en functies te bouwen. \uD83D\uDC9C",
+      pay_terms: 'Door te kopen ga je akkoord met onze <a href="/terms" target="_blank" rel="noopener">Servicevoorwaarden</a>',
+      pay_divider_key: "Heb je al een sleutel?",
+      pay_key_placeholder: "Plak je patroonsleutel hier",
+      pay_key_submit: "Activeren \u2713",
+      pay_credits_unlimited: "Onbeperkt",
+      pay_credits_remaining: "downloads over",
+      pay_title_success: "Betaling ontvangen! \u2713",
+      pay_subtitle_success: "Check je inbox \u2014 je sleutel is onderweg! Plak hem hieronder.",
+      pay_key_error: "Ongeldige of uitgeputte sleutel. Controleer en probeer opnieuw.",
+      pay_title_activating: "Je patroon wordt voorbereid\u2026",
+      pay_subtitle_activating: "Bijna klaar \u2014 een momentje!",
+      pay_trust: "\uD83D\uDD12 Veilig afrekenen via Lemon Squeezy",
+      pay_title_personalized: "Je '{text}'-patroon is klaar \u2728",
+      pay_checkout_slow: "Duurt langer dan verwacht\u2026",
+      pay_checkout_retry: "Opnieuw proberen",
+      free_title: "Je eerste patroon is gratis!",
+      free_subtitle: "Vul je e-mail in om je volledige patroon te downloaden \u2014 draadlijst, kleurcodes en printklare PDF.",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "Gratis downloaden \u2193",
+      free_note: "Geen spam, nooit. Alleen je patroon.",
+      free_email_error: "Vul een geldig e-mailadres in",
+      upsell_title: "Patroon gedownload!",
+      upsell_subtitle: "Blij mee? Pak 10 patronen en bespaar 50%",
+      upsell_deal: "10 patronen voor $9.99 \u2014 dat is $0.99 per stuk!",
+      upsell_btn: "Upgraden naar 10 Patronen \u2014 $9.99",
+      upsell_skip: "Nee bedankt",
+      mobile_preview_title: "Je complete patroenpakket",
+      mobile_preview_items: "Raster \u00b7 Draadlegende \u00b7 Kleurcodes \u00b7 Afmetingen"
     },
     ja: {
       placeholder_text: "テキストを入力…",
@@ -5086,8 +5617,50 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_stitches: "ステッチ",
       pdf_unit_pages: "ページ",
       pdf_unit_crosses: "クロス",
-      pdf_unit_skein: "かせ",
-      pdf_unit_skeins: "かせ"
+      pdf_unit_skein: "\u304b\u305b",
+      pdf_unit_skeins: "\u304b\u305b",
+      pay_title: "\u30d1\u30bf\u30fc\u30f3\u304c\u523a\u3057\u3085\u3046\u6e96\u5099\u5b8c\u4e86 \u2728",
+      pay_subtitle: "\u7cf8\u30ea\u30b9\u30c8\u3001\u30ab\u30e9\u30fc\u30b3\u30fc\u30c9\u3001\u5370\u5237\u7528PDF \u2014 \u523a\u3057\u3085\u3046\u306b\u5fc5\u8981\u306a\u3059\u3079\u3066\u304c\u63c3\u3044\u307e\u3059\u3002",
+      pay_single_label: "\u3053\u306e1\u3064\u3060\u3051",
+      pay_single_desc: "\u6570\u79d2\u3067\u30d1\u30bf\u30fc\u30f3\u5b8c\u6210",
+      pay_badge_save: "50%\u304a\u5f97",
+      pay_pack_label: "10\u30d1\u30bf\u30fc\u30f3",
+      pay_pack_unit: "$0.99/\u500b",
+      pay_pack_desc: "\u30d7\u30ec\u30bc\u30f3\u30c8\u3084\u4f5c\u54c1\u4f5c\u308a\u306b\u6700\u9069",
+      pay_annual_label: "\u5e74\u9593",
+      pay_annual_unit: "\u6708\u305f\u3063\u305f$2.08",
+      pay_annual_desc: "\u7121\u5236\u9650\u306e\u30d1\u30bf\u30fc\u30f3\u3001\u4e00\u5e74\u4e2d",
+      pay_social_proof: "\u2702\uFE0F \u4e16\u754c\u4e2d\u306e\u523a\u3057\u3085\u3046\u611b\u597d\u5bb6\u304c50,000\u4ee5\u4e0a\u306e\u30d1\u30bf\u30fc\u30f3\u3092\u4f5c\u6210",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F 100%\u6e80\u8db3\u4fdd\u8a3c \u2014 \u3054\u4e0d\u6e80\u306a\u3089\u8fd4\u91d1",
+      pay_indie_note: "Word2Stitch\u306f\u4e00\u4eba\u3067\u611b\u3092\u8fbc\u3081\u3066\u4f5c\u3063\u3066\u3044\u307e\u3059\u3002\u3042\u306a\u305f\u306e\u5fdc\u63f4\u304c\u65b0\u3057\u3044\u30d5\u30a9\u30f3\u30c8\u3084\u6a5f\u80fd\u306e\u958b\u767a\u306b\u5f79\u7acb\u3061\u307e\u3059\u3002\uD83D\uDC9C",
+      pay_terms: '\u8cfc\u5165\u3059\u308b\u3053\u3068\u3067<a href="/terms" target="_blank" rel="noopener">\u5229\u7528\u898f\u7d04</a>\u306b\u540c\u610f\u3057\u307e\u3059',
+      pay_divider_key: "\u30ad\u30fc\u3092\u304a\u6301\u3061\u3067\u3059\u304b\uff1f",
+      pay_key_placeholder: "\u30d1\u30bf\u30fc\u30f3\u30ad\u30fc\u3092\u3053\u3053\u306b\u8cbc\u308a\u4ed8\u3051",
+      pay_key_submit: "\u6709\u52b9\u5316 \u2713",
+      pay_credits_unlimited: "\u7121\u5236\u9650",
+      pay_credits_remaining: "\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u6b8b\u308a",
+      pay_title_success: "\u304a\u652f\u6255\u3044\u5b8c\u4e86\uff01\u2713",
+      pay_subtitle_success: "\u53d7\u4fe1\u30c8\u30ec\u30a4\u3092\u78ba\u8a8d \u2014 \u30ad\u30fc\u3092\u9001\u4fe1\u4e2d\u3067\u3059\uff01\u4e0b\u306b\u8cbc\u308a\u4ed8\u3051\u3066\u304f\u3060\u3055\u3044\u3002",
+      pay_key_error: "\u7121\u52b9\u307e\u305f\u306f\u4f7f\u7528\u6e08\u307f\u306e\u30ad\u30fc\u3067\u3059\u3002\u78ba\u8a8d\u3057\u3066\u518d\u5ea6\u304a\u8a66\u3057\u304f\u3060\u3055\u3044\u3002",
+      pay_title_activating: "\u30d1\u30bf\u30fc\u30f3\u3092\u6e96\u5099\u4e2d\u2026",
+      pay_subtitle_activating: "\u3082\u3046\u5c11\u3057 \u2014 \u304a\u5f85\u3061\u304f\u3060\u3055\u3044\uff01",
+      pay_trust: "\uD83D\uDD12 Lemon Squeezy\u306b\u3088\u308b\u5b89\u5168\u306a\u6c7a\u6e08",
+      pay_title_personalized: "\u300c{text}\u300d\u306e\u30d1\u30bf\u30fc\u30f3\u304c\u5b8c\u6210 \u2728",
+      pay_checkout_slow: "\u4e88\u60f3\u3088\u308a\u6642\u9593\u304c\u304b\u304b\u3063\u3066\u3044\u307e\u3059\u2026",
+      pay_checkout_retry: "\u3082\u3046\u4e00\u5ea6\u8a66\u3059",
+      free_title: "\u6700\u521d\u306e\u30d1\u30bf\u30fc\u30f3\u306f\u7121\u6599\u3067\u3059\uff01",
+      free_subtitle: "\u30e1\u30fc\u30eb\u30a2\u30c9\u30ec\u30b9\u3092\u5165\u529b\u3057\u3066\u3001\u5b8c\u5168\u306a\u30d1\u30bf\u30fc\u30f3\u3092\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9 \u2014 \u7cf8\u30ea\u30b9\u30c8\u3001\u30ab\u30e9\u30fc\u30b3\u30fc\u30c9\u3001\u5370\u5237\u7528PDF\u4ed8\u304d\u3002",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "\u7121\u6599\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9 \u2193",
+      free_note: "\u30b9\u30d1\u30e0\u306f\u4e00\u5207\u3042\u308a\u307e\u305b\u3093\u3002\u30d1\u30bf\u30fc\u30f3\u3060\u3051\u304a\u5c4a\u3051\u3057\u307e\u3059\u3002",
+      free_email_error: "\u6709\u52b9\u306a\u30e1\u30fc\u30eb\u30a2\u30c9\u30ec\u30b9\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044",
+      upsell_title: "\u30d1\u30bf\u30fc\u30f3\u3092\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u3057\u307e\u3057\u305f\uff01",
+      upsell_subtitle: "\u6c17\u306b\u5165\u308a\u307e\u3057\u305f\u304b\uff1f10\u30d1\u30bf\u30fc\u30f3\u3067 50%\u304a\u5f97\u306b",
+      upsell_deal: "10\u30d1\u30bf\u30fc\u30f3\u304c$9.99 \u2014 1\u3064\u305f\u3063\u305f\u306e$0.99\uff01",
+      upsell_btn: "10\u30d1\u30bf\u30fc\u30f3\u306b\u30a2\u30c3\u30d7\u30b0\u30ec\u30fc\u30c9 \u2014 $9.99",
+      upsell_skip: "\u3044\u3044\u3048\u3001\u7d50\u69cb\u3067\u3059",
+      mobile_preview_title: "\u5b8c\u5168\u306a\u30d1\u30bf\u30fc\u30f3\u30d1\u30c3\u30af",
+      mobile_preview_items: "\u30b0\u30ea\u30c3\u30c9 \u00b7 \u7cf8\u306e\u51e1\u4f8b \u00b7 \u30ab\u30e9\u30fc\u30b3\u30fc\u30c9 \u00b7 \u5bf8\u6cd5"
     },
     ko: {
       placeholder_text: "텍스트를 입력하세요…",
@@ -5156,7 +5729,49 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_pages: "페이지",
       pdf_unit_crosses: "십자수",
       pdf_unit_skein: "타래",
-      pdf_unit_skeins: "타래"
+      pdf_unit_skeins: "타래",
+      pay_title: "패턴이 준비되었습니다 \u2728",
+      pay_subtitle: "실 목록, 색상 코드, 인쇄용 PDF \u2014 스티치에 필요한 모든 것을 받으세요.",
+      pay_single_label: "이것만",
+      pay_single_desc: "몇 초 만에 패턴 완성",
+      pay_badge_save: "50% 할인",
+      pay_pack_label: "10개 패턴",
+      pay_pack_unit: "$0.99/개",
+      pay_pack_desc: "선물과 프로젝트에 딱",
+      pay_annual_label: "연간",
+      pay_annual_unit: "월 $2.08에 불과",
+      pay_annual_desc: "무제한 패턴, 1년 내내",
+      pay_social_proof: "\u2702\uFE0F 전 세계 자수 애호가들이 50,000개 이상의 패턴을 만들었습니다",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% 만족 보장 \u2014 불만족 시 환불",
+      pay_indie_note: "Word2Stitch는 한 사람이 사랑으로 만듭니다. 당신의 후원이 새 폰트와 기능 개발에 도움이 됩니다. \uD83D\uDC9C",
+      pay_terms: '구매 시 <a href="/terms" target="_blank" rel="noopener">이용약관</a>에 동의합니다',
+      pay_divider_key: "이미 키가 있으신가요?",
+      pay_key_placeholder: "패턴 키를 여기에 붙여넣으세요",
+      pay_key_submit: "활성화 \u2713",
+      pay_credits_unlimited: "무제한",
+      pay_credits_remaining: "다운로드 남음",
+      pay_title_success: "결제 완료! \u2713",
+      pay_subtitle_success: "받은편지함을 확인하세요 \u2014 키가 전송 중입니다! 아래에 붙여넣으세요.",
+      pay_key_error: "유효하지 않거나 소진된 키입니다. 확인 후 다시 시도하세요.",
+      pay_title_activating: "패턴 준비 중\u2026",
+      pay_subtitle_activating: "거의 완료 \u2014 잠시만요!",
+      pay_trust: "\uD83D\uDD12 Lemon Squeezy를 통한 안전한 결제",
+      pay_title_personalized: "'{text}' 패턴이 준비되었습니다 \u2728",
+      pay_checkout_slow: "예상보다 오래 걸리고 있습니다\u2026",
+      pay_checkout_retry: "다시 시도",
+      free_title: "첫 번째 패턴은 무료입니다!",
+      free_subtitle: "이메일을 입력하고 완전한 패턴을 다운로드하세요 — 실 목록, 색상 코드, 인쇄용 PDF 포함.",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "무료 다운로드 \u2193",
+      free_note: "스팸은 절대 없어요. 패턴만 보내드려요.",
+      free_email_error: "유효한 이메일을 입력해주세요",
+      upsell_title: "패턴 다운로드 완료!",
+      upsell_subtitle: "마음에 드셨나요? 10개 패턴으로 50% 할인받으세요",
+      upsell_deal: "10개 패턴 $9.99 — 개당 $0.99!",
+      upsell_btn: "10개 패턴으로 업그레이드 — $9.99",
+      upsell_skip: "괜찮아요",
+      mobile_preview_title: "완전한 패턴 팩",
+      mobile_preview_items: "그리드 \u00b7 실 범례 \u00b7 색상 코드 \u00b7 치수"
     },
     zh: {
       placeholder_text: "在此输入文字…",
@@ -5225,7 +5840,49 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_pages: "页",
       pdf_unit_crosses: "十字",
       pdf_unit_skein: "绞",
-      pdf_unit_skeins: "绞"
+      pdf_unit_skeins: "绞",
+      pay_title: "您的图案已准备好绣制 \u2728",
+      pay_subtitle: "获取线材清单、色号和打印就绪的PDF \u2014 开始绣制所需的一切。",
+      pay_single_label: "仅此一个",
+      pay_single_desc: "几秒完成您的图案",
+      pay_badge_save: "节省50%",
+      pay_pack_label: "10个图案",
+      pay_pack_unit: "$0.99/个",
+      pay_pack_desc: "送礼与创作的理想之选",
+      pay_annual_label: "全年",
+      pay_annual_unit: "仅$2.08/月",
+      pay_annual_desc: "无限图案，全年畅享",
+      pay_social_proof: "\u2702\uFE0F 全球绣友已创建超过50,000个图案",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F 100%满意保证 \u2014 不满意全额退款",
+      pay_indie_note: "Word2Stitch由一个人用爱心制作。您的支持有助于开发新字体和功能。\uD83D\uDC9C",
+      pay_terms: '购买即表示您同意我们的<a href="/terms" target="_blank" rel="noopener">服务条款</a>',
+      pay_divider_key: "已有密钥？",
+      pay_key_placeholder: "在此粘贴您的图案密钥",
+      pay_key_submit: "激活 \u2713",
+      pay_credits_unlimited: "无限",
+      pay_credits_remaining: "次下载剩余",
+      pay_title_success: "支付成功！\u2713",
+      pay_subtitle_success: "请查看您的邮箱 \u2014 密钥正在发送中！粘贴在下方。",
+      pay_key_error: "密钥无效或已用完。请检查后重试。",
+      pay_title_activating: "正在准备您的图案\u2026",
+      pay_subtitle_activating: "即将完成 \u2014 请稍等！",
+      pay_trust: "\uD83D\uDD12 通过Lemon Squeezy安全结账",
+      pay_title_personalized: "您的\u201c{text}\u201d图案已准备好 \u2728",
+      pay_checkout_slow: "比预期花费更长时间\u2026",
+      pay_checkout_retry: "重试",
+      free_title: "您的第一个图案免费！",
+      free_subtitle: "输入邮箱即可下载完整图案 — 线材清单、色号和打印就绪的PDF。",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "免费下载 \u2193",
+      free_note: "绝不发送垃圾邮件。只为您送上图案。",
+      free_email_error: "请输入有效的邮箱地址",
+      upsell_title: "图案下载完成！",
+      upsell_subtitle: "喜欢吗？获取10个图案，立省50%",
+      upsell_deal: "10个图案仅$9.99 — 每个只要$0.99！",
+      upsell_btn: "升级至10个图案 — $9.99",
+      upsell_skip: "不用了，谢谢",
+      mobile_preview_title: "您的完整图案包",
+      mobile_preview_items: "网格 \u00b7 线材图例 \u00b7 色号 \u00b7 尺寸"
     },
     ru: {
       placeholder_text: "Введите текст…",
@@ -5294,7 +5951,49 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_pages: "стр.",
       pdf_unit_crosses: "крестиков",
       pdf_unit_skein: "моток",
-      pdf_unit_skeins: "мотков"
+      pdf_unit_skeins: "мотков",
+      pay_title: "Ваша схема готова к вышивке \u2728",
+      pay_subtitle: "Получите список ниток, цветовые коды и PDF для печати \u2014 всё для начала вышивки.",
+      pay_single_label: "Только эта",
+      pay_single_desc: "Ваша схема за секунды",
+      pay_badge_save: "Скидка 50%",
+      pay_pack_label: "10 Схем",
+      pay_pack_unit: "$0.99 за штуку",
+      pay_pack_desc: "Идеально для подарков и проектов",
+      pay_annual_label: "Весь год",
+      pay_annual_unit: "всего $2.08/мес",
+      pay_annual_desc: "Безлимитные схемы, весь год",
+      pay_social_proof: "\u2702\uFE0F Более 50 000 схем создано вышивальщицами по всему миру",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% гарантия удовлетворённости \u2014 или вернём деньги",
+      pay_indie_note: "Word2Stitch создан с любовью одним человеком. Ваша поддержка помогает создавать новые шрифты и функции. \uD83D\uDC9C",
+      pay_terms: 'Покупая, вы соглашаетесь с <a href="/terms" target="_blank" rel="noopener">Условиями использования</a>',
+      pay_divider_key: "Уже есть ключ?",
+      pay_key_placeholder: "Вставьте ключ схемы сюда",
+      pay_key_submit: "Активировать \u2713",
+      pay_credits_unlimited: "Безлимитно",
+      pay_credits_remaining: "загрузок осталось",
+      pay_title_success: "Оплата получена! \u2713",
+      pay_subtitle_success: "Проверьте почту \u2014 ваш ключ уже в пути! Вставьте его ниже.",
+      pay_key_error: "Недействительный или использованный ключ. Проверьте и попробуйте снова.",
+      pay_title_activating: "Подготовка вашей схемы\u2026",
+      pay_subtitle_activating: "Почти готово \u2014 одну секунду!",
+      pay_trust: "\uD83D\uDD12 Безопасная оплата через Lemon Squeezy",
+      pay_title_personalized: "Ваша схема \u00ab{text}\u00bb готова \u2728",
+      pay_checkout_slow: "Занимает больше времени, чем ожидалось\u2026",
+      pay_checkout_retry: "Попробовать снова",
+      free_title: "Ваша первая схема — бесплатно!",
+      free_subtitle: "Введите email, чтобы скачать полную схему — список ниток, цветовые коды и PDF для печати.",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "Скачать бесплатно \u2193",
+      free_note: "Никакого спама. Только ваша схема.",
+      free_email_error: "Пожалуйста, введите корректный email",
+      upsell_title: "Схема скачана!",
+      upsell_subtitle: "Понравилось? Возьмите 10 схем и сэкономьте 50%",
+      upsell_deal: "10 схем за $9.99 — это всего $0.99 за штуку!",
+      upsell_btn: "Перейти на 10 Схем — $9.99",
+      upsell_skip: "Нет, спасибо",
+      mobile_preview_title: "Ваш полный набор схем",
+      mobile_preview_items: "Сетка \u00b7 Таблица ниток \u00b7 Цветовые коды \u00b7 Размеры"
     },
     pl: {
       placeholder_text: "Wpisz swój tekst…",
@@ -5363,7 +6062,49 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_pages: "stron",
       pdf_unit_crosses: "krzyżyków",
       pdf_unit_skein: "motek",
-      pdf_unit_skeins: "motków"
+      pdf_unit_skeins: "motków",
+      pay_title: "Twój wzór jest gotowy do haftowania \u2728",
+      pay_subtitle: "Otrzymaj listę nici, kody kolorów i PDF do druku \u2014 wszystko, czego potrzebujesz.",
+      pay_single_label: "Tylko ten",
+      pay_single_desc: "Twój wzór w kilka sekund",
+      pay_badge_save: "Oszczędź 50%",
+      pay_pack_label: "10 Wzorów",
+      pay_pack_unit: "$0.99 za sztukę",
+      pay_pack_desc: "Idealny na prezenty i projekty",
+      pay_annual_label: "Cały rok",
+      pay_annual_unit: "tylko $2.08/mies.",
+      pay_annual_desc: "Nieograniczone wzory, cały rok",
+      pay_social_proof: "\u2702\uFE0F Ponad 50 000 wzorów stworzonych przez hafciarki na całym świecie",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% gwarancja satysfakcji \u2014 lub zwrot pieniędzy",
+      pay_indie_note: "Word2Stitch jest tworzony z miłością przez jedną osobę. Twoje wsparcie pomaga tworzyć nowe czcionki i funkcje. \uD83D\uDC9C",
+      pay_terms: 'Kupując, zgadzasz się z naszymi <a href="/terms" target="_blank" rel="noopener">Warunkami usługi</a>',
+      pay_divider_key: "Masz już klucz?",
+      pay_key_placeholder: "Wklej swój klucz wzoru tutaj",
+      pay_key_submit: "Aktywuj \u2713",
+      pay_credits_unlimited: "Bez limitu",
+      pay_credits_remaining: "pobrań pozostało",
+      pay_title_success: "Płatność otrzymana! \u2713",
+      pay_subtitle_success: "Sprawdź skrzynkę \u2014 klucz jest w drodze! Wklej go poniżej.",
+      pay_key_error: "Nieprawidłowy lub wyczerpany klucz. Sprawdź i spróbuj ponownie.",
+      pay_title_activating: "Przygotowywanie wzoru\u2026",
+      pay_subtitle_activating: "Prawie gotowe \u2014 chwileczkę!",
+      pay_trust: "\uD83D\uDD12 Bezpieczna płatność przez Lemon Squeezy",
+      pay_title_personalized: "Twój wzór \u201e{text}\u201d jest gotowy \u2728",
+      pay_checkout_slow: "Trwa dłużej niż oczekiwano\u2026",
+      pay_checkout_retry: "Spróbuj ponownie",
+      free_title: "Twój pierwszy wzór jest za darmo!",
+      free_subtitle: "Wpisz swój email, aby pobrać kompletny wzór — lista nici, kody kolorów i PDF gotowy do druku.",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "Pobierz za darmo \u2193",
+      free_note: "Żadnego spamu, nigdy. Tylko Twój wzór.",
+      free_email_error: "Wpisz prawidłowy adres email",
+      upsell_title: "Wzór pobrany!",
+      upsell_subtitle: "Podoba się? Zdobądź 10 wzorów i zaoszczędź 50%",
+      upsell_deal: "10 wzorów za $9.99 — to tylko $0.99 za sztukę!",
+      upsell_btn: "Przejdź na 10 Wzorów — $9.99",
+      upsell_skip: "Nie, dziękuję",
+      mobile_preview_title: "Twój kompletny pakiet wzorów",
+      mobile_preview_items: "Siatka \u00b7 Legenda nici \u00b7 Kody kolorów \u00b7 Wymiary"
     },
     sv: {
       placeholder_text: "Skriv din text här…",
@@ -5432,7 +6173,49 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_pages: "sidor",
       pdf_unit_crosses: "kors",
       pdf_unit_skein: "docka",
-      pdf_unit_skeins: "dockor"
+      pdf_unit_skeins: "dockor",
+      pay_title: "Ditt mönster är redo att brodera \u2728",
+      pay_subtitle: "Få din trådlista, färgkoder och utskriftsklar PDF \u2014 allt du behöver för att börja.",
+      pay_single_label: "Bara denna",
+      pay_single_desc: "Ditt mönster på sekunder",
+      pay_badge_save: "Spara 50%",
+      pay_pack_label: "10 Mönster",
+      pay_pack_unit: "$0.99 styck",
+      pay_pack_desc: "Perfekt för presenter och projekt",
+      pay_annual_label: "Hela året",
+      pay_annual_unit: "bara $2.08/mån",
+      pay_annual_desc: "Obegränsade mönster, hela året",
+      pay_social_proof: "\u2702\uFE0F Över 50 000 mönster skapade av brodöser världen över",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% nöjdhetsgaranti \u2014 eller pengarna tillbaka",
+      pay_indie_note: "Word2Stitch är gjort med kärlek av en person. Ditt stöd hjälper till att bygga nya typsnitt och funktioner. \uD83D\uDC9C",
+      pay_terms: 'Genom att köpa godkänner du våra <a href="/terms" target="_blank" rel="noopener">Användarvillkor</a>',
+      pay_divider_key: "Har du redan en nyckel?",
+      pay_key_placeholder: "Klistra in din mönsternyckel här",
+      pay_key_submit: "Aktivera \u2713",
+      pay_credits_unlimited: "Obegränsat",
+      pay_credits_remaining: "nedladdningar kvar",
+      pay_title_success: "Betalning mottagen! \u2713",
+      pay_subtitle_success: "Kolla din inkorg \u2014 din nyckel är på väg! Klistra in den nedan.",
+      pay_key_error: "Ogiltig eller förbrukad nyckel. Kontrollera och försök igen.",
+      pay_title_activating: "Förbereder ditt mönster\u2026",
+      pay_subtitle_activating: "Nästan klart \u2014 ett ögonblick!",
+      pay_trust: "\uD83D\uDD12 Säker betalning via Lemon Squeezy",
+      pay_title_personalized: "Ditt \u201c{text}\u201d-mönster är klart \u2728",
+      pay_checkout_slow: "Tar längre tid än väntat\u2026",
+      pay_checkout_retry: "Försök igen",
+      free_title: "Ditt första mönster är gratis!",
+      free_subtitle: "Ange din e-post för att ladda ner ditt kompletta mönster — trådlista, färgkoder och utskriftsklar PDF.",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "Ladda ner gratis \u2193",
+      free_note: "Ingen spam, aldrig. Bara ditt mönster.",
+      free_email_error: "Ange en giltig e-postadress",
+      upsell_title: "Mönster nedladdat!",
+      upsell_subtitle: "Gillar du det? Få 10 mönster och spara 50%",
+      upsell_deal: "10 mönster för $9.99 — det är bara $0.99 styck!",
+      upsell_btn: "Uppgradera till 10 Mönster — $9.99",
+      upsell_skip: "Nej tack",
+      mobile_preview_title: "Ditt kompletta mönsterpaket",
+      mobile_preview_items: "Rutnät \u00b7 Trådguide \u00b7 Färgkoder \u00b7 Mått"
     },
     da: {
       placeholder_text: "Skriv din tekst her…",
@@ -5501,7 +6284,49 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_pages: "sider",
       pdf_unit_crosses: "kors",
       pdf_unit_skein: "nøgle",
-      pdf_unit_skeins: "nøgler"
+      pdf_unit_skeins: "nøgler",
+      pay_title: "Dit mønster er klar til at brodere \u2728",
+      pay_subtitle: "Få din trådliste, farvekoder og printklart PDF \u2014 alt hvad du skal bruge.",
+      pay_single_label: "Kun denne",
+      pay_single_desc: "Dit mønster på sekunder",
+      pay_badge_save: "Spar 50%",
+      pay_pack_label: "10 Mønstre",
+      pay_pack_unit: "$0.99 stk.",
+      pay_pack_desc: "Perfekt til gaver og projekter",
+      pay_annual_label: "Hele året",
+      pay_annual_unit: "kun $2.08/md.",
+      pay_annual_desc: "Ubegrænsede mønstre, hele året",
+      pay_social_proof: "\u2702\uFE0F Over 50.000 mønstre skabt af brodører verden over",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% tilfredshedsgaranti \u2014 eller pengene tilbage",
+      pay_indie_note: "Word2Stitch er lavet med kærlighed af én person. Din støtte hjælper med at bygge nye skrifttyper og funktioner. \uD83D\uDC9C",
+      pay_terms: 'Ved at købe accepterer du vores <a href="/terms" target="_blank" rel="noopener">Servicevilkår</a>',
+      pay_divider_key: "Har du allerede en nøgle?",
+      pay_key_placeholder: "Indsæt din mønsternøgle her",
+      pay_key_submit: "Aktivér \u2713",
+      pay_credits_unlimited: "Ubegrænset",
+      pay_credits_remaining: "downloads tilbage",
+      pay_title_success: "Betaling modtaget! \u2713",
+      pay_subtitle_success: "Tjek din indbakke \u2014 din nøgle er på vej! Indsæt den nedenfor.",
+      pay_key_error: "Ugyldig eller opbrugt nøgle. Kontrollér og prøv igen.",
+      pay_title_activating: "Forbereder dit mønster\u2026",
+      pay_subtitle_activating: "Næsten klar \u2014 et øjeblik!",
+      pay_trust: "\uD83D\uDD12 Sikker betaling via Lemon Squeezy",
+      pay_title_personalized: "Dit '{text}'-mønster er klar \u2728",
+      pay_checkout_slow: "Tager længere tid end forventet\u2026",
+      pay_checkout_retry: "Prøv igen",
+      free_title: "Dit første mønster er gratis!",
+      free_subtitle: "Indtast din email for at downloade dit komplette mønster — trådliste, farvekoder og printklart PDF.",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "Download gratis \u2193",
+      free_note: "Ingen spam, aldrig. Kun dit mønster.",
+      free_email_error: "Indtast venligst en gyldig email",
+      upsell_title: "Mønster downloadet!",
+      upsell_subtitle: "Kan du lide det? Få 10 mønstre og spar 50%",
+      upsell_deal: "10 mønstre for $9.99 — det er kun $0.99 stk.!",
+      upsell_btn: "Opgrader til 10 Mønstre — $9.99",
+      upsell_skip: "Nej tak",
+      mobile_preview_title: "Din komplette mønsterpakke",
+      mobile_preview_items: "Gitter \u00b7 Trådoversigt \u00b7 Farvekoder \u00b7 Mål"
     },
     fi: {
       placeholder_text: "Kirjoita tekstisi tähän…",
@@ -5570,7 +6395,49 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_pages: "sivua",
       pdf_unit_crosses: "ristiä",
       pdf_unit_skein: "vyyhti",
-      pdf_unit_skeins: "vyyhtiä"
+      pdf_unit_skeins: "vyyhtiä",
+      pay_title: "Kuviosi on valmis ristipistoon \u2728",
+      pay_subtitle: "Saat lankalistan, värikoodit ja tulostus-PDF:n \u2014 kaiken mitä tarvitset.",
+      pay_single_label: "Vain tämä",
+      pay_single_desc: "Kuviosi sekunneissa",
+      pay_badge_save: "Säästä 50%",
+      pay_pack_label: "10 Kuviota",
+      pay_pack_unit: "$0.99 kpl",
+      pay_pack_desc: "Täydellinen lahjoihin ja projekteihin",
+      pay_annual_label: "Koko vuosi",
+      pay_annual_unit: "vain $2.08/kk",
+      pay_annual_desc: "Rajattomat kuviot, koko vuoden",
+      pay_social_proof: "\u2702\uFE0F Yli 50 000 kuviota luotu ristipistoilijoiden toimesta ympäri maailmaa",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% tyytyväisyystakuu \u2014 tai rahat takaisin",
+      pay_indie_note: "Word2Stitch on tehty rakkaudella yhden henkilön voimin. Tukesi auttaa luomaan uusia fontteja ja ominaisuuksia. \uD83D\uDC9C",
+      pay_terms: 'Ostamalla hyväksyt <a href="/terms" target="_blank" rel="noopener">Käyttöehdot</a>',
+      pay_divider_key: "Onko sinulla jo avain?",
+      pay_key_placeholder: "Liitä kuvioavaimesi tähän",
+      pay_key_submit: "Aktivoi \u2713",
+      pay_credits_unlimited: "Rajoittamaton",
+      pay_credits_remaining: "latausta jäljellä",
+      pay_title_success: "Maksu vastaanotettu! \u2713",
+      pay_subtitle_success: "Tarkista sähköpostisi \u2014 avaimesi on matkalla! Liitä se alle.",
+      pay_key_error: "Virheellinen tai käytetty avain. Tarkista ja yritä uudelleen.",
+      pay_title_activating: "Valmistellaan kuviotasi\u2026",
+      pay_subtitle_activating: "Melkein valmis \u2014 hetkinen!",
+      pay_trust: "\uD83D\uDD12 Turvallinen maksu Lemon Squeezyn kautta",
+      pay_title_personalized: "'{text}'-kuviosi on valmis \u2728",
+      pay_checkout_slow: "Kestää odotettua kauemmin\u2026",
+      pay_checkout_retry: "Yritä uudelleen",
+      free_title: "Ensimmäinen kuviosi on ilmainen!",
+      free_subtitle: "Syötä sähköpostisi ja lataa täydellinen kuvio — lankalista, värikoodit ja tulostus-PDF.",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "Lataa ilmaiseksi \u2193",
+      free_note: "Ei roskapostia, koskaan. Vain kuviosi.",
+      free_email_error: "Syötä kelvollinen sähköpostiosoite",
+      upsell_title: "Kuvio ladattu!",
+      upsell_subtitle: "Pitikö? Hanki 10 kuviota ja säästä 50%",
+      upsell_deal: "10 kuviota hintaan $9.99 — vain $0.99 kappale!",
+      upsell_btn: "Päivitä 10 Kuvioon — $9.99",
+      upsell_skip: "Ei kiitos",
+      mobile_preview_title: "Täydellinen kuviopakettisi",
+      mobile_preview_items: "Ruudukko \u00b7 Lankaopas \u00b7 Värikoodit \u00b7 Mitat"
     },
     uk: {
       placeholder_text: "Введіть текст…",
@@ -5639,7 +6506,49 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_pages: "стор.",
       pdf_unit_crosses: "хрестиків",
       pdf_unit_skein: "моток",
-      pdf_unit_skeins: "мотків"
+      pdf_unit_skeins: "мотків",
+      pay_title: "Ваша схема готова до вишивки \u2728",
+      pay_subtitle: "Отримайте список ниток, кольорові коди та PDF для друку \u2014 все для початку вишивки.",
+      pay_single_label: "Лише ця",
+      pay_single_desc: "Ваша схема за кілька секунд",
+      pay_badge_save: "Знижка 50%",
+      pay_pack_label: "10 Схем",
+      pay_pack_unit: "$0.99 за штуку",
+      pay_pack_desc: "Ідеально для подарунків та проєктів",
+      pay_annual_label: "Весь рік",
+      pay_annual_unit: "лише $2.08/міс",
+      pay_annual_desc: "Безлімітні схеми, цілий рік",
+      pay_social_proof: "\u2702\uFE0F Понад 50 000 схем створено вишивальницями по всьому світу",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% гарантія задоволення \u2014 або повернемо гроші",
+      pay_indie_note: "Word2Stitch створено з любов'ю однією людиною. Ваша підтримка допомагає створювати нові шрифти та функції. \uD83D\uDC9C",
+      pay_terms: 'Купуючи, ви погоджуєтесь з <a href="/terms" target="_blank" rel="noopener">Умовами використання</a>',
+      pay_divider_key: "Вже маєте ключ?",
+      pay_key_placeholder: "Вставте ключ схеми сюди",
+      pay_key_submit: "Активувати \u2713",
+      pay_credits_unlimited: "Безлімітно",
+      pay_credits_remaining: "завантажень залишилось",
+      pay_title_success: "Оплату отримано! \u2713",
+      pay_subtitle_success: "Перевірте пошту \u2014 ваш ключ вже в дорозі! Вставте його нижче.",
+      pay_key_error: "Недійсний або використаний ключ. Перевірте та спробуйте знову.",
+      pay_title_activating: "Підготовка вашої схеми\u2026",
+      pay_subtitle_activating: "Майже готово \u2014 одну мить!",
+      pay_trust: "\uD83D\uDD12 Безпечна оплата через Lemon Squeezy",
+      pay_title_personalized: "Ваша схема \u00ab{text}\u00bb готова \u2728",
+      pay_checkout_slow: "Займає більше часу, ніж очікувалось\u2026",
+      pay_checkout_retry: "Спробувати знову",
+      free_title: "Ваша перша схема — безкоштовно!",
+      free_subtitle: "Введіть email, щоб завантажити повну схему — список ниток, кольорові коди та PDF для друку.",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "Завантажити безкоштовно \u2193",
+      free_note: "Жодного спаму, ніколи. Тільки ваша схема.",
+      free_email_error: "Будь ласка, введіть дійсний email",
+      upsell_title: "Схему завантажено!",
+      upsell_subtitle: "Сподобалось? Отримайте 10 схем і заощадьте 50%",
+      upsell_deal: "10 схем за $9.99 — лише $0.99 за штуку!",
+      upsell_btn: "Перейти на 10 Схем — $9.99",
+      upsell_skip: "Ні, дякую",
+      mobile_preview_title: "Ваш повний набір схем",
+      mobile_preview_items: "Сітка \u00b7 Таблиця ниток \u00b7 Кольорові коди \u00b7 Розміри"
     },
     hu: {
       placeholder_text: "Írd be a szöveged…",
@@ -5708,7 +6617,49 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pdf_unit_pages: "oldal",
       pdf_unit_crosses: "kereszt",
       pdf_unit_skein: "pászma",
-      pdf_unit_skeins: "pászmák"
+      pdf_unit_skeins: "pászmák",
+      pay_title: "A mintád készen áll a hímzésre \u2728",
+      pay_subtitle: "Kapd meg a fonallistát, színkódokat és nyomtatható PDF-et \u2014 mindent, ami a kezdéshez kell.",
+      pay_single_label: "Csak ez az egy",
+      pay_single_desc: "A mintád másodpercek alatt",
+      pay_badge_save: "Spórolj 50%-ot",
+      pay_pack_label: "10 Minta",
+      pay_pack_unit: "$0.99 darabja",
+      pay_pack_desc: "Tökéletes ajándéknak és projektekhez",
+      pay_annual_label: "Egész évben",
+      pay_annual_unit: "csak $2.08/hó",
+      pay_annual_desc: "Korlátlan minták, egész évben",
+      pay_social_proof: "\u2702\uFE0F Több mint 50 000 mintát készítettek hímzők szerte a világon",
+      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% elégedettségi garancia \u2014 vagy visszaadjuk a pénzed",
+      pay_indie_note: "A Word2Stitch-et egy ember készíti szeretettel. Támogatásod új betűtípusok és funkciók fejlesztését segíti. \uD83D\uDC9C",
+      pay_terms: 'Vásárlással elfogadod az <a href="/terms" target="_blank" rel="noopener">Általános Szerződési Feltételeket</a>',
+      pay_divider_key: "Már van kulcsod?",
+      pay_key_placeholder: "Illeszd be a mintakulcsodat ide",
+      pay_key_submit: "Aktiválás \u2713",
+      pay_credits_unlimited: "Korlátlan",
+      pay_credits_remaining: "letöltés maradt",
+      pay_title_success: "Fizetés megérkezett! \u2713",
+      pay_subtitle_success: "Nézd meg a postaládádat \u2014 a kulcsod úton van! Illeszd be alább.",
+      pay_key_error: "Érvénytelen vagy kimerült kulcs. Ellenőrizd és próbáld újra.",
+      pay_title_activating: "Mintád előkészítése\u2026",
+      pay_subtitle_activating: "Majdnem kész \u2014 egy pillanat!",
+      pay_trust: "\uD83D\uDD12 Biztonságos fizetés a Lemon Squeezy-n keresztül",
+      pay_title_personalized: "A '{text}' mintád készen áll \u2728",
+      pay_checkout_slow: "Tovább tart a vártnál\u2026",
+      pay_checkout_retry: "Próbáld újra",
+      free_title: "Az első mintád ingyenes!",
+      free_subtitle: "Add meg az email címed, és töltsd le a teljes mintát — fonallista, színkódok és nyomtatásra kész PDF.",
+      free_email_placeholder: "your@email.com",
+      free_email_submit: "Ingyenes letöltés \u2193",
+      free_note: "Nem küldünk spamet, soha. Csak a mintádat.",
+      free_email_error: "Kérjük, adj meg egy érvényes email címet",
+      upsell_title: "Minta letöltve!",
+      upsell_subtitle: "Tetszett? Szerezz 10 mintát és spórolj 50%-ot",
+      upsell_deal: "10 minta $9.99-ért — ez csak $0.99 darabonként!",
+      upsell_btn: "Frissítés 10 Mintára — $9.99",
+      upsell_skip: "Nem, köszönöm",
+      mobile_preview_title: "A teljes mintacsomagod",
+      mobile_preview_items: "Rács \u00b7 Fonalútmutató \u00b7 Színkódok \u00b7 Méretek"
     }
   };
 
@@ -5733,6 +6684,9 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   function applyLang() {
     document.querySelectorAll('[data-i18n]').forEach(function(el) {
       el.textContent = t(el.dataset.i18n);
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
+      el.innerHTML = t(el.dataset.i18nHtml);
     });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
       el.placeholder = t(el.dataset.i18nPlaceholder);
@@ -5882,7 +6836,10 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 // and the payment modal flow with Lemon Squeezy checkout overlay.
 
   var LICENSE_KEY_STORAGE = 'w2s_license_key';
+  var FIRST_FREE_KEY = 'w2s_first_free';
+  var STORED_EMAIL_KEY = 'w2s_email';
   var _pendingPdfFn = null;
+  var _lastPurchasePlan = '';
 
   var payModalEl = document.getElementById('pay-modal');
   var payBackdrop = document.getElementById('pay-backdrop');
@@ -5905,6 +6862,24 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     catch (e) { /* silent */ }
   }
 
+  // -- Free trial & email --
+
+  function hasUsedFreeTrial() {
+    try { return localStorage.getItem(FIRST_FREE_KEY) === '1'; } catch(e) { return false; }
+  }
+
+  function markFreeTrialUsed() {
+    try { localStorage.setItem(FIRST_FREE_KEY, '1'); } catch(e) {}
+  }
+
+  function getStoredEmail() {
+    try { return localStorage.getItem(STORED_EMAIL_KEY) || ''; } catch(e) { return ''; }
+  }
+
+  function storeEmail(email) {
+    try { localStorage.setItem(STORED_EMAIL_KEY, email); } catch(e) {}
+  }
+
   // -- Server verification --
 
   function verifyLicenseKey(key) {
@@ -5917,6 +6892,18 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     .catch(function() { return { allowed: false, error: 'network' }; });
   }
 
+  // -- Read-only check (does NOT consume credits) --
+
+  function checkLicenseKey(key) {
+    return fetch('/api/check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ license_key: key })
+    })
+    .then(function(res) { return res.json(); })
+    .catch(function() { return { valid: false, error: 'network' }; });
+  }
+
   // -- Payment modal --
 
   function showPaymentModal() {
@@ -5927,12 +6914,27 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     if (payModalEl) {
       payModalEl.classList.remove('pay-hidden');
       payModalEl.classList.remove('pay-key-only');
-      // Reset title and subtitle to defaults
+      // Reset title and subtitle to defaults (i18n)
       var title = payModalEl.querySelector('.pay-title');
-      if (title) title.textContent = 'Your pattern is ready to stitch \u2728';
+      if (title) title.textContent = t('pay_title');
       var subtitle = payModalEl.querySelector('.pay-subtitle');
       if (subtitle) {
-        subtitle.textContent = 'Get your thread list, color codes, and print-ready PDF \u2014 everything you need to start stitching.';
+        subtitle.textContent = t('pay_subtitle');
+      }
+      // Personalize title with user's pattern text
+      var userText = '';
+      var textInput = document.getElementById('textInput');
+      if (textInput) userText = textInput.value.trim();
+      if (!userText) {
+        var mobileInput = document.getElementById('mobileTextInput');
+        if (mobileInput) userText = mobileInput.value.trim();
+      }
+      if (title && userText) {
+        var personalizedTitle = t('pay_title_personalized');
+        if (personalizedTitle !== 'pay_title_personalized') {
+          var truncated = userText.length > 30 ? userText.substring(0, 30) + '\u2026' : userText;
+          title.textContent = personalizedTitle.replace('{text}', truncated);
+        }
       }
     }
   }
@@ -5950,14 +6952,22 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
   function requestPdfDownload(generateCompleteFn) {
     var key = getLicenseKey();
+    if (!key && !hasUsedFreeTrial()) {
+      // First download is free — capture email
+      _pendingPdfFn = generateCompleteFn;
+      showFreeModal();
+      return;
+    }
     if (!key) {
       _pendingPdfFn = generateCompleteFn;
+      try { sessionStorage.setItem('w2s_pending_download', '1'); } catch(e) {}
       showPaymentModal();
       return;
     }
     // Has key — verify with server
     verifyLicenseKey(key).then(function(result) {
       if (result.allowed) {
+        try { sessionStorage.removeItem('w2s_pending_download'); } catch(e) {}
         generateCompleteFn();
         updateCreditsDisplay(result.remaining);
       } else {
@@ -5965,13 +6975,16 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
           clearLicenseKey();
         }
         _pendingPdfFn = generateCompleteFn;
+        try { sessionStorage.setItem('w2s_pending_download', '1'); } catch(e) {}
         showPaymentModal();
       }
     });
   }
 
-  // Expose for pdf-modal.js (runs in global scope, outside this IIFE)
+  // Expose for pdf-modal.js and checkout overlay retry button (run in global scope)
   window.requestPdfDownload = requestPdfDownload;
+  window.closeCheckoutOverlay = closeCheckoutOverlay;
+  window.showPaymentModal = showPaymentModal;
 
   // -- Credits display --
 
@@ -5979,9 +6992,9 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     var el = document.getElementById('credits-display');
     if (!el) return;
     if (remaining < 0) {
-      el.textContent = 'Unlimited';
+      el.textContent = t('pay_credits_unlimited');
     } else {
-      el.textContent = remaining + ' downloads left';
+      el.textContent = remaining + ' ' + t('pay_credits_remaining');
     }
     el.classList.remove('pay-hidden');
   }
@@ -5990,6 +7003,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
   var _checkoutOverlay = null;
   var _checkoutIframe = null;
+  var _checkoutTimeout = null;
   var _paymentHandled = false;
 
   function showCheckoutOverlay(checkoutUrl) {
@@ -6020,9 +7034,23 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
     document.body.appendChild(_checkoutOverlay);
     _paymentHandled = false;
+
+    // Iframe load timeout — show retry after 15s
+    _checkoutTimeout = setTimeout(function() {
+      if (_checkoutOverlay) {
+        var loader = _checkoutOverlay.querySelector('.ls-overlay-loader');
+        if (loader) {
+          loader.innerHTML = '<div style="color:#fff;text-align:center;padding:2rem;">' +
+            '<p>' + t('pay_checkout_slow') + '</p>' +
+            '<button onclick="closeCheckoutOverlay();showPaymentModal();" style="margin-top:1rem;padding:0.5rem 1.5rem;background:#fff;color:#3d3229;border:none;border-radius:8px;cursor:pointer;font-weight:600;">' + t('pay_checkout_retry') + '</button>' +
+            '</div>';
+        }
+      }
+    }, 15000);
   }
 
   function closeCheckoutOverlay() {
+    clearTimeout(_checkoutTimeout);
     if (_checkoutOverlay) {
       _checkoutOverlay.remove();
       _checkoutOverlay = null;
@@ -6030,14 +7058,76 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     }
   }
 
-  function handlePaymentSuccess() {
+  function handlePaymentSuccess(eventData) {
     if (_paymentHandled) return;
     _paymentHandled = true;
 
     closeCheckoutOverlay();
 
-    // Show license key input prompt (key arrives via email)
-    showLicenseKeyPrompt();
+    // Try auto-activation first, fallback to manual key entry
+    var orderId = extractOrderId(eventData);
+    if (orderId) {
+      autoActivateOrder(orderId);
+    } else {
+      showLicenseKeyPrompt();
+    }
+  }
+
+  function extractOrderId(eventData) {
+    if (!eventData || typeof eventData !== 'object') return '';
+    // LS Checkout.Success format: { event, data: { id, attributes: { order_number } } }
+    var data = eventData.data;
+    if (data) {
+      if (data.attributes) {
+        return String(data.attributes.order_number || data.id || '');
+      }
+      if (data.id) return String(data.id);
+      // Legacy fallback: data.order (defensive)
+      var order = data.order;
+      if (order) return String(order.order_number || order.identifier || order.id || '');
+    }
+    // Top-level fallback
+    if (eventData.order) {
+      return String(eventData.order.order_number || eventData.order.identifier || eventData.order.id || '');
+    }
+    return '';
+  }
+
+  function autoActivateOrder(orderId) {
+    // Show activating state in modal
+    showPaymentModal();
+    if (payModalEl) payModalEl.classList.add('pay-key-only');
+    var title = payModalEl.querySelector('.pay-title');
+    if (title) title.textContent = t('pay_title_activating');
+    var subtitle = payModalEl.querySelector('.pay-subtitle');
+    if (subtitle) subtitle.textContent = t('pay_subtitle_activating');
+
+    fetch('/api/activate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order_id: orderId })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(result) {
+      if (result.allowed && result.license_key) {
+        storeLicenseKey(result.license_key);
+        try { sessionStorage.removeItem('w2s_pending_download'); } catch(e) {}
+        updateCreditsDisplay(result.remaining);
+        hidePaymentModal(false);
+        if (_pendingPdfFn) {
+          _pendingPdfFn();
+          _pendingPdfFn = null;
+          maybeShowUpsell();
+        }
+      } else {
+        // Fallback to manual key entry
+        showLicenseKeyPrompt();
+      }
+    })
+    .catch(function() {
+      // Fallback to manual key entry on network error
+      showLicenseKeyPrompt();
+    });
   }
 
   function showLicenseKeyPrompt() {
@@ -6045,10 +7135,10 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     // Switch to key-only mode: hide plan cards, show only key input
     if (payModalEl) payModalEl.classList.add('pay-key-only');
     var title = payModalEl.querySelector('.pay-title');
-    if (title) title.textContent = 'Payment received! \u2713';
+    if (title) title.textContent = t('pay_title_success');
     var subtitle = payModalEl.querySelector('.pay-subtitle');
     if (subtitle) {
-      subtitle.textContent = 'Check your inbox \u2014 your pattern key is on its way! Paste it below.';
+      subtitle.textContent = t('pay_subtitle_success');
     }
     var keyField = document.getElementById('pay-key-field');
     if (keyField) keyField.focus();
@@ -6062,6 +7152,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     var data = e.data;
 
     if (data === 'mounted' && _checkoutOverlay) {
+      clearTimeout(_checkoutTimeout);
       var loader = _checkoutOverlay.querySelector('.ls-overlay-loader');
       if (loader) loader.remove();
     }
@@ -6073,7 +7164,23 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
     var eventName = data && data.event ? data.event : '';
     if (eventName === 'Checkout.Success' || eventName === 'GA.Purchase') {
-      handlePaymentSuccess();
+      handlePaymentSuccess(data);
+    }
+  });
+
+  // ESC key closes checkout overlay or payment modal
+  window.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      if (_checkoutOverlay) {
+        closeCheckoutOverlay();
+        showPaymentModal();
+      } else if (upsellModalEl && !upsellModalEl.classList.contains('pay-hidden')) {
+        hideUpsellModal();
+      } else if (freeModalEl && !freeModalEl.classList.contains('pay-hidden')) {
+        hideFreeModal();
+      } else if (payModalEl && !payModalEl.classList.contains('pay-hidden')) {
+        hidePaymentModal();
+      }
     }
   });
 
@@ -6089,8 +7196,26 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
     var directUrl = CHECKOUT_URLS[plan];
     if (directUrl) {
-      // Use direct checkout URL with embed parameter
-      showCheckoutOverlay(directUrl + '?embed=1&checkout[accent_color]=%23b83a2a');
+      // Build optimized checkout URL
+      _lastPurchasePlan = plan;
+      var params = 'embed=1&button_color=%23b83a2a&media=0&desc=0';
+      var storedEmail = getStoredEmail();
+      if (storedEmail) {
+        params += '&checkout[email]=' + encodeURIComponent(storedEmail);
+      }
+      var lang = navigator.language || '';
+      var country = lang.split('-')[1];
+      if (country && country.length === 2) {
+        params += '&checkout[billing_address][country]=' + country.toUpperCase();
+      }
+      // Safari/Brave block third-party iframes — open in new tab instead
+      var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      var isBrave = navigator.brave && navigator.brave.isBrave;
+      if (isSafari || isBrave) {
+        window.open(directUrl + '?' + params.replace('embed=1&', ''), '_blank');
+        return;
+      }
+      showCheckoutOverlay(directUrl + '?' + params);
       return;
     }
 
@@ -6147,6 +7272,16 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
   // License key input
   var payKeySubmit = document.getElementById('pay-key-submit');
+  var payKeyField = document.getElementById('pay-key-field');
+
+  // Clear inline error when user starts typing
+  if (payKeyField) {
+    payKeyField.addEventListener('input', function() {
+      var errorEl = document.getElementById('pay-key-error');
+      if (errorEl) errorEl.textContent = '';
+    });
+  }
+
   if (payKeySubmit) {
     payKeySubmit.addEventListener('click', function () {
       var keyField = document.getElementById('pay-key-field');
@@ -6158,21 +7293,129 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
 
       verifyLicenseKey(key).then(function(result) {
         payKeySubmit.disabled = false;
-        payKeySubmit.textContent = 'Activate';
+        payKeySubmit.textContent = t('pay_key_submit');
 
         if (result.allowed) {
+          // Clear any inline error
+          var errorEl = document.getElementById('pay-key-error');
+          if (errorEl) errorEl.textContent = '';
           storeLicenseKey(key);
+          try { sessionStorage.removeItem('w2s_pending_download'); } catch(e) {}
           hidePaymentModal(false);
           updateCreditsDisplay(result.remaining);
           if (_pendingPdfFn) {
             _pendingPdfFn();
             _pendingPdfFn = null;
+            maybeShowUpsell();
           }
         } else {
-          alert('Invalid or exhausted license key. Please check and try again.');
+          // Show inline error instead of alert()
+          var errorEl = document.getElementById('pay-key-error');
+          if (!errorEl) {
+            errorEl = document.createElement('div');
+            errorEl.id = 'pay-key-error';
+            errorEl.style.cssText = 'color:#b83a2a;font-size:0.8rem;margin-top:0.5rem;';
+            var keyInput = document.querySelector('.pay-key-input');
+            if (keyInput) keyInput.parentNode.insertBefore(errorEl, keyInput.nextSibling);
+          }
+          errorEl.textContent = t('pay_key_error');
         }
       });
     });
+  }
+
+  // -- Free first download modal --
+
+  var freeModalEl = document.getElementById('free-modal');
+
+  function showFreeModal() {
+    var printModal = document.getElementById('printModal');
+    if (printModal) printModal.classList.add('pm-hidden');
+    if (freeModalEl) {
+      freeModalEl.classList.remove('pay-hidden');
+      var emailField = document.getElementById('free-email-field');
+      var storedEmail = getStoredEmail();
+      if (emailField) {
+        if (storedEmail) emailField.value = storedEmail;
+        emailField.focus();
+      }
+    }
+  }
+
+  function hideFreeModal() {
+    if (freeModalEl) freeModalEl.classList.add('pay-hidden');
+  }
+
+  // Free modal close / backdrop
+  var freeClose = document.getElementById('free-close');
+  var freeBackdrop = document.getElementById('free-backdrop');
+  if (freeClose) freeClose.addEventListener('click', function() {
+    hideFreeModal();
+    var printModal = document.getElementById('printModal');
+    if (printModal) printModal.classList.remove('pm-hidden');
+  });
+  if (freeBackdrop) freeBackdrop.addEventListener('click', function() {
+    hideFreeModal();
+    var printModal = document.getElementById('printModal');
+    if (printModal) printModal.classList.remove('pm-hidden');
+  });
+
+  // Free modal submit
+  var freeSubmit = document.getElementById('free-email-submit');
+  if (freeSubmit) {
+    freeSubmit.addEventListener('click', function() {
+      var emailField = document.getElementById('free-email-field');
+      var email = emailField ? emailField.value.trim() : '';
+      var errorEl = document.getElementById('free-email-error');
+
+      if (!email || email.indexOf('@') === -1 || email.indexOf('.') === -1) {
+        if (errorEl) errorEl.textContent = t('free_email_error');
+        return;
+      }
+      if (errorEl) errorEl.textContent = '';
+
+      storeEmail(email);
+      markFreeTrialUsed();
+      hideFreeModal();
+
+      if (_pendingPdfFn) {
+        _pendingPdfFn();
+        _pendingPdfFn = null;
+      }
+    });
+  }
+
+  // -- Post-purchase upsell modal --
+
+  var upsellModalEl = document.getElementById('upsell-modal');
+
+  function showUpsellModal() {
+    if (upsellModalEl) upsellModalEl.classList.remove('pay-hidden');
+  }
+
+  function hideUpsellModal() {
+    if (upsellModalEl) upsellModalEl.classList.add('pay-hidden');
+  }
+
+  var upsellClose = document.getElementById('upsell-close');
+  var upsellBackdrop = document.getElementById('upsell-backdrop');
+  var upsellSkip = document.getElementById('upsell-skip');
+  var upsellUpgrade = document.getElementById('upsell-upgrade');
+
+  if (upsellClose) upsellClose.addEventListener('click', hideUpsellModal);
+  if (upsellBackdrop) upsellBackdrop.addEventListener('click', hideUpsellModal);
+  if (upsellSkip) upsellSkip.addEventListener('click', hideUpsellModal);
+  if (upsellUpgrade) {
+    upsellUpgrade.addEventListener('click', function() {
+      hideUpsellModal();
+      goToCheckout('pack10');
+    });
+  }
+
+  function maybeShowUpsell() {
+    if (_lastPurchasePlan === 'single') {
+      setTimeout(function() { showUpsellModal(); }, 2000);
+    }
   }
 
   // -- Init --
@@ -6184,11 +7427,22 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       setTimeout(function() { showLicenseKeyPrompt(); }, 300);
     }
 
-    // Check if user already has a key and show credits
+    // Restore pending download state after page refresh during checkout
+    try {
+      if (sessionStorage.getItem('w2s_pending_download') === '1') {
+        sessionStorage.removeItem('w2s_pending_download');
+        var existingKey2 = getLicenseKey();
+        if (!existingKey2) {
+          setTimeout(function() { showLicenseKeyPrompt(); }, 300);
+        }
+      }
+    } catch(e) {}
+
+    // Check if user already has a key and show credits (read-only, no credit burn)
     var existingKey = getLicenseKey();
     if (existingKey) {
-      verifyLicenseKey(existingKey).then(function(result) {
-        if (result.allowed) {
+      checkLicenseKey(existingKey).then(function(result) {
+        if (result.valid) {
           updateCreditsDisplay(result.remaining);
         } else {
           clearLicenseKey();

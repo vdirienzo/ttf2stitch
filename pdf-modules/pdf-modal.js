@@ -31,6 +31,13 @@ function _createPrintModal() {
     '  <div class="pm-preview">',
     '    <iframe id="pmIframe" class="pm-iframe"></iframe>',
     '  </div>',
+    '  <div class="pm-mobile-summary">',
+    '    <div class="pm-mobile-summary-icon">\uD83D\uDCC4</div>',
+    '    <div class="pm-mobile-summary-text">',
+    '      <strong>' + pt('mobile_preview_title', 'Your complete pattern pack') + '</strong>',
+    '      <span>' + pt('mobile_preview_items', 'Grid \u00b7 Thread legend \u00b7 Color codes \u00b7 Measurements') + '</span>',
+    '    </div>',
+    '  </div>',
     '  <div class="pm-info" id="pmInfo"></div>',
     '  <div class="pm-actions">',
     '    <button class="pm-btn pm-btn-secondary" id="pmDownload">',
@@ -74,7 +81,8 @@ function _createPrintModal() {
     '.pm-btn-accent:hover { background:#9c3023; box-shadow:0 3px 12px rgba(184,58,42,0.25); }',
     '.pm-btn-primary { background:#3d3229; color:#fff; }',
     '.pm-btn-primary:hover { background:#2a231c; box-shadow:0 3px 12px rgba(61,50,41,0.25); }',
-    '@media(max-width:640px) { .pm-dialog { width:96vw; max-height:95vh; border-radius:10px; } .pm-preview { display:none; } .pm-orient-btn { padding:8px 14px; font-size:12px; } .pm-actions { flex-direction:column; } .pm-btn { justify-content:center; } }',
+    '.pm-mobile-summary { display:none; }',
+    '@media(max-width:640px) { .pm-dialog { width:96vw; max-height:95vh; border-radius:10px; } .pm-preview { display:none; } .pm-mobile-summary { display:flex; gap:12px; align-items:center; padding:14px 18px; background:rgba(184,58,42,0.04); border-radius:10px; margin:0 18px; text-align:left; } .pm-mobile-summary-icon { font-size:2rem; } .pm-mobile-summary-text { display:flex; flex-direction:column; gap:2px; } .pm-mobile-summary-text strong { font-size:14px; color:#3d3229; } .pm-mobile-summary-text span { font-size:12px; color:#7a6e60; } .pm-orient-btn { padding:8px 14px; font-size:12px; } .pm-actions { flex-direction:column; } .pm-btn { justify-content:center; } }',
   ].join('\n');
 
   document.head.appendChild(style);
