@@ -1,7 +1,9 @@
 /* Payment modal styles (Lemon Squeezy overlay) */
 @layer components {
 
-  #pay-modal {
+  #pay-modal,
+  #free-modal,
+  #upsell-modal {
     position: fixed;
     inset: 0;
     z-index: 10001;
@@ -10,7 +12,9 @@
     justify-content: center;
   }
 
-  #pay-modal.pay-hidden {
+  #pay-modal.pay-hidden,
+  #free-modal.pay-hidden,
+  #upsell-modal.pay-hidden {
     display: none;
   }
 
