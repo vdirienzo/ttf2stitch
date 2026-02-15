@@ -1896,23 +1896,7 @@
     letter-spacing: 0.02em;
   }
 
-  /* -- Social proof, guarantee, trust -- */
-
-  .pay-social-proof {
-    text-align: center;
-    font-size: 0.8rem;
-    color: #7a6e60;
-    margin: 1.25rem 0 0.4rem;
-    line-height: 1.4;
-  }
-
-  .pay-guarantee {
-    text-align: center;
-    font-size: 0.75rem;
-    color: #7a6e60;
-    margin: 0 0 0.4rem;
-    line-height: 1.4;
-  }
+  /* -- Trust signal -- */
 
   .pay-trust {
     text-align: center;
@@ -2178,8 +2162,6 @@
   /* -- Key-only mode: after payment, hide plan cards and show only key input -- */
 
   .pay-key-only .pay-options,
-  .pay-key-only .pay-social-proof,
-  .pay-key-only .pay-guarantee,
   .pay-key-only .pay-indie-note,
   .pay-key-only .pay-trust,
   .pay-key-only .pay-terms {
@@ -2293,7 +2275,7 @@
       autocomplete="off"
       spellcheck="false"
       rows="1"
-    >Welcome</textarea>
+    >Hello</textarea>
   </div>
 
   <select class="lang-select" id="langSelect" aria-label="Language">
@@ -2543,7 +2525,7 @@
     autocomplete="off"
     spellcheck="false"
     rows="2"
-  >Welcome</textarea>
+  >Hello</textarea>
 </div>
 
 <!-- -- Mobile Toolbar (Slider + 3 Buttons) -- -->
@@ -2755,8 +2737,6 @@
         <span class="pay-option-desc" data-i18n="pay_annual_desc">Unlimited patterns, all year</span>
       </button>
     </div>
-    <div class="pay-social-proof" data-i18n="pay_social_proof">&#x2702;&#xFE0F; 50,000+ patterns created by stitchers worldwide</div>
-    <div class="pay-guarantee" data-i18n="pay_guarantee">&#x1F6E1;&#xFE0F; 100% satisfaction guaranteed &mdash; or your money back</div>
     <div class="pay-indie-note" data-i18n="pay_indie_note">Word2Stitch is made with love by one person. Your support helps build new fonts and features. &#x1F49C;</div>
     <div class="pay-trust" data-i18n-html="pay_trust">&#x1F512; Secure checkout via Lemon Squeezy</div>
     <div class="pay-terms" data-i18n-html="pay_terms">By purchasing, you agree to our <a href="/terms" target="_blank" rel="noopener">Terms of Service</a></div>
@@ -4746,7 +4726,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     });
   };
 
-  // Print (paid)
+  // Print (paid) — with popup blocker fallback
   document.getElementById('pmPrint').onclick = function() {
     window.requestPdfDownload(function() {
       var complete = buildPDF(text, fontData, dmcColor, aidaCount, currentOrientation, { preview: false });
@@ -4758,6 +4738,9 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
           printWin.addEventListener('load', function() {
             setTimeout(function() { printWin.print(); }, 500);
           });
+        } else {
+          // Popup blocked — fall back to download
+          complete.pdf.save(complete.filename);
         }
       }
     });
@@ -4854,8 +4837,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "All year",
       pay_annual_unit: "just $2.08/mo",
       pay_annual_desc: "Unlimited patterns, all year",
-      pay_social_proof: "\u2702\uFE0F 50,000+ patterns created by stitchers worldwide",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% satisfaction guaranteed \u2014 or your money back",
       pay_indie_note: "Word2Stitch is made with love by one person. Your support helps build new fonts and features. \uD83D\uDC9C",
       pay_terms: 'By purchasing, you agree to our <a href="/terms" target="_blank" rel="noopener">Terms of Service</a>',
       pay_divider_key: "Already have a key?",
@@ -4865,6 +4846,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "downloads left",
       pay_title_success: "Payment received! \u2713",
       pay_subtitle_success: "Check your inbox \u2014 your pattern key is on its way! Paste it below.",
+      pay_email_hint: "Check your email from Lemon Squeezy \u2014 also check spam!",
       pay_key_error: "Invalid or exhausted license key. Please check and try again.",
       pay_title_activating: "Preparing your pattern\u2026",
       pay_subtitle_activating: "Almost ready \u2014 just a moment!",
@@ -4967,8 +4949,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "Todo el a\u00f1o",
       pay_annual_unit: "solo $2.08/mes",
       pay_annual_desc: "Patrones ilimitados, todo el a\u00f1o",
-      pay_social_proof: "\u2702\uFE0F M\u00e1s de 50,000 patrones creados por bordadores en todo el mundo",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% satisfacci\u00f3n garantizada \u2014 o te devolvemos tu dinero",
       pay_indie_note: "Word2Stitch est\u00e1 hecho con amor por una sola persona. Tu apoyo ayuda a crear nuevas fuentes y funciones. \uD83D\uDC9C",
       pay_terms: 'Al comprar, aceptas nuestros <a href="/terms" target="_blank" rel="noopener">T\u00e9rminos de Servicio</a>',
       pay_divider_key: "\u00bfYa tienes una clave?",
@@ -4978,6 +4958,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "descargas restantes",
       pay_title_success: "\u00a1Pago recibido! \u2713",
       pay_subtitle_success: "Revisa tu bandeja de entrada \u2014 \u00a1tu clave est\u00e1 en camino! P\u00e9gala abajo.",
+      pay_email_hint: "Revisa tu email de Lemon Squeezy \u2014 \u00a1mira tambi\u00e9n en spam!",
       pay_key_error: "Clave inv\u00e1lida o agotada. Verifica e intenta de nuevo.",
       pay_title_activating: "Preparando tu patr\u00f3n\u2026",
       pay_subtitle_activating: "\u00a1Casi listo \u2014 un momento!",
@@ -5080,8 +5061,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "Toute l\u2019ann\u00e9e",
       pay_annual_unit: "seulement $2.08/mois",
       pay_annual_desc: "Motifs illimit\u00e9s, toute l\u2019ann\u00e9e",
-      pay_social_proof: "\u2702\uFE0F Plus de 50 000 motifs cr\u00e9\u00e9s par des brodeurs du monde entier",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F Satisfaction 100% garantie \u2014 ou rembours\u00e9",
       pay_indie_note: "Word2Stitch est fait avec amour par une seule personne. Votre soutien aide \u00e0 cr\u00e9er de nouvelles polices et fonctionnalit\u00e9s. \uD83D\uDC9C",
       pay_terms: 'En achetant, vous acceptez nos <a href="/terms" target="_blank" rel="noopener">Conditions d\u2019utilisation</a>',
       pay_divider_key: "D\u00e9j\u00e0 une cl\u00e9 ?",
@@ -5091,6 +5070,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "t\u00e9l\u00e9chargements restants",
       pay_title_success: "Paiement re\u00e7u ! \u2713",
       pay_subtitle_success: "V\u00e9rifiez votre bo\u00eete de r\u00e9ception \u2014 votre cl\u00e9 arrive ! Collez-la ci-dessous.",
+      pay_email_hint: "V\u00e9rifiez votre email de Lemon Squeezy \u2014 pensez aussi aux spams !",
       pay_key_error: "Cl\u00e9 invalide ou \u00e9puis\u00e9e. V\u00e9rifiez et r\u00e9essayez.",
       pay_title_activating: "Pr\u00e9paration de votre motif\u2026",
       pay_subtitle_activating: "Presque pr\u00eat \u2014 un instant !",
@@ -5193,8 +5173,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "Das ganze Jahr",
       pay_annual_unit: "nur $2.08/Monat",
       pay_annual_desc: "Unbegrenzte Muster, das ganze Jahr",
-      pay_social_proof: "\u2702\uFE0F \u00dcber 50.000 Muster von Stickern weltweit erstellt",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% Zufriedenheit garantiert \u2014 oder Geld zur\u00fcck",
       pay_indie_note: "Word2Stitch wird mit Liebe von einer Person gemacht. Deine Unterst\u00fctzung hilft, neue Schriftarten und Funktionen zu entwickeln. \uD83D\uDC9C",
       pay_terms: 'Mit dem Kauf stimmst du unseren <a href="/terms" target="_blank" rel="noopener">Nutzungsbedingungen</a> zu',
       pay_divider_key: "Schon einen Schl\u00fcssel?",
@@ -5204,6 +5182,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "Downloads \u00fcbrig",
       pay_title_success: "Zahlung erhalten! \u2713",
       pay_subtitle_success: "Pr\u00fcfe deinen Posteingang \u2014 dein Schl\u00fcssel ist unterwegs! F\u00fcge ihn unten ein.",
+      pay_email_hint: "Schau in deiner E-Mail von Lemon Squeezy nach \u2014 auch im Spam-Ordner!",
       pay_key_error: "Ung\u00fcltiger oder aufgebrauchter Schl\u00fcssel. Bitte pr\u00fcfen und erneut versuchen.",
       pay_title_activating: "Dein Muster wird vorbereitet\u2026",
       pay_subtitle_activating: "Fast fertig \u2014 einen Moment noch!",
@@ -5306,8 +5285,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "Tutto l\u2019anno",
       pay_annual_unit: "solo $2.08/mese",
       pay_annual_desc: "Schemi illimitati, tutto l\u2019anno",
-      pay_social_proof: "\u2702\uFE0F Oltre 50.000 schemi creati da ricamatori in tutto il mondo",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F Soddisfazione garantita al 100% \u2014 o rimborsati",
       pay_indie_note: "Word2Stitch \u00e8 fatto con amore da una sola persona. Il tuo supporto aiuta a creare nuovi font e funzionalit\u00e0. \uD83D\uDC9C",
       pay_terms: 'Acquistando, accetti i nostri <a href="/terms" target="_blank" rel="noopener">Termini di Servizio</a>',
       pay_divider_key: "Hai gi\u00e0 una chiave?",
@@ -5317,6 +5294,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "download rimanenti",
       pay_title_success: "Pagamento ricevuto! \u2713",
       pay_subtitle_success: "Controlla la tua posta \u2014 la tua chiave sta arrivando! Incollala qui sotto.",
+      pay_email_hint: "Controlla l\u2019email da Lemon Squeezy \u2014 guarda anche nello spam!",
       pay_key_error: "Chiave non valida o esaurita. Verifica e riprova.",
       pay_title_activating: "Preparazione dello schema\u2026",
       pay_subtitle_activating: "Quasi pronto \u2014 un attimo!",
@@ -5419,8 +5397,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "O ano todo",
       pay_annual_unit: "apenas $2.08/m\u00eas",
       pay_annual_desc: "Padr\u00f5es ilimitados, o ano todo",
-      pay_social_proof: "\u2702\uFE0F Mais de 50.000 padr\u00f5es criados por bordadores ao redor do mundo",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% de satisfa\u00e7\u00e3o garantida \u2014 ou seu dinheiro de volta",
       pay_indie_note: "Word2Stitch \u00e9 feito com amor por uma pessoa s\u00f3. Seu apoio ajuda a criar novas fontes e recursos. \uD83D\uDC9C",
       pay_terms: 'Ao comprar, voc\u00ea concorda com nossos <a href="/terms" target="_blank" rel="noopener">Termos de Servi\u00e7o</a>',
       pay_divider_key: "J\u00e1 tem uma chave?",
@@ -5430,6 +5406,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "downloads restantes",
       pay_title_success: "Pagamento recebido! \u2713",
       pay_subtitle_success: "Verifique sua caixa de entrada \u2014 sua chave est\u00e1 a caminho! Cole abaixo.",
+      pay_email_hint: "Verifique seu email do Lemon Squeezy \u2014 confira tamb\u00e9m o spam!",
       pay_key_error: "Chave inv\u00e1lida ou esgotada. Verifique e tente novamente.",
       pay_title_activating: "Preparando seu padr\u00e3o\u2026",
       pay_subtitle_activating: "Quase pronto \u2014 s\u00f3 um momento!",
@@ -5532,8 +5509,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "Het hele jaar",
       pay_annual_unit: "slechts $2.08/mnd",
       pay_annual_desc: "Onbeperkt patronen, het hele jaar",
-      pay_social_proof: "\u2702\uFE0F Meer dan 50.000 patronen gemaakt door borduurders wereldwijd",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% tevredenheid gegarandeerd \u2014 of je geld terug",
       pay_indie_note: "Word2Stitch is met liefde gemaakt door \u00e9\u00e9n persoon. Jouw steun helpt nieuwe lettertypen en functies te bouwen. \uD83D\uDC9C",
       pay_terms: 'Door te kopen ga je akkoord met onze <a href="/terms" target="_blank" rel="noopener">Servicevoorwaarden</a>',
       pay_divider_key: "Heb je al een sleutel?",
@@ -5543,6 +5518,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "downloads over",
       pay_title_success: "Betaling ontvangen! \u2713",
       pay_subtitle_success: "Check je inbox \u2014 je sleutel is onderweg! Plak hem hieronder.",
+      pay_email_hint: "Check je e-mail van Lemon Squeezy \u2014 kijk ook bij spam!",
       pay_key_error: "Ongeldige of uitgeputte sleutel. Controleer en probeer opnieuw.",
       pay_title_activating: "Je patroon wordt voorbereid\u2026",
       pay_subtitle_activating: "Bijna klaar \u2014 een momentje!",
@@ -5645,8 +5621,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "\u5e74\u9593",
       pay_annual_unit: "\u6708\u305f\u3063\u305f$2.08",
       pay_annual_desc: "\u7121\u5236\u9650\u306e\u30d1\u30bf\u30fc\u30f3\u3001\u4e00\u5e74\u4e2d",
-      pay_social_proof: "\u2702\uFE0F \u4e16\u754c\u4e2d\u306e\u523a\u3057\u3085\u3046\u611b\u597d\u5bb6\u304c50,000\u4ee5\u4e0a\u306e\u30d1\u30bf\u30fc\u30f3\u3092\u4f5c\u6210",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F 100%\u6e80\u8db3\u4fdd\u8a3c \u2014 \u3054\u4e0d\u6e80\u306a\u3089\u8fd4\u91d1",
       pay_indie_note: "Word2Stitch\u306f\u4e00\u4eba\u3067\u611b\u3092\u8fbc\u3081\u3066\u4f5c\u3063\u3066\u3044\u307e\u3059\u3002\u3042\u306a\u305f\u306e\u5fdc\u63f4\u304c\u65b0\u3057\u3044\u30d5\u30a9\u30f3\u30c8\u3084\u6a5f\u80fd\u306e\u958b\u767a\u306b\u5f79\u7acb\u3061\u307e\u3059\u3002\uD83D\uDC9C",
       pay_terms: '\u8cfc\u5165\u3059\u308b\u3053\u3068\u3067<a href="/terms" target="_blank" rel="noopener">\u5229\u7528\u898f\u7d04</a>\u306b\u540c\u610f\u3057\u307e\u3059',
       pay_divider_key: "\u30ad\u30fc\u3092\u304a\u6301\u3061\u3067\u3059\u304b\uff1f",
@@ -5656,6 +5630,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u6b8b\u308a",
       pay_title_success: "\u304a\u652f\u6255\u3044\u5b8c\u4e86\uff01\u2713",
       pay_subtitle_success: "\u53d7\u4fe1\u30c8\u30ec\u30a4\u3092\u78ba\u8a8d \u2014 \u30ad\u30fc\u3092\u9001\u4fe1\u4e2d\u3067\u3059\uff01\u4e0b\u306b\u8cbc\u308a\u4ed8\u3051\u3066\u304f\u3060\u3055\u3044\u3002",
+      pay_email_hint: "Lemon Squeezy\u304b\u3089\u306e\u30e1\u30fc\u30eb\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044 \u2014 \u8ff7\u60d1\u30e1\u30fc\u30eb\u30d5\u30a9\u30eb\u30c0\u3082\u30c1\u30a7\u30c3\u30af\uff01",
       pay_key_error: "\u7121\u52b9\u307e\u305f\u306f\u4f7f\u7528\u6e08\u307f\u306e\u30ad\u30fc\u3067\u3059\u3002\u78ba\u8a8d\u3057\u3066\u518d\u5ea6\u304a\u8a66\u3057\u304f\u3060\u3055\u3044\u3002",
       pay_title_activating: "\u30d1\u30bf\u30fc\u30f3\u3092\u6e96\u5099\u4e2d\u2026",
       pay_subtitle_activating: "\u3082\u3046\u5c11\u3057 \u2014 \u304a\u5f85\u3061\u304f\u3060\u3055\u3044\uff01",
@@ -5758,8 +5733,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "연간",
       pay_annual_unit: "월 $2.08에 불과",
       pay_annual_desc: "무제한 패턴, 1년 내내",
-      pay_social_proof: "\u2702\uFE0F 전 세계 자수 애호가들이 50,000개 이상의 패턴을 만들었습니다",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% 만족 보장 \u2014 불만족 시 환불",
       pay_indie_note: "Word2Stitch는 한 사람이 사랑으로 만듭니다. 당신의 후원이 새 폰트와 기능 개발에 도움이 됩니다. \uD83D\uDC9C",
       pay_terms: '구매 시 <a href="/terms" target="_blank" rel="noopener">이용약관</a>에 동의합니다',
       pay_divider_key: "이미 키가 있으신가요?",
@@ -5769,6 +5742,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "다운로드 남음",
       pay_title_success: "결제 완료! \u2713",
       pay_subtitle_success: "받은편지함을 확인하세요 \u2014 키가 전송 중입니다! 아래에 붙여넣으세요.",
+      pay_email_hint: "Lemon Squeezy\uc5d0\uc11c \uc628 \uc774\uba54\uc77c\uc744 \ud655\uc778\ud558\uc138\uc694 \u2014 \uc2a4\ud338 \ud3f4\ub354\ub3c4 \ud655\uc778\ud574 \ubcf4\uc138\uc694!",
       pay_key_error: "유효하지 않거나 소진된 키입니다. 확인 후 다시 시도하세요.",
       pay_title_activating: "패턴 준비 중\u2026",
       pay_subtitle_activating: "거의 완료 \u2014 잠시만요!",
@@ -5871,8 +5845,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "全年",
       pay_annual_unit: "仅$2.08/月",
       pay_annual_desc: "无限图案，全年畅享",
-      pay_social_proof: "\u2702\uFE0F 全球绣友已创建超过50,000个图案",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F 100%满意保证 \u2014 不满意全额退款",
       pay_indie_note: "Word2Stitch由一个人用爱心制作。您的支持有助于开发新字体和功能。\uD83D\uDC9C",
       pay_terms: '购买即表示您同意我们的<a href="/terms" target="_blank" rel="noopener">服务条款</a>',
       pay_divider_key: "已有密钥？",
@@ -5882,6 +5854,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "次下载剩余",
       pay_title_success: "支付成功！\u2713",
       pay_subtitle_success: "请查看您的邮箱 \u2014 密钥正在发送中！粘贴在下方。",
+      pay_email_hint: "\u8bf7\u67e5\u770b Lemon Squeezy \u53d1\u9001\u7684\u90ae\u4ef6 \u2014 \u4e5f\u8bf7\u68c0\u67e5\u5783\u573e\u90ae\u4ef6\uff01",
       pay_key_error: "密钥无效或已用完。请检查后重试。",
       pay_title_activating: "正在准备您的图案\u2026",
       pay_subtitle_activating: "即将完成 \u2014 请稍等！",
@@ -5984,8 +5957,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "Весь год",
       pay_annual_unit: "всего $2.08/мес",
       pay_annual_desc: "Безлимитные схемы, весь год",
-      pay_social_proof: "\u2702\uFE0F Более 50 000 схем создано вышивальщицами по всему миру",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% гарантия удовлетворённости \u2014 или вернём деньги",
       pay_indie_note: "Word2Stitch создан с любовью одним человеком. Ваша поддержка помогает создавать новые шрифты и функции. \uD83D\uDC9C",
       pay_terms: 'Покупая, вы соглашаетесь с <a href="/terms" target="_blank" rel="noopener">Условиями использования</a>',
       pay_divider_key: "Уже есть ключ?",
@@ -5995,6 +5966,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "загрузок осталось",
       pay_title_success: "Оплата получена! \u2713",
       pay_subtitle_success: "Проверьте почту \u2014 ваш ключ уже в пути! Вставьте его ниже.",
+      pay_email_hint: "\u041f\u0440\u043e\u0432\u0435\u0440\u044c\u0442\u0435 \u043f\u0438\u0441\u044c\u043c\u043e \u043e\u0442 Lemon Squeezy \u2014 \u0437\u0430\u0433\u043b\u044f\u043d\u0438\u0442\u0435 \u0438 \u0432 \u0441\u043f\u0430\u043c!",
       pay_key_error: "Недействительный или использованный ключ. Проверьте и попробуйте снова.",
       pay_title_activating: "Подготовка вашей схемы\u2026",
       pay_subtitle_activating: "Почти готово \u2014 одну секунду!",
@@ -6097,8 +6069,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "Cały rok",
       pay_annual_unit: "tylko $2.08/mies.",
       pay_annual_desc: "Nieograniczone wzory, cały rok",
-      pay_social_proof: "\u2702\uFE0F Ponad 50 000 wzorów stworzonych przez hafciarki na całym świecie",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% gwarancja satysfakcji \u2014 lub zwrot pieniędzy",
       pay_indie_note: "Word2Stitch jest tworzony z miłością przez jedną osobę. Twoje wsparcie pomaga tworzyć nowe czcionki i funkcje. \uD83D\uDC9C",
       pay_terms: 'Kupując, zgadzasz się z naszymi <a href="/terms" target="_blank" rel="noopener">Warunkami usługi</a>',
       pay_divider_key: "Masz już klucz?",
@@ -6108,6 +6078,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "pobrań pozostało",
       pay_title_success: "Płatność otrzymana! \u2713",
       pay_subtitle_success: "Sprawdź skrzynkę \u2014 klucz jest w drodze! Wklej go poniżej.",
+      pay_email_hint: "Sprawd\u017a email od Lemon Squeezy \u2014 zajrzyj te\u017c do spamu!",
       pay_key_error: "Nieprawidłowy lub wyczerpany klucz. Sprawdź i spróbuj ponownie.",
       pay_title_activating: "Przygotowywanie wzoru\u2026",
       pay_subtitle_activating: "Prawie gotowe \u2014 chwileczkę!",
@@ -6210,8 +6181,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "Hela året",
       pay_annual_unit: "bara $2.08/mån",
       pay_annual_desc: "Obegränsade mönster, hela året",
-      pay_social_proof: "\u2702\uFE0F Över 50 000 mönster skapade av brodöser världen över",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% nöjdhetsgaranti \u2014 eller pengarna tillbaka",
       pay_indie_note: "Word2Stitch är gjort med kärlek av en person. Ditt stöd hjälper till att bygga nya typsnitt och funktioner. \uD83D\uDC9C",
       pay_terms: 'Genom att köpa godkänner du våra <a href="/terms" target="_blank" rel="noopener">Användarvillkor</a>',
       pay_divider_key: "Har du redan en nyckel?",
@@ -6221,6 +6190,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "nedladdningar kvar",
       pay_title_success: "Betalning mottagen! \u2713",
       pay_subtitle_success: "Kolla din inkorg \u2014 din nyckel är på väg! Klistra in den nedan.",
+      pay_email_hint: "Kolla din e-post fr\u00e5n Lemon Squeezy \u2014 kolla \u00e4ven skr\u00e4pposten!",
       pay_key_error: "Ogiltig eller förbrukad nyckel. Kontrollera och försök igen.",
       pay_title_activating: "Förbereder ditt mönster\u2026",
       pay_subtitle_activating: "Nästan klart \u2014 ett ögonblick!",
@@ -6323,8 +6293,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "Hele året",
       pay_annual_unit: "kun $2.08/md.",
       pay_annual_desc: "Ubegrænsede mønstre, hele året",
-      pay_social_proof: "\u2702\uFE0F Over 50.000 mønstre skabt af brodører verden over",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% tilfredshedsgaranti \u2014 eller pengene tilbage",
       pay_indie_note: "Word2Stitch er lavet med kærlighed af én person. Din støtte hjælper med at bygge nye skrifttyper og funktioner. \uD83D\uDC9C",
       pay_terms: 'Ved at købe accepterer du vores <a href="/terms" target="_blank" rel="noopener">Servicevilkår</a>',
       pay_divider_key: "Har du allerede en nøgle?",
@@ -6334,6 +6302,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "downloads tilbage",
       pay_title_success: "Betaling modtaget! \u2713",
       pay_subtitle_success: "Tjek din indbakke \u2014 din nøgle er på vej! Indsæt den nedenfor.",
+      pay_email_hint: "Tjek din e-mail fra Lemon Squeezy \u2014 kig ogs\u00e5 i spam!",
       pay_key_error: "Ugyldig eller opbrugt nøgle. Kontrollér og prøv igen.",
       pay_title_activating: "Forbereder dit mønster\u2026",
       pay_subtitle_activating: "Næsten klar \u2014 et øjeblik!",
@@ -6436,8 +6405,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "Koko vuosi",
       pay_annual_unit: "vain $2.08/kk",
       pay_annual_desc: "Rajattomat kuviot, koko vuoden",
-      pay_social_proof: "\u2702\uFE0F Yli 50 000 kuviota luotu ristipistoilijoiden toimesta ympäri maailmaa",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% tyytyväisyystakuu \u2014 tai rahat takaisin",
       pay_indie_note: "Word2Stitch on tehty rakkaudella yhden henkilön voimin. Tukesi auttaa luomaan uusia fontteja ja ominaisuuksia. \uD83D\uDC9C",
       pay_terms: 'Ostamalla hyväksyt <a href="/terms" target="_blank" rel="noopener">Käyttöehdot</a>',
       pay_divider_key: "Onko sinulla jo avain?",
@@ -6447,6 +6414,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "latausta jäljellä",
       pay_title_success: "Maksu vastaanotettu! \u2713",
       pay_subtitle_success: "Tarkista sähköpostisi \u2014 avaimesi on matkalla! Liitä se alle.",
+      pay_email_hint: "Tarkista Lemon Squeezyn lähettämä sähköposti \u2014 katso myös roskapostista!",
       pay_key_error: "Virheellinen tai käytetty avain. Tarkista ja yritä uudelleen.",
       pay_title_activating: "Valmistellaan kuviotasi\u2026",
       pay_subtitle_activating: "Melkein valmis \u2014 hetkinen!",
@@ -6549,8 +6517,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "Весь рік",
       pay_annual_unit: "лише $2.08/міс",
       pay_annual_desc: "Безлімітні схеми, цілий рік",
-      pay_social_proof: "\u2702\uFE0F Понад 50 000 схем створено вишивальницями по всьому світу",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% гарантія задоволення \u2014 або повернемо гроші",
       pay_indie_note: "Word2Stitch створено з любов'ю однією людиною. Ваша підтримка допомагає створювати нові шрифти та функції. \uD83D\uDC9C",
       pay_terms: 'Купуючи, ви погоджуєтесь з <a href="/terms" target="_blank" rel="noopener">Умовами використання</a>',
       pay_divider_key: "Вже маєте ключ?",
@@ -6560,6 +6526,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "завантажень залишилось",
       pay_title_success: "Оплату отримано! \u2713",
       pay_subtitle_success: "Перевірте пошту \u2014 ваш ключ вже в дорозі! Вставте його нижче.",
+      pay_email_hint: "Перевірте лист від Lemon Squeezy \u2014 загляньте і в спам!",
       pay_key_error: "Недійсний або використаний ключ. Перевірте та спробуйте знову.",
       pay_title_activating: "Підготовка вашої схеми\u2026",
       pay_subtitle_activating: "Майже готово \u2014 одну мить!",
@@ -6662,8 +6629,6 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_annual_label: "Egész évben",
       pay_annual_unit: "csak $2.08/hó",
       pay_annual_desc: "Korlátlan minták, egész évben",
-      pay_social_proof: "\u2702\uFE0F Több mint 50 000 mintát készítettek hímzők szerte a világon",
-      pay_guarantee: "\uD83D\uDEE1\uFE0F 100% elégedettségi garancia \u2014 vagy visszaadjuk a pénzed",
       pay_indie_note: "A Word2Stitch-et egy ember készíti szeretettel. Támogatásod új betűtípusok és funkciók fejlesztését segíti. \uD83D\uDC9C",
       pay_terms: 'Vásárlással elfogadod az <a href="/terms" target="_blank" rel="noopener">Általános Szerződési Feltételeket</a>',
       pay_divider_key: "Már van kulcsod?",
@@ -6673,6 +6638,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       pay_credits_remaining: "letöltés maradt",
       pay_title_success: "Fizetés megérkezett! \u2713",
       pay_subtitle_success: "Nézd meg a postaládádat \u2014 a kulcsod úton van! Illeszd be alább.",
+      pay_email_hint: "Nézd meg a Lemon Squeezy-től kapott emailt \u2014 a spam mappát is ellenőrizd!",
       pay_key_error: "Érvénytelen vagy kimerült kulcs. Ellenőrizd és próbáld újra.",
       pay_title_activating: "Mintád előkészítése\u2026",
       pay_subtitle_activating: "Majdnem kész \u2014 egy pillanat!",
@@ -6997,8 +6963,11 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
       showPaymentModal();
       return;
     }
-    // Has key — verify with server
+    // Has key — verify with server (show brief loading state)
+    var dlBtn = document.getElementById('pmDownloadComplete');
+    if (dlBtn) { dlBtn.disabled = true; dlBtn.style.opacity = '0.6'; }
     verifyLicenseKey(key).then(function(result) {
+      if (dlBtn) { dlBtn.disabled = false; dlBtn.style.opacity = ''; }
       if (result.allowed) {
         try { sessionStorage.removeItem('w2s_pending_download'); } catch(e) {}
         generateCompleteFn();
@@ -7173,6 +7142,14 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     if (subtitle) {
       subtitle.textContent = t('pay_subtitle_success');
     }
+    // Show email help hint
+    var divider = payModalEl.querySelector('.pay-divider span');
+    if (divider) {
+      var helpText = t('pay_email_hint');
+      if (helpText && helpText !== 'pay_email_hint') {
+        divider.textContent = helpText;
+      }
+    }
     var keyField = document.getElementById('pay-key-field');
     if (keyField) keyField.focus();
   }
@@ -7180,8 +7157,8 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
   // Listen for postMessage from LS checkout iframe
   window.addEventListener('message', function (e) {
     if (!_checkoutIframe) return;
-    // Only accept messages from Lemon Squeezy checkout
-    if (e.origin && e.origin.indexOf('lemonsqueezy.com') === -1) return;
+    // Only accept messages from Lemon Squeezy checkout (exact domain match)
+    if (!e.origin || !(/\.lemonsqueezy\.com$/.test(e.origin.replace(/^https?:\/\//, '')))) return;
     var data = e.data;
 
     if (data === 'mounted' && _checkoutOverlay) {

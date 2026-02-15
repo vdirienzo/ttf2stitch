@@ -131,8 +131,11 @@
       showPaymentModal();
       return;
     }
-    // Has key — verify with server
+    // Has key — verify with server (show brief loading state)
+    var dlBtn = document.getElementById('pmDownloadComplete');
+    if (dlBtn) { dlBtn.disabled = true; dlBtn.style.opacity = '0.6'; }
     verifyLicenseKey(key).then(function(result) {
+      if (dlBtn) { dlBtn.disabled = false; dlBtn.style.opacity = ''; }
       if (result.allowed) {
         try { sessionStorage.removeItem('w2s_pending_download'); } catch(e) {}
         generateCompleteFn();
@@ -307,6 +310,14 @@
     if (subtitle) {
       subtitle.textContent = t('pay_subtitle_success');
     }
+    // Show email help hint
+    var divider = payModalEl.querySelector('.pay-divider span');
+    if (divider) {
+      var helpText = t('pay_email_hint');
+      if (helpText && helpText !== 'pay_email_hint') {
+        divider.textContent = helpText;
+      }
+    }
     var keyField = document.getElementById('pay-key-field');
     if (keyField) keyField.focus();
   }
@@ -314,8 +325,8 @@
   // Listen for postMessage from LS checkout iframe
   window.addEventListener('message', function (e) {
     if (!_checkoutIframe) return;
-    // Only accept messages from Lemon Squeezy checkout
-    if (e.origin && e.origin.indexOf('lemonsqueezy.com') === -1) return;
+    // Only accept messages from Lemon Squeezy checkout (exact domain match)
+    if (!e.origin || !(/\.lemonsqueezy\.com$/.test(e.origin.replace(/^https?:\/\//, '')))) return;
     var data = e.data;
 
     if (data === 'mounted' && _checkoutOverlay) {
