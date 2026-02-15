@@ -47,7 +47,9 @@
   .sheet-handle {
     display: flex;
     justify-content: center;
-    padding: 10px 0 6px;
+    padding: 12px 0 10px;
+    min-height: 44px;
+    touch-action: none;
     cursor: grab;
     -webkit-tap-highlight-color: transparent;
   }
@@ -72,7 +74,7 @@
   }
 
   /* -- Font Sheet -- */
-  .sheet-font { height: 70vh; height: 70dvh; }
+  .sheet-font { max-height: 70dvh; }
   .sheet-font .sheet-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; height: calc(70vh - 40px - 46px); height: calc(70dvh - 40px - 46px); }
   .sheet-font-search {
     position: sticky;
@@ -340,6 +342,12 @@
     outline: none;
     -webkit-appearance: none;
     appearance: none;
+  }
+
+  /* -- Reduced motion -- */
+  @media (prefers-reduced-motion: reduce) {
+    .bottom-sheet { transition-duration: 0.01ms !important; }
+    .sheet-backdrop { transition-duration: 0.01ms !important; }
   }
 
   /* -- Body scroll lock -- */
