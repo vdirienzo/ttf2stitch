@@ -3,7 +3,10 @@
 // and the payment modal flow with Lemon Squeezy checkout overlay.
 
   var LICENSE_KEY_STORAGE = 'w2s_license_key';
+  var FIRST_FREE_KEY = 'w2s_first_free';
+  var STORED_EMAIL_KEY = 'w2s_email';
   var _pendingPdfFn = null;
+  var _lastPurchasePlan = '';
 
   var payModalEl = document.getElementById('pay-modal');
   var payBackdrop = document.getElementById('pay-backdrop');
@@ -24,6 +27,24 @@
   function clearLicenseKey() {
     try { localStorage.removeItem(LICENSE_KEY_STORAGE); }
     catch (e) { /* silent */ }
+  }
+
+  // -- Free trial & email --
+
+  function hasUsedFreeTrial() {
+    try { return localStorage.getItem(FIRST_FREE_KEY) === '1'; } catch(e) { return false; }
+  }
+
+  function markFreeTrialUsed() {
+    try { localStorage.setItem(FIRST_FREE_KEY, '1'); } catch(e) {}
+  }
+
+  function getStoredEmail() {
+    try { return localStorage.getItem(STORED_EMAIL_KEY) || ''; } catch(e) { return ''; }
+  }
+
+  function storeEmail(email) {
+    try { localStorage.setItem(STORED_EMAIL_KEY, email); } catch(e) {}
   }
 
   // -- Server verification --
@@ -98,6 +119,12 @@
 
   function requestPdfDownload(generateCompleteFn) {
     var key = getLicenseKey();
+    if (!key && !hasUsedFreeTrial()) {
+      // First download is free — capture email
+      _pendingPdfFn = generateCompleteFn;
+      showFreeModal();
+      return;
+    }
     if (!key) {
       _pendingPdfFn = generateCompleteFn;
       try { sessionStorage.setItem('w2s_pending_download', '1'); } catch(e) {}
@@ -257,6 +284,7 @@
         if (_pendingPdfFn) {
           _pendingPdfFn();
           _pendingPdfFn = null;
+          maybeShowUpsell();
         }
       } else {
         // Fallback to manual key entry
@@ -313,6 +341,10 @@
       if (_checkoutOverlay) {
         closeCheckoutOverlay();
         showPaymentModal();
+      } else if (upsellModalEl && !upsellModalEl.classList.contains('pay-hidden')) {
+        hideUpsellModal();
+      } else if (freeModalEl && !freeModalEl.classList.contains('pay-hidden')) {
+        hideFreeModal();
       } else if (payModalEl && !payModalEl.classList.contains('pay-hidden')) {
         hidePaymentModal();
       }
@@ -332,7 +364,12 @@
     var directUrl = CHECKOUT_URLS[plan];
     if (directUrl) {
       // Build optimized checkout URL
+      _lastPurchasePlan = plan;
       var params = 'embed=1&button_color=%23b83a2a&media=0&desc=0';
+      var storedEmail = getStoredEmail();
+      if (storedEmail) {
+        params += '&checkout[email]=' + encodeURIComponent(storedEmail);
+      }
       var lang = navigator.language || '';
       var country = lang.split('-')[1];
       if (country && country.length === 2) {
@@ -436,6 +473,7 @@
           if (_pendingPdfFn) {
             _pendingPdfFn();
             _pendingPdfFn = null;
+            maybeShowUpsell();
           }
         } else {
           // Show inline error instead of alert()
@@ -451,6 +489,100 @@
         }
       });
     });
+  }
+
+  // -- Free first download modal --
+
+  var freeModalEl = document.getElementById('free-modal');
+
+  function showFreeModal() {
+    var printModal = document.getElementById('printModal');
+    if (printModal) printModal.classList.add('pm-hidden');
+    if (freeModalEl) {
+      freeModalEl.classList.remove('pay-hidden');
+      var emailField = document.getElementById('free-email-field');
+      var storedEmail = getStoredEmail();
+      if (emailField) {
+        if (storedEmail) emailField.value = storedEmail;
+        emailField.focus();
+      }
+    }
+  }
+
+  function hideFreeModal() {
+    if (freeModalEl) freeModalEl.classList.add('pay-hidden');
+  }
+
+  // Free modal close / backdrop
+  var freeClose = document.getElementById('free-close');
+  var freeBackdrop = document.getElementById('free-backdrop');
+  if (freeClose) freeClose.addEventListener('click', function() {
+    hideFreeModal();
+    var printModal = document.getElementById('printModal');
+    if (printModal) printModal.classList.remove('pm-hidden');
+  });
+  if (freeBackdrop) freeBackdrop.addEventListener('click', function() {
+    hideFreeModal();
+    var printModal = document.getElementById('printModal');
+    if (printModal) printModal.classList.remove('pm-hidden');
+  });
+
+  // Free modal submit
+  var freeSubmit = document.getElementById('free-email-submit');
+  if (freeSubmit) {
+    freeSubmit.addEventListener('click', function() {
+      var emailField = document.getElementById('free-email-field');
+      var email = emailField ? emailField.value.trim() : '';
+      var errorEl = document.getElementById('free-email-error');
+
+      if (!email || email.indexOf('@') === -1 || email.indexOf('.') === -1) {
+        if (errorEl) errorEl.textContent = t('free_email_error');
+        return;
+      }
+      if (errorEl) errorEl.textContent = '';
+
+      storeEmail(email);
+      markFreeTrialUsed();
+      hideFreeModal();
+
+      if (_pendingPdfFn) {
+        _pendingPdfFn();
+        _pendingPdfFn = null;
+      }
+    });
+  }
+
+  // -- Post-purchase upsell modal --
+
+  var upsellModalEl = document.getElementById('upsell-modal');
+
+  function showUpsellModal() {
+    if (upsellModalEl) upsellModalEl.classList.remove('pay-hidden');
+  }
+
+  function hideUpsellModal() {
+    if (upsellModalEl) upsellModalEl.classList.add('pay-hidden');
+  }
+
+  var upsellClose = document.getElementById('upsell-close');
+  var upsellBackdrop = document.getElementById('upsell-backdrop');
+  var upsellSkip = document.getElementById('upsell-skip');
+  var upsellUpgrade = document.getElementById('upsell-upgrade');
+
+  if (upsellClose) upsellClose.addEventListener('click', hideUpsellModal);
+  if (upsellBackdrop) upsellBackdrop.addEventListener('click', hideUpsellModal);
+  if (upsellSkip) upsellSkip.addEventListener('click', hideUpsellModal);
+  if (upsellUpgrade) {
+    upsellUpgrade.addEventListener('click', function() {
+      hideUpsellModal();
+      goToCheckout('pack10');
+    });
+  }
+
+  function maybeShowUpsell() {
+    if (_lastPurchasePlan === 'single') {
+      setTimeout(function() { showUpsellModal(); }, 2000);
+    }
   }
 
   // -- Init --

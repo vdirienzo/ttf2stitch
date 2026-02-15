@@ -303,10 +303,144 @@
     .pay-option { padding: 1rem 0.75rem; }
   }
 
+  /* -- Free first download modal -- */
+
+  .free-dialog {
+    max-width: 420px;
+  }
+
+  .free-gift {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .free-email-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .free-email-row input {
+    flex: 1;
+    padding: 0.7rem 0.9rem;
+    border: 2px solid #e0d6c8;
+    border-radius: 8px;
+    font-family: 'Anybody', system-ui, sans-serif;
+    font-size: 0.9rem;
+    color: #3d3229;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .free-email-row input:focus {
+    border-color: #b83a2a;
+  }
+
+  .free-email-row input::placeholder {
+    color: #c4bbb0;
+  }
+
+  .free-email-row button {
+    padding: 0.7rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    background: #b83a2a;
+    color: #fff;
+    font-family: 'Anybody', system-ui, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+
+  .free-email-row button:hover {
+    background: #9c3023;
+  }
+
+  .free-error {
+    color: #b83a2a;
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+    min-height: 1.2em;
+  }
+
+  .free-note {
+    font-size: 0.7rem;
+    color: #a99e8f;
+    margin-top: 0.75rem;
+    font-style: italic;
+  }
+
+  @media (max-width: 520px) {
+    .free-email-row { flex-direction: column; }
+  }
+
+  /* -- Post-purchase upsell modal -- */
+
+  .upsell-dialog {
+    max-width: 420px;
+  }
+
+  .upsell-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .upsell-deal {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #b83a2a;
+    margin: 0.75rem 0 1.25rem;
+    padding: 0.6rem 1rem;
+    background: rgba(184, 58, 42, 0.06);
+    border-radius: 8px;
+  }
+
+  .upsell-btn {
+    display: block;
+    width: 100%;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    background: #b83a2a;
+    color: #fff;
+    font-family: 'Anybody', system-ui, sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .upsell-btn:hover {
+    background: #9c3023;
+  }
+
+  .upsell-skip {
+    display: block;
+    width: 100%;
+    padding: 0.6rem;
+    border: none;
+    background: none;
+    color: #a99e8f;
+    font-family: 'Anybody', system-ui, sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+  }
+
+  .upsell-skip:hover {
+    color: #7a6e60;
+  }
+
   /* -- Key-only mode: after payment, hide plan cards and show only key input -- */
 
   .pay-key-only .pay-options,
+  .pay-key-only .pay-social-proof,
+  .pay-key-only .pay-guarantee,
   .pay-key-only .pay-indie-note,
+  .pay-key-only .pay-trust,
   .pay-key-only .pay-terms {
     display: none;
   }

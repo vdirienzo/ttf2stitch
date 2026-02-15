@@ -506,6 +506,37 @@
   </div>
 </div>
 
+<!-- -- Free First Download Modal -- -->
+<div id="free-modal" class="pay-hidden" role="dialog" aria-modal="true" aria-label="Free download">
+  <div class="pay-backdrop" id="free-backdrop"></div>
+  <div class="pay-dialog free-dialog">
+    <button class="pay-close" id="free-close">&times;</button>
+    <div class="free-gift">&#x1F381;</div>
+    <div class="pay-title" data-i18n="free_title">Your first pattern is free!</div>
+    <div class="pay-subtitle" data-i18n="free_subtitle">Enter your email to download your complete pattern &mdash; thread list, color codes, and print-ready PDF.</div>
+    <div class="free-email-row">
+      <input type="email" id="free-email-field" placeholder="your@email.com" data-i18n-placeholder="free_email_placeholder" autocomplete="email" />
+      <button id="free-email-submit" data-i18n="free_email_submit">Download Free &darr;</button>
+    </div>
+    <div id="free-email-error" class="free-error"></div>
+    <div class="free-note" data-i18n="free_note">No spam, ever. Just your pattern.</div>
+  </div>
+</div>
+
+<!-- -- Post-Purchase Upsell Modal -- -->
+<div id="upsell-modal" class="pay-hidden" role="dialog" aria-modal="true" aria-label="Upgrade">
+  <div class="pay-backdrop" id="upsell-backdrop"></div>
+  <div class="pay-dialog upsell-dialog">
+    <button class="pay-close" id="upsell-close">&times;</button>
+    <div class="upsell-icon">&#x1F389;</div>
+    <div class="pay-title" data-i18n="upsell_title">Pattern downloaded!</div>
+    <div class="pay-subtitle" data-i18n="upsell_subtitle">Love it? Get 10 patterns and save 50%</div>
+    <div class="upsell-deal" data-i18n="upsell_deal">10 patterns for $9.99 &mdash; that's $0.99 each!</div>
+    <button class="upsell-btn" id="upsell-upgrade" data-i18n="upsell_btn">Upgrade to 10 Patterns &mdash; $9.99</button>
+    <button class="upsell-skip" id="upsell-skip" data-i18n="upsell_skip">No thanks</button>
+  </div>
+</div>
+
 <!-- JS loaded via assemble.js from ui-modules/ -->
 
 </body>
