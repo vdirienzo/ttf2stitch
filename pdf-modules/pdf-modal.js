@@ -15,17 +15,17 @@ function _createPrintModal() {
     '<div class="pm-backdrop"></div>',
     '<div class="pm-dialog">',
     '  <div class="pm-header">',
-    '    <span class="pm-title">\u2715 Print Preview</span>',
+    '    <span class="pm-title">\u2715 <span data-i18n="pdf_print_preview">Print Preview</span></span>',
     '    <button class="pm-close" id="pmClose">\u2715</button>',
     '  </div>',
     '  <div class="pm-orient-row">',
     '    <button class="pm-orient-btn pm-active" data-orient="portrait">',
     '      <svg viewBox="0 0 24 32" width="20" height="26"><rect x="1" y="1" width="22" height="30" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="5" y1="8" x2="19" y2="8" stroke="currentColor" stroke-width="1.5"/></svg>',
-    '      Portrait',
+    '      <span data-i18n="pdf_orient_portrait">Portrait</span>',
     '    </button>',
     '    <button class="pm-orient-btn" data-orient="landscape">',
     '      <svg viewBox="0 0 32 24" width="26" height="20"><rect x="1" y="1" width="30" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="5" y1="6" x2="27" y2="6" stroke="currentColor" stroke-width="1.5"/></svg>',
-    '      Landscape',
+    '      <span data-i18n="pdf_orient_landscape">Landscape</span>',
     '    </button>',
     '  </div>',
     '  <div class="pm-preview">',
@@ -34,23 +34,23 @@ function _createPrintModal() {
     '  <div class="pm-mobile-summary">',
     '    <div class="pm-mobile-summary-icon">\uD83D\uDCC4</div>',
     '    <div class="pm-mobile-summary-text">',
-    '      <strong>' + pt('mobile_preview_title', 'Your complete pattern pack') + '</strong>',
-    '      <span>' + pt('mobile_preview_items', 'Grid \u00b7 Thread legend \u00b7 Color codes \u00b7 Measurements') + '</span>',
+    '      <strong data-i18n="mobile_preview_title">Your complete pattern pack</strong>',
+    '      <span data-i18n="mobile_preview_items">Grid \u00b7 Thread legend \u00b7 Color codes \u00b7 Measurements</span>',
     '    </div>',
     '  </div>',
     '  <div class="pm-info" id="pmInfo"></div>',
     '  <div class="pm-actions">',
     '    <button class="pm-btn pm-btn-secondary" id="pmDownload">',
     '      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
-    '      Download Preview (free)',
+    '      <span data-i18n="pdf_btn_download_preview">Download Preview (free)</span>',
     '    </button>',
     '    <button class="pm-btn pm-btn-accent" id="pmDownloadComplete">',
     '      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
-    '      Download Full Pattern \u2728',
+    '      <span data-i18n="pdf_btn_download_complete">Download Full Pattern \u2728</span>',
     '    </button>',
     '    <button class="pm-btn pm-btn-primary" id="pmPrint">',
     '      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
-    '      Print',
+    '      <span data-i18n="pdf_btn_print">Print</span>',
     '    </button>',
     '  </div>',
     '</div>',
@@ -88,13 +88,8 @@ function _createPrintModal() {
   document.head.appendChild(style);
   document.body.appendChild(modal);
 
-  // Apply i18n to modal UI strings
-  modal.querySelector('.pm-title').textContent = '\u2715 ' + pt('pdf_print_preview', 'Print Preview');
-  modal.querySelector('[data-orient="portrait"]').lastChild.textContent = ' ' + pt('pdf_orient_portrait', 'Portrait');
-  modal.querySelector('[data-orient="landscape"]').lastChild.textContent = ' ' + pt('pdf_orient_landscape', 'Landscape');
-  document.getElementById('pmDownload').lastChild.textContent = ' ' + pt('pdf_btn_download_preview', 'Download Preview (free)');
-  document.getElementById('pmDownloadComplete').lastChild.textContent = ' ' + pt('pdf_btn_download_complete', 'Download Full Pattern \u2728');
-  document.getElementById('pmPrint').lastChild.textContent = ' ' + pt('pdf_btn_print', 'Print');
+  // Apply i18n to modal UI strings (uses data-i18n attrs, auto-translated by applyLang)
+  if (typeof applyLang === 'function') applyLang();
 }
 
 /**
