@@ -38,6 +38,18 @@
     .catch(function() { return { allowed: false, error: 'network' }; });
   }
 
+  // -- Read-only check (does NOT consume credits) --
+
+  function checkLicenseKey(key) {
+    return fetch('/api/check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ license_key: key })
+    })
+    .then(function(res) { return res.json(); })
+    .catch(function() { return { valid: false, error: 'network' }; });
+  }
+
   // -- Payment modal --
 
   function showPaymentModal() {
@@ -48,12 +60,27 @@
     if (payModalEl) {
       payModalEl.classList.remove('pay-hidden');
       payModalEl.classList.remove('pay-key-only');
-      // Reset title and subtitle to defaults
+      // Reset title and subtitle to defaults (i18n)
       var title = payModalEl.querySelector('.pay-title');
-      if (title) title.textContent = 'Your pattern is ready to stitch \u2728';
+      if (title) title.textContent = t('pay_title');
       var subtitle = payModalEl.querySelector('.pay-subtitle');
       if (subtitle) {
-        subtitle.textContent = 'Get your thread list, color codes, and print-ready PDF \u2014 everything you need to start stitching.';
+        subtitle.textContent = t('pay_subtitle');
+      }
+      // Personalize title with user's pattern text
+      var userText = '';
+      var textInput = document.getElementById('textInput');
+      if (textInput) userText = textInput.value.trim();
+      if (!userText) {
+        var mobileInput = document.getElementById('mobileTextInput');
+        if (mobileInput) userText = mobileInput.value.trim();
+      }
+      if (title && userText) {
+        var personalizedTitle = t('pay_title_personalized');
+        if (personalizedTitle !== 'pay_title_personalized') {
+          var truncated = userText.length > 30 ? userText.substring(0, 30) + '\u2026' : userText;
+          title.textContent = personalizedTitle.replace('{text}', truncated);
+        }
       }
     }
   }
@@ -73,12 +100,14 @@
     var key = getLicenseKey();
     if (!key) {
       _pendingPdfFn = generateCompleteFn;
+      try { sessionStorage.setItem('w2s_pending_download', '1'); } catch(e) {}
       showPaymentModal();
       return;
     }
     // Has key — verify with server
     verifyLicenseKey(key).then(function(result) {
       if (result.allowed) {
+        try { sessionStorage.removeItem('w2s_pending_download'); } catch(e) {}
         generateCompleteFn();
         updateCreditsDisplay(result.remaining);
       } else {
@@ -86,13 +115,16 @@
           clearLicenseKey();
         }
         _pendingPdfFn = generateCompleteFn;
+        try { sessionStorage.setItem('w2s_pending_download', '1'); } catch(e) {}
         showPaymentModal();
       }
     });
   }
 
-  // Expose for pdf-modal.js (runs in global scope, outside this IIFE)
+  // Expose for pdf-modal.js and checkout overlay retry button (run in global scope)
   window.requestPdfDownload = requestPdfDownload;
+  window.closeCheckoutOverlay = closeCheckoutOverlay;
+  window.showPaymentModal = showPaymentModal;
 
   // -- Credits display --
 
@@ -100,9 +132,9 @@
     var el = document.getElementById('credits-display');
     if (!el) return;
     if (remaining < 0) {
-      el.textContent = 'Unlimited';
+      el.textContent = t('pay_credits_unlimited');
     } else {
-      el.textContent = remaining + ' downloads left';
+      el.textContent = remaining + ' ' + t('pay_credits_remaining');
     }
     el.classList.remove('pay-hidden');
   }
@@ -111,6 +143,7 @@
 
   var _checkoutOverlay = null;
   var _checkoutIframe = null;
+  var _checkoutTimeout = null;
   var _paymentHandled = false;
 
   function showCheckoutOverlay(checkoutUrl) {
@@ -141,9 +174,23 @@
 
     document.body.appendChild(_checkoutOverlay);
     _paymentHandled = false;
+
+    // Iframe load timeout — show retry after 15s
+    _checkoutTimeout = setTimeout(function() {
+      if (_checkoutOverlay) {
+        var loader = _checkoutOverlay.querySelector('.ls-overlay-loader');
+        if (loader) {
+          loader.innerHTML = '<div style="color:#fff;text-align:center;padding:2rem;">' +
+            '<p>' + t('pay_checkout_slow') + '</p>' +
+            '<button onclick="closeCheckoutOverlay();showPaymentModal();" style="margin-top:1rem;padding:0.5rem 1.5rem;background:#fff;color:#3d3229;border:none;border-radius:8px;cursor:pointer;font-weight:600;">' + t('pay_checkout_retry') + '</button>' +
+            '</div>';
+        }
+      }
+    }, 15000);
   }
 
   function closeCheckoutOverlay() {
+    clearTimeout(_checkoutTimeout);
     if (_checkoutOverlay) {
       _checkoutOverlay.remove();
       _checkoutOverlay = null;
@@ -151,14 +198,75 @@
     }
   }
 
-  function handlePaymentSuccess() {
+  function handlePaymentSuccess(eventData) {
     if (_paymentHandled) return;
     _paymentHandled = true;
 
     closeCheckoutOverlay();
 
-    // Show license key input prompt (key arrives via email)
-    showLicenseKeyPrompt();
+    // Try auto-activation first, fallback to manual key entry
+    var orderId = extractOrderId(eventData);
+    if (orderId) {
+      autoActivateOrder(orderId);
+    } else {
+      showLicenseKeyPrompt();
+    }
+  }
+
+  function extractOrderId(eventData) {
+    if (!eventData || typeof eventData !== 'object') return '';
+    // LS Checkout.Success format: { event, data: { id, attributes: { order_number } } }
+    var data = eventData.data;
+    if (data) {
+      if (data.attributes) {
+        return String(data.attributes.order_number || data.id || '');
+      }
+      if (data.id) return String(data.id);
+      // Legacy fallback: data.order (defensive)
+      var order = data.order;
+      if (order) return String(order.order_number || order.identifier || order.id || '');
+    }
+    // Top-level fallback
+    if (eventData.order) {
+      return String(eventData.order.order_number || eventData.order.identifier || eventData.order.id || '');
+    }
+    return '';
+  }
+
+  function autoActivateOrder(orderId) {
+    // Show activating state in modal
+    showPaymentModal();
+    if (payModalEl) payModalEl.classList.add('pay-key-only');
+    var title = payModalEl.querySelector('.pay-title');
+    if (title) title.textContent = t('pay_title_activating');
+    var subtitle = payModalEl.querySelector('.pay-subtitle');
+    if (subtitle) subtitle.textContent = t('pay_subtitle_activating');
+
+    fetch('/api/activate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order_id: orderId })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(result) {
+      if (result.allowed && result.license_key) {
+        storeLicenseKey(result.license_key);
+        try { sessionStorage.removeItem('w2s_pending_download'); } catch(e) {}
+        updateCreditsDisplay(result.remaining);
+        hidePaymentModal(false);
+        if (_pendingPdfFn) {
+          _pendingPdfFn();
+          _pendingPdfFn = null;
+        }
+      } else {
+        // Fallback to manual key entry
+        showLicenseKeyPrompt();
+      }
+    })
+    .catch(function() {
+      // Fallback to manual key entry on network error
+      showLicenseKeyPrompt();
+    });
   }
 
   function showLicenseKeyPrompt() {
@@ -166,10 +274,10 @@
     // Switch to key-only mode: hide plan cards, show only key input
     if (payModalEl) payModalEl.classList.add('pay-key-only');
     var title = payModalEl.querySelector('.pay-title');
-    if (title) title.textContent = 'Payment received! \u2713';
+    if (title) title.textContent = t('pay_title_success');
     var subtitle = payModalEl.querySelector('.pay-subtitle');
     if (subtitle) {
-      subtitle.textContent = 'Check your inbox \u2014 your pattern key is on its way! Paste it below.';
+      subtitle.textContent = t('pay_subtitle_success');
     }
     var keyField = document.getElementById('pay-key-field');
     if (keyField) keyField.focus();
@@ -183,6 +291,7 @@
     var data = e.data;
 
     if (data === 'mounted' && _checkoutOverlay) {
+      clearTimeout(_checkoutTimeout);
       var loader = _checkoutOverlay.querySelector('.ls-overlay-loader');
       if (loader) loader.remove();
     }
@@ -194,7 +303,19 @@
 
     var eventName = data && data.event ? data.event : '';
     if (eventName === 'Checkout.Success' || eventName === 'GA.Purchase') {
-      handlePaymentSuccess();
+      handlePaymentSuccess(data);
+    }
+  });
+
+  // ESC key closes checkout overlay or payment modal
+  window.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      if (_checkoutOverlay) {
+        closeCheckoutOverlay();
+        showPaymentModal();
+      } else if (payModalEl && !payModalEl.classList.contains('pay-hidden')) {
+        hidePaymentModal();
+      }
     }
   });
 
@@ -210,8 +331,21 @@
 
     var directUrl = CHECKOUT_URLS[plan];
     if (directUrl) {
-      // Use direct checkout URL with embed parameter
-      showCheckoutOverlay(directUrl + '?embed=1&checkout[accent_color]=%23b83a2a');
+      // Build optimized checkout URL
+      var params = 'embed=1&button_color=%23b83a2a&media=0&desc=0';
+      var lang = navigator.language || '';
+      var country = lang.split('-')[1];
+      if (country && country.length === 2) {
+        params += '&checkout[billing_address][country]=' + country.toUpperCase();
+      }
+      // Safari/Brave block third-party iframes — open in new tab instead
+      var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      var isBrave = navigator.brave && navigator.brave.isBrave;
+      if (isSafari || isBrave) {
+        window.open(directUrl + '?' + params.replace('embed=1&', ''), '_blank');
+        return;
+      }
+      showCheckoutOverlay(directUrl + '?' + params);
       return;
     }
 
@@ -268,6 +402,16 @@
 
   // License key input
   var payKeySubmit = document.getElementById('pay-key-submit');
+  var payKeyField = document.getElementById('pay-key-field');
+
+  // Clear inline error when user starts typing
+  if (payKeyField) {
+    payKeyField.addEventListener('input', function() {
+      var errorEl = document.getElementById('pay-key-error');
+      if (errorEl) errorEl.textContent = '';
+    });
+  }
+
   if (payKeySubmit) {
     payKeySubmit.addEventListener('click', function () {
       var keyField = document.getElementById('pay-key-field');
@@ -279,10 +423,14 @@
 
       verifyLicenseKey(key).then(function(result) {
         payKeySubmit.disabled = false;
-        payKeySubmit.textContent = 'Activate';
+        payKeySubmit.textContent = t('pay_key_submit');
 
         if (result.allowed) {
+          // Clear any inline error
+          var errorEl = document.getElementById('pay-key-error');
+          if (errorEl) errorEl.textContent = '';
           storeLicenseKey(key);
+          try { sessionStorage.removeItem('w2s_pending_download'); } catch(e) {}
           hidePaymentModal(false);
           updateCreditsDisplay(result.remaining);
           if (_pendingPdfFn) {
@@ -290,7 +438,16 @@
             _pendingPdfFn = null;
           }
         } else {
-          alert('Invalid or exhausted license key. Please check and try again.');
+          // Show inline error instead of alert()
+          var errorEl = document.getElementById('pay-key-error');
+          if (!errorEl) {
+            errorEl = document.createElement('div');
+            errorEl.id = 'pay-key-error';
+            errorEl.style.cssText = 'color:#b83a2a;font-size:0.8rem;margin-top:0.5rem;';
+            var keyInput = document.querySelector('.pay-key-input');
+            if (keyInput) keyInput.parentNode.insertBefore(errorEl, keyInput.nextSibling);
+          }
+          errorEl.textContent = t('pay_key_error');
         }
       });
     });
@@ -305,11 +462,22 @@
       setTimeout(function() { showLicenseKeyPrompt(); }, 300);
     }
 
-    // Check if user already has a key and show credits
+    // Restore pending download state after page refresh during checkout
+    try {
+      if (sessionStorage.getItem('w2s_pending_download') === '1') {
+        sessionStorage.removeItem('w2s_pending_download');
+        var existingKey2 = getLicenseKey();
+        if (!existingKey2) {
+          setTimeout(function() { showLicenseKeyPrompt(); }, 300);
+        }
+      }
+    } catch(e) {}
+
+    // Check if user already has a key and show credits (read-only, no credit burn)
     var existingKey = getLicenseKey();
     if (existingKey) {
-      verifyLicenseKey(existingKey).then(function(result) {
-        if (result.allowed) {
+      checkLicenseKey(existingKey).then(function(result) {
+        if (result.valid) {
           updateCreditsDisplay(result.remaining);
         } else {
           clearLicenseKey();

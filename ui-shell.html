@@ -466,36 +466,41 @@
 </div>
 
 <!-- -- Payment Modal -- -->
-<div id="pay-modal" class="pay-hidden">
+<div id="pay-modal" class="pay-hidden" role="dialog" aria-modal="true" aria-label="Payment">
   <div class="pay-backdrop" id="pay-backdrop"></div>
   <div class="pay-dialog">
     <button class="pay-close" id="pay-close">&times;</button>
-    <div class="pay-title">Your pattern is ready to stitch &#x2728;</div>
-    <div class="pay-subtitle">Get your thread list, color codes, and print-ready PDF &mdash; everything you need to start stitching.</div>
+    <div class="pay-title" data-i18n="pay_title">Your pattern is ready to stitch &#x2728;</div>
+    <div class="pay-subtitle" data-i18n="pay_subtitle">Get your thread list, color codes, and print-ready PDF &mdash; everything you need to start stitching.</div>
     <div class="pay-options">
       <button class="pay-option" id="pay-single">
         <span class="pay-option-price">$1.99</span>
-        <span class="pay-option-label">Just this one</span>
-        <span class="pay-option-desc">Perfect for trying it out</span>
+        <span class="pay-option-label" data-i18n="pay_single_label">Just this one</span>
+        <span class="pay-option-desc" data-i18n="pay_single_desc">Your pattern in seconds</span>
       </button>
       <button class="pay-option pay-option-featured" id="pay-pack10">
-        <span class="pay-option-badge">Save 50%</span>
+        <span class="pay-option-badge" data-i18n="pay_badge_save">Save 50%</span>
         <span class="pay-option-price">$9.99</span>
-        <span class="pay-option-label">10 Patterns</span>
-        <span class="pay-option-desc">For when one isn't enough</span>
+        <span class="pay-option-unit" data-i18n="pay_pack_unit">$0.99 each</span>
+        <span class="pay-option-label" data-i18n="pay_pack_label">10 Patterns</span>
+        <span class="pay-option-desc" data-i18n="pay_pack_desc">Perfect for gifts &amp; projects</span>
       </button>
       <button class="pay-option" id="pay-annual">
         <span class="pay-option-price">$24.99<small>/yr</small></span>
-        <span class="pay-option-label">All year</span>
-        <span class="pay-option-desc">Stitch as much as you like</span>
+        <span class="pay-option-unit" data-i18n="pay_annual_unit">just $2.08/mo</span>
+        <span class="pay-option-label" data-i18n="pay_annual_label">All year</span>
+        <span class="pay-option-desc" data-i18n="pay_annual_desc">Unlimited patterns, all year</span>
       </button>
     </div>
-    <div class="pay-indie-note">Word2Stitch is made with love by one person. Your support keeps it free for everyone. &#x1F49C;</div>
-    <div class="pay-terms">By purchasing, you agree to our <a href="/terms" target="_blank" rel="noopener">Terms of Service</a></div>
-    <div class="pay-divider"><span>Already have a key?</span></div>
+    <div class="pay-social-proof" data-i18n="pay_social_proof">&#x2702;&#xFE0F; 50,000+ patterns created by stitchers worldwide</div>
+    <div class="pay-guarantee" data-i18n="pay_guarantee">&#x1F6E1;&#xFE0F; 100% satisfaction guaranteed &mdash; or your money back</div>
+    <div class="pay-indie-note" data-i18n="pay_indie_note">Word2Stitch is made with love by one person. Your support helps build new fonts and features. &#x1F49C;</div>
+    <div class="pay-trust" data-i18n-html="pay_trust">&#x1F512; Secure checkout via Lemon Squeezy</div>
+    <div class="pay-terms" data-i18n-html="pay_terms">By purchasing, you agree to our <a href="/terms" target="_blank" rel="noopener">Terms of Service</a></div>
+    <div class="pay-divider"><span data-i18n="pay_divider_key">Already have a key?</span></div>
     <div class="pay-key-input">
-      <input type="text" id="pay-key-field" placeholder="Paste your pattern key here" />
-      <button id="pay-key-submit">Activate &#x2713;</button>
+      <input type="text" id="pay-key-field" placeholder="Paste your pattern key here" data-i18n-placeholder="pay_key_placeholder" />
+      <button id="pay-key-submit" data-i18n="pay_key_submit">Activate &#x2713;</button>
     </div>
     <div id="credits-display" class="pay-hidden"></div>
   </div>
