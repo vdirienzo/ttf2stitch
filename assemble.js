@@ -27,7 +27,7 @@ const dataFonts = fs.readFileSync(path.join(BASE, 'data-fonts.js'), 'utf-8');
 const sharedJs = fs.readFileSync(path.join(BASE, 'shared.js'), 'utf-8');
 
 // PDF modules (5 files)
-const pdfModules = ['pdf-helpers.js', 'pdf-bitmap.js', 'pdf-legend.js', 'pdf-renderer.js', 'pdf-modal.js'];
+const pdfModules = ['pdf-helpers.js', 'pdf-bitmap.js', 'pdf-chrome.js', 'pdf-legend.js', 'pdf-redacted.js', 'pdf-renderer.js', 'pdf-modal.js'];
 // nosemgrep: path-join-resolve-traversal — f iterates over hardcoded constant array
 const pdfEngine = pdfModules.map(f => fs.readFileSync(path.join(BASE, 'pdf-modules', f), 'utf-8')).join('\n\n');
 
