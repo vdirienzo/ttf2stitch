@@ -159,23 +159,7 @@
     letter-spacing: 0.02em;
   }
 
-  /* -- Social proof, guarantee, trust -- */
-
-  .pay-social-proof {
-    text-align: center;
-    font-size: 0.8rem;
-    color: #7a6e60;
-    margin: 1.25rem 0 0.4rem;
-    line-height: 1.4;
-  }
-
-  .pay-guarantee {
-    text-align: center;
-    font-size: 0.75rem;
-    color: #7a6e60;
-    margin: 0 0 0.4rem;
-    line-height: 1.4;
-  }
+  /* -- Trust signal -- */
 
   .pay-trust {
     text-align: center;
@@ -441,8 +425,6 @@
   /* -- Key-only mode: after payment, hide plan cards and show only key input -- */
 
   .pay-key-only .pay-options,
-  .pay-key-only .pay-social-proof,
-  .pay-key-only .pay-guarantee,
   .pay-key-only .pay-indie-note,
   .pay-key-only .pay-trust,
   .pay-key-only .pay-terms {

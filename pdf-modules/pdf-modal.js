@@ -182,7 +182,7 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
     });
   };
 
-  // Print (paid)
+  // Print (paid) — with popup blocker fallback
   document.getElementById('pmPrint').onclick = function() {
     window.requestPdfDownload(function() {
       var complete = buildPDF(text, fontData, dmcColor, aidaCount, currentOrientation, { preview: false });
@@ -194,6 +194,9 @@ function generatePDF(text, fontData, dmcColor, aidaCount) {
           printWin.addEventListener('load', function() {
             setTimeout(function() { printWin.print(); }, 500);
           });
+        } else {
+          // Popup blocked — fall back to download
+          complete.pdf.save(complete.filename);
         }
       }
     });
