@@ -45,6 +45,13 @@ footer a:hover{text-decoration:underline}
   .plan-table{font-size:0.75rem}
   .plan-table th,.plan-table td{padding:0.35rem 0.5rem}
 }
+
+.lang-bar{display:flex;align-items:center;gap:0.75rem;justify-content:center;margin-bottom:1rem}
+.lang-bar label{font-size:0.8rem;color:var(--text-muted);font-weight:600}
+.lang-bar select{padding:0.35rem 0.6rem;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--text);font-family:'Anybody',system-ui,sans-serif;font-size:0.8rem;cursor:pointer}
+.lang-notice{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:0.85rem 1.25rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);line-height:1.5;display:none}
+.lang-notice.visible{display:block}
+.lang-notice strong{color:var(--text)}
 </style>
 </head>
 <body>
@@ -54,7 +61,31 @@ footer a:hover{text-decoration:underline}
   <a href="/" class="back-link">&larr; Back to Word2Stitch</a>
   <h1><span>&#10006;</span> Word2Stitch — Terms of Service</h1>
   <p class="last-updated">Last updated: February 13, 2025</p>
+  <div class="lang-bar">
+    <label>Language:</label>
+    <select id="termsLang">
+      <option value="en">🇬🇧 English</option>
+      <option value="es">🇪🇸 Español</option>
+      <option value="fr">🇫🇷 Français</option>
+      <option value="de">🇩🇪 Deutsch</option>
+      <option value="it">🇮🇹 Italiano</option>
+      <option value="pt">🇧🇷 Português</option>
+      <option value="nl">🇳🇱 Nederlands</option>
+      <option value="ja">🇯🇵 日本語</option>
+      <option value="ko">🇰🇷 한국어</option>
+      <option value="zh">🇨🇳 中文</option>
+      <option value="ru">🇷🇺 Русский</option>
+      <option value="pl">🇵🇱 Polski</option>
+      <option value="sv">🇸🇪 Svenska</option>
+      <option value="da">🇩🇰 Dansk</option>
+      <option value="fi">🇫🇮 Suomi</option>
+      <option value="uk">🇺🇦 Українська</option>
+      <option value="hu">🇭🇺 Magyar</option>
+    </select>
+  </div>
 </header>
+
+<div class="lang-notice" id="langNotice"></div>
 
 <h2>1. Service Description</h2>
 <p>Word2Stitch is a web application that converts text into cross-stitch patterns. It is operated by an independent developer ("we", "us") and available at <strong>word2stitch.vercel.app</strong>.</p>
@@ -121,5 +152,47 @@ footer a:hover{text-decoration:underline}
 </footer>
 
 </div>
+<script>
+(function() {
+  var notices = {
+    es: "Estos términos están en inglés. Resumen: Word2Stitch convierte texto en patrones de punto de cruz. Ofrecemos tres planes de pago (individual, paquete de 10, anual ilimitado) procesados por Lemon Squeezy. Tus patrones te pertenecen. Reembolsos disponibles según condiciones.",
+    fr: "Ces conditions sont en anglais. Résumé : Word2Stitch convertit du texte en grilles de point de croix. Trois formules (unitaire, pack 10, annuel illimité) via Lemon Squeezy. Vos créations vous appartiennent. Remboursements selon conditions.",
+    de: "Diese Bedingungen sind auf Englisch. Zusammenfassung: Word2Stitch wandelt Text in Kreuzstich-Muster um. Drei Pläne (Einzel, 10er-Pack, Jahres-Abo) über Lemon Squeezy. Ihre Muster gehören Ihnen. Erstattungen nach Bedingungen.",
+    it: "Questi termini sono in inglese. Riepilogo: Word2Stitch converte testo in schemi a punto croce. Tre piani (singolo, pacchetto 10, annuale illimitato) tramite Lemon Squeezy. I tuoi schemi sono tuoi. Rimborsi secondo condizioni.",
+    pt: "Estes termos estão em inglês. Resumo: Word2Stitch converte texto em padrões de ponto cruz. Três planos (avulso, pacote 10, anual ilimitado) via Lemon Squeezy. Seus padrões são seus. Reembolsos conforme condições.",
+    nl: "Deze voorwaarden zijn in het Engels. Samenvatting: Word2Stitch zet tekst om in kruissteekpatronen. Drie plannen (enkel, 10-pack, jaarabonnement) via Lemon Squeezy. Uw patronen zijn van u. Terugbetaling volgens voorwaarden.",
+    ja: "この利用規約は英語です。概要：Word2Stitchはテキストをクロスステッチパターンに変換します。3つのプラン（単品、10パック、年間無制限）をLemon Squeezyで処理。パターンの著作権はお客様に帰属します。返金は条件に基づきます。",
+    ko: "이 약관은 영어로 작성되었습니다. 요약: Word2Stitch는 텍스트를 십자수 패턴으로 변환합니다. 3가지 플랜(단건, 10개 팩, 연간 무제한)이 Lemon Squeezy를 통해 처리됩니다. 패턴의 소유권은 사용자에게 있습니다. 환불은 조건에 따릅니다.",
+    zh: "本条款为英文版。摘要：Word2Stitch将文字转换为十字绣图案。提供三种方案（单次、10次套餐、年度无限）通过Lemon Squeezy处理。您的图案归您所有。退款按条件处理。",
+    ru: "Эти условия на английском языке. Краткое содержание: Word2Stitch преобразует текст в схемы для вышивки крестом. Три плана (разовый, пакет 10, годовой безлимит) через Lemon Squeezy. Ваши схемы принадлежат вам. Возврат средств по условиям.",
+    pl: "Niniejszy regulamin jest w języku angielskim. Podsumowanie: Word2Stitch zamienia tekst na wzory haftu krzyżykowego. Trzy plany (pojedynczy, pakiet 10, roczny nielimitowany) przez Lemon Squeezy. Twoje wzory należą do Ciebie. Zwroty według warunków.",
+    sv: "Dessa villkor är på engelska. Sammanfattning: Word2Stitch omvandlar text till korsstygnsmönster. Tre planer (enstaka, 10-pack, årsabonnemang) via Lemon Squeezy. Dina mönster tillhör dig. Återbetalning enligt villkor.",
+    da: "Disse vilkår er på engelsk. Resumé: Word2Stitch omdanner tekst til korssting-mønstre. Tre planer (enkelt, 10-pak, årligt ubegrænset) via Lemon Squeezy. Dine mønstre tilhører dig. Refusion efter betingelser.",
+    fi: "Nämä ehdot ovat englanniksi. Yhteenveto: Word2Stitch muuntaa tekstin ristipistokuvioiksi. Kolme suunnitelmaa (yksittäinen, 10 pakkaus, vuosittainen rajoittamaton) Lemon Squeezyn kautta. Kuviosi ovat sinun. Hyvitykset ehtojen mukaan.",
+    uk: "Ці умови англійською мовою. Короткий зміст: Word2Stitch перетворює текст на схеми для вишивки хрестиком. Три плани (разовий, пакет 10, річний безлімітний) через Lemon Squeezy. Ваші схеми належать вам. Повернення коштів за умовами.",
+    hu: "Ezek a feltételek angol nyelven íródtak. Összefoglaló: A Word2Stitch szöveget alakít keresztszemes mintákká. Három csomag (egyszeri, 10-es csomag, éves korlátlan) a Lemon Squeezy-n keresztül. A mintáid a tieid. Visszatérítés a feltételek szerint."
+  };
+
+  var sel = document.getElementById('termsLang');
+  var notice = document.getElementById('langNotice');
+
+  sel.addEventListener('change', function() {
+    var lang = sel.value;
+    if (lang === 'en' || !notices[lang]) {
+      notice.classList.remove('visible');
+    } else {
+      notice.innerHTML = '<strong>These terms are written in English.</strong> ' + notices[lang];
+      notice.classList.add('visible');
+    }
+  });
+
+  // Auto-detect browser language
+  var browserLang = (navigator.language || '').split('-')[0];
+  if (notices[browserLang]) {
+    sel.value = browserLang;
+    sel.dispatchEvent(new Event('change'));
+  }
+})();
+</script>
 </body>
 </html>
