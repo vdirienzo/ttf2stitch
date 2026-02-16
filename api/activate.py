@@ -3,86 +3,69 @@
 Auto-activates a license key from a Lemon Squeezy order ID.
 Called after Checkout.Success postMessage to enable zero-friction PDF download.
 Falls back gracefully — if this fails, the user can still paste their key manually.
+
+Security: Requires email verification to prevent order ID enumeration (AV-3).
 """
 
-import json
 import os
+import re
 import time
 import uuid
 from http.server import BaseHTTPRequestHandler
 from urllib.error import HTTPError
-from urllib.request import Request, urlopen
 
-LS_API_BASE = "https://api.lemonsqueezy.com"
-LS_LICENSE_URL = f"{LS_API_BASE}/v1/licenses"
-
-# Map LS variant IDs to plan names (shared with verify.py)
-VARIANT_PLANS = {
-    "1303798": "single",
-    "1303800": "pack10",
-    "1303802": "annual",
-}
-
-ALLOWED_ORIGINS = {"https://word2stitch.vercel.app"}
-if os.environ.get("VERCEL_ENV") != "production":
-    ALLOWED_ORIGINS.add("http://localhost:8042")
+from _shared import (
+    VARIANT_PLANS,
+    check_rate_limit,
+    cors_headers,
+    json_response,
+    ls_api_get,
+    ls_license_post,
+    mask_email,
+    mask_key,
+    read_body,
+)
 
 MAX_RETRIES = 3
 RETRY_DELAY = 1.5
 
-
-def cors_headers(origin):
-    if origin in ALLOWED_ORIGINS:
-        return {
-            "Access-Control-Allow-Origin": origin,
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type",
-        }
-    return {}
+# Strict pattern: order IDs are numeric only (prevents path traversal)
+_ORDER_ID_RE = re.compile(r"^\d{1,20}$")
 
 
-def _ls_api_get(path):
-    """GET from LS API (requires API key)."""
-    api_key = os.environ.get("LEMONSQUEEZY_API_KEY", "")
-    req = Request(f"{LS_API_BASE}{path}", method="GET")
-    req.add_header("Accept", "application/vnd.api+json")
-    req.add_header("Authorization", f"Bearer {api_key}")
-    with urlopen(req, timeout=10) as resp:
-        return json.loads(resp.read())
+def _validate_order_id(order_id):
+    """Validate order_id is a positive integer string (no path traversal)."""
+    return bool(order_id and _ORDER_ID_RE.match(str(order_id)))
 
 
-def _ls_license_post(action, data):
-    """POST form-encoded data to LS License API (public, no auth)."""
-    from urllib.parse import urlencode
-
-    body = urlencode(data).encode()
-    req = Request(f"{LS_LICENSE_URL}/{action}", data=body, method="POST")
-    req.add_header("Accept", "application/json")
-    with urlopen(req, timeout=10) as resp:
-        return json.loads(resp.read())
+def _fetch_order_with_keys(order_id):
+    """Fetch order data including license keys."""
+    return ls_api_get(f"/v1/orders/{order_id}?include=license-keys")
 
 
-def _mask_email(email):
-    if not email or "@" not in email:
-        return ""
-    local, domain = email.rsplit("@", 1)
-    masked = local[0] + "***" if len(local) > 1 else "***"
-    return f"{masked}@{domain}"
-
-
-def _fetch_license_key(order_id):
-    """Fetch the first license key for an order, with retries for race conditions."""
+def _extract_license_key(order_data):
+    """Extract the first license key from order response."""
+    if not order_data:
+        return None
     for attempt in range(MAX_RETRIES):
-        result = _ls_api_get(f"/v1/orders/{order_id}?include=license-keys")
-        included = result.get("included", [])
+        included = order_data.get("included", [])
         for item in included:
             if item.get("type") == "license-keys":
                 key = item.get("attributes", {}).get("key")
                 if key:
                     return key
-        if attempt < MAX_RETRIES - 1:
-            time.sleep(RETRY_DELAY)
+        # Re-fetch if no key found (race condition with LS)
+        order_id = order_data.get("data", {}).get("id")
+        if not order_id or attempt >= MAX_RETRIES - 1:
+            break
+        time.sleep(RETRY_DELAY)
+        order_data = ls_api_get(f"/v1/orders/{order_id}?include=license-keys")
     return None
+
+
+def _get_order_email(order_data):
+    """Extract customer email from order data."""
+    return order_data.get("data", {}).get("attributes", {}).get("user_email", "").strip().lower()
 
 
 class handler(BaseHTTPRequestHandler):
@@ -97,46 +80,71 @@ class handler(BaseHTTPRequestHandler):
         origin = self.headers.get("Origin", "")
         headers = cors_headers(origin)
 
-        try:
-            MAX_BODY = 4096
-            length = int(self.headers.get("Content-Length", 0))
-            if length > MAX_BODY or length < 0:
-                self._json(413, {"allowed": False, "error": "payload_too_large"}, headers)
-                return
-            body = json.loads(self.rfile.read(length)) if length else {}
-        except (json.JSONDecodeError, ValueError):
-            self._json(400, {"allowed": False, "error": "invalid_body"}, headers)
+        # Rate limit: 3 requests per 5 minutes per IP
+        client_ip = (
+            self.headers.get("X-Forwarded-For", self.client_address[0]).split(",")[0].strip()
+        )
+        if not check_rate_limit(client_ip, "activate", max_requests=3, window_seconds=300):
+            json_response(self, 429, {"allowed": False, "error": "rate_limited"}, headers)
             return
 
-        order_id = body.get("order_id", "")
+        body, err = read_body(self)
+        if err == "payload_too_large":
+            json_response(self, 413, {"allowed": False, "error": err}, headers)
+            return
+        if err:
+            json_response(self, 400, {"allowed": False, "error": err}, headers)
+            return
+
+        order_id = str(body.get("order_id", "")).strip()
+        email = body.get("email", "").strip().lower()
+
         if not order_id:
-            self._json(400, {"allowed": False, "error": "missing_order_id"}, headers)
+            json_response(self, 400, {"allowed": False, "error": "missing_order_id"}, headers)
+            return
+
+        if not email:
+            json_response(self, 400, {"allowed": False, "error": "missing_email"}, headers)
+            return
+
+        # Sanitize order_id to prevent path traversal
+        if not _validate_order_id(order_id):
+            json_response(self, 400, {"allowed": False, "error": "invalid_order_id"}, headers)
             return
 
         if not os.environ.get("LEMONSQUEEZY_API_KEY"):
-            self._json(503, {"allowed": False, "error": "not_configured"}, headers)
+            json_response(self, 503, {"allowed": False, "error": "not_configured"}, headers)
             return
 
-        # Fetch license key from order (with retries)
+        # Fetch order data (includes license keys)
         try:
-            key = _fetch_license_key(order_id)
+            order_data = _fetch_order_with_keys(order_id)
         except (HTTPError, Exception):
-            self._json(502, {"allowed": False, "error": "order_lookup_failed"}, headers)
+            json_response(self, 502, {"allowed": False, "error": "order_lookup_failed"}, headers)
             return
 
+        # Verify email matches the order's customer email (AV-3 fix)
+        order_email = _get_order_email(order_data)
+        if not order_email or email != order_email:
+            # Generic error to avoid leaking whether order exists
+            json_response(self, 403, {"allowed": False, "error": "email_mismatch"}, headers)
+            return
+
+        # Extract license key with retries for race conditions
+        key = _extract_license_key(order_data)
         if not key:
-            self._json(200, {"allowed": False, "error": "no_license_key"}, headers)
+            json_response(self, 200, {"allowed": False, "error": "no_license_key"}, headers)
             return
 
         # Validate the key
         try:
-            result = _ls_license_post("validate", {"license_key": key})
+            result = ls_license_post("validate", {"license_key": key})
         except (HTTPError, Exception):
-            self._json(502, {"allowed": False, "error": "validation_failed"}, headers)
+            json_response(self, 502, {"allowed": False, "error": "validation_failed"}, headers)
             return
 
         if not result.get("valid"):
-            self._json(200, {"allowed": False, "error": "invalid_key"}, headers)
+            json_response(self, 200, {"allowed": False, "error": "invalid_key"}, headers)
             return
 
         lk = result.get("license_key", {})
@@ -145,9 +153,9 @@ class handler(BaseHTTPRequestHandler):
         # Activate one credit
         try:
             instance = f"download-{uuid.uuid4().hex[:12]}"
-            _ls_license_post("activate", {"license_key": key, "instance_name": instance})
+            ls_license_post("activate", {"license_key": key, "instance_name": instance})
         except (HTTPError, Exception):
-            self._json(502, {"allowed": False, "error": "activation_failed"}, headers)
+            json_response(self, 502, {"allowed": False, "error": "activation_failed"}, headers)
             return
 
         limit = lk.get("activation_limit")
@@ -155,23 +163,16 @@ class handler(BaseHTTPRequestHandler):
         remaining = -1 if limit is None else limit - usage - 1
         plan = VARIANT_PLANS.get(str(meta.get("variant_id", "")), "unknown")
 
-        self._json(
+        # NEVER return full license key — masked only (AV-3 fix)
+        json_response(
+            self,
             200,
             {
                 "allowed": True,
-                "license_key": key,
+                "license_key": mask_key(key),
                 "remaining": remaining,
                 "plan": plan,
-                "email": _mask_email(meta.get("customer_email", "")),
+                "email": mask_email(meta.get("customer_email", "")),
             },
             headers,
         )
-
-    def _json(self, status, data, extra_headers=None):
-        body = json.dumps(data).encode()
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json")
-        for k, v in (extra_headers or {}).items():
-            self.send_header(k, v)
-        self.end_headers()
-        self.wfile.write(body)
