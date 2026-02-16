@@ -10,6 +10,14 @@ from http.server import BaseHTTPRequestHandler
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
+from _shared import (
+    ALLOWED_ORIGINS,
+    check_rate_limit,
+    cors_headers,
+    json_response,
+    read_body,
+)
+
 LS_API_KEY = os.environ.get("LEMONSQUEEZY_API_KEY", "").strip()
 
 # Store ID (infinis) and variant IDs from LS dashboard
@@ -22,20 +30,6 @@ VARIANTS = {
 # Legacy aliases (backward compat with existing frontend)
 VARIANTS["onetime"] = VARIANTS["single"]
 VARIANTS["subscribe"] = VARIANTS["annual"]
-
-ALLOWED_ORIGINS = {"https://word2stitch.vercel.app"}
-if os.environ.get("VERCEL_ENV") != "production":
-    ALLOWED_ORIGINS.add("http://localhost:8042")
-
-
-def cors_headers(origin):
-    if origin in ALLOWED_ORIGINS:
-        return {
-            "Access-Control-Allow-Origin": origin,
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type",
-        }
-    return {}
 
 
 class handler(BaseHTTPRequestHandler):
@@ -50,25 +44,30 @@ class handler(BaseHTTPRequestHandler):
         origin = self.headers.get("Origin", "")
         headers = cors_headers(origin)
 
-        if not LS_API_KEY:
-            self._json(500, {"error": "Service configuration error"}, headers)
+        # Rate limit: 5 requests per minute per IP
+        client_ip = (
+            self.headers.get("X-Forwarded-For", self.client_address[0]).split(",")[0].strip()
+        )
+        if not check_rate_limit(client_ip, "checkout", max_requests=5, window_seconds=60):
+            json_response(self, 429, {"error": "rate_limited"}, headers)
             return
 
-        try:
-            MAX_BODY = 4096
-            length = int(self.headers.get("Content-Length", 0))
-            if length > MAX_BODY or length < 0:
-                self._json(413, {"error": "Payload too large"}, headers)
-                return
-            body = json.loads(self.rfile.read(length)) if length else {}
-        except (json.JSONDecodeError, ValueError):
-            self._json(400, {"error": "Invalid JSON body"}, headers)
+        if not LS_API_KEY:
+            json_response(self, 500, {"error": "Service configuration error"}, headers)
+            return
+
+        body, err = read_body(self)
+        if err == "payload_too_large":
+            json_response(self, 413, {"error": "Payload too large"}, headers)
+            return
+        if err:
+            json_response(self, 400, {"error": "Invalid JSON body"}, headers)
             return
 
         plan = body.get("plan", "onetime")
         variant_id = VARIANTS.get(plan)
         if not variant_id:
-            self._json(400, {"error": f"Unknown plan: {plan}"}, headers)
+            json_response(self, 400, {"error": f"Unknown plan: {plan}"}, headers)
             return
 
         # Build return URL from Origin header (works for localhost + prod)
@@ -116,20 +115,11 @@ class handler(BaseHTTPRequestHandler):
             with urlopen(req, timeout=10) as resp:
                 result = json.loads(resp.read())
                 checkout_url = result["data"]["attributes"]["url"]
-                self._json(200, {"url": checkout_url}, headers)
+                json_response(self, 200, {"url": checkout_url}, headers)
         except HTTPError as e:
             error_body = e.read().decode() if e.fp else str(e)
             print(f"[checkout] LS API error: {error_body}")
-            self._json(502, {"error": "Payment service temporarily unavailable"}, headers)
+            json_response(self, 502, {"error": "Payment service temporarily unavailable"}, headers)
         except Exception as e:
             print(f"[checkout] Unexpected error: {e}")
-            self._json(500, {"error": "Internal server error"}, headers)
-
-    def _json(self, status, data, extra_headers=None):
-        body = json.dumps(data).encode()
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json")
-        for k, v in (extra_headers or {}).items():
-            self.send_header(k, v)
-        self.end_headers()
-        self.wfile.write(body)
+            json_response(self, 500, {"error": "Internal server error"}, headers)
