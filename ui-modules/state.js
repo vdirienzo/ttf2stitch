@@ -1,7 +1,7 @@
 // ui-modules/state.js — State variables, DOM refs, and helpers
 
   // -- State --
-  var currentText = 'Welcome';
+  var currentText = 'Hello';
   var currentFontFile = 'GeorgiaPro-Bold.ttf';
   var currentFontName = 'GeorgiaPro-Bold';
   var currentHeight = 18;
@@ -121,7 +121,7 @@
 
   function encodeStateToURL() {
     var params = new URLSearchParams();
-    if (currentText && currentText !== 'Welcome') params.set('t', currentText);
+    if (currentText && currentText !== 'Hello') params.set('t', currentText);
     if (currentFontFile && currentFontFile !== 'GeorgiaPro-Bold.ttf') params.set('f', currentFontFile);
     if (currentHeight && currentHeight !== 18) params.set('h', currentHeight);
     if (currentColorCode && currentColorCode !== '310') params.set('c', currentColorCode);
