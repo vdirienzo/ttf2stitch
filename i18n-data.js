@@ -113,7 +113,9 @@
       upsell_btn: "Upgrade to 10 Patterns \u2014 $9.99",
       upsell_skip: "No thanks",
       mobile_preview_title: "Your complete pattern pack",
-      mobile_preview_items: "Grid \u00b7 Thread legend \u00b7 Color codes \u00b7 Measurements"
+      mobile_preview_items: "Grid \u00b7 Thread legend \u00b7 Color codes \u00b7 Measurements",
+      share_copied: "Link copied!",
+      share_aria: "Share pattern"
     },
     es: {
       placeholder_text: "Escribe tu texto aquí…",
@@ -225,7 +227,9 @@
       upsell_btn: "Mejorar a 10 Patrones \u2014 $9.99",
       upsell_skip: "No, gracias",
       mobile_preview_title: "Tu pack completo de patrones",
-      mobile_preview_items: "Cuadr\u00edcula \u00b7 Leyenda de hilos \u00b7 C\u00f3digos de color \u00b7 Medidas"
+      mobile_preview_items: "Cuadr\u00edcula \u00b7 Leyenda de hilos \u00b7 C\u00f3digos de color \u00b7 Medidas",
+      share_copied: "\u00a1Enlace copiado!",
+      share_aria: "Compartir patr\u00f3n"
     },
     fr: {
       placeholder_text: "Tapez votre texte ici…",
@@ -337,7 +341,9 @@
       upsell_btn: "Passer \u00e0 10 Motifs \u2014 $9.99",
       upsell_skip: "Non merci",
       mobile_preview_title: "Votre pack de motifs complet",
-      mobile_preview_items: "Grille \u00b7 L\u00e9gende des fils \u00b7 Codes couleur \u00b7 Mesures"
+      mobile_preview_items: "Grille \u00b7 L\u00e9gende des fils \u00b7 Codes couleur \u00b7 Mesures",
+      share_copied: "Lien copi\u00e9 !",
+      share_aria: "Partager le patron"
     },
     de: {
       placeholder_text: "Gib deinen Text ein…",
@@ -449,7 +455,9 @@
       upsell_btn: "Auf 10 Muster upgraden \u2014 $9.99",
       upsell_skip: "Nein danke",
       mobile_preview_title: "Dein komplettes Musterpaket",
-      mobile_preview_items: "Raster \u00b7 Garnlegende \u00b7 Farbcodes \u00b7 Ma\u00dfe"
+      mobile_preview_items: "Raster \u00b7 Garnlegende \u00b7 Farbcodes \u00b7 Ma\u00dfe",
+      share_copied: "Link kopiert!",
+      share_aria: "Muster teilen"
     },
     it: {
       placeholder_text: "Scrivi il tuo testo qui…",
@@ -561,7 +569,9 @@
       upsell_btn: "Passa a 10 Schemi \u2014 $9.99",
       upsell_skip: "No grazie",
       mobile_preview_title: "Il tuo pack completo di schemi",
-      mobile_preview_items: "Griglia \u00b7 Legenda fili \u00b7 Codici colore \u00b7 Misure"
+      mobile_preview_items: "Griglia \u00b7 Legenda fili \u00b7 Codici colore \u00b7 Misure",
+      share_copied: "Link copiato!",
+      share_aria: "Condividi schema"
     },
     pt: {
       placeholder_text: "Digite seu texto aqui…",
@@ -673,7 +683,9 @@
       upsell_btn: "Passar para 10 Padr\u00f5es \u2014 $9.99",
       upsell_skip: "N\u00e3o, obrigada",
       mobile_preview_title: "Seu pack completo de padr\u00f5es",
-      mobile_preview_items: "Grade \u00b7 Legenda de linhas \u00b7 C\u00f3digos de cor \u00b7 Medidas"
+      mobile_preview_items: "Grade \u00b7 Legenda de linhas \u00b7 C\u00f3digos de cor \u00b7 Medidas",
+      share_copied: "Link copiado!",
+      share_aria: "Compartilhar padr\u00e3o"
     },
     nl: {
       placeholder_text: "Typ je tekst hier…",
@@ -785,7 +797,9 @@
       upsell_btn: "Upgraden naar 10 Patronen \u2014 $9.99",
       upsell_skip: "Nee bedankt",
       mobile_preview_title: "Je complete patroenpakket",
-      mobile_preview_items: "Raster \u00b7 Draadlegende \u00b7 Kleurcodes \u00b7 Afmetingen"
+      mobile_preview_items: "Raster \u00b7 Draadlegende \u00b7 Kleurcodes \u00b7 Afmetingen",
+      share_copied: "Link gekopieerd!",
+      share_aria: "Patroon delen"
     },
     ja: {
       placeholder_text: "テキストを入力…",
@@ -897,7 +911,9 @@
       upsell_btn: "10\u30d1\u30bf\u30fc\u30f3\u306b\u30a2\u30c3\u30d7\u30b0\u30ec\u30fc\u30c9 \u2014 $9.99",
       upsell_skip: "\u3044\u3044\u3048\u3001\u7d50\u69cb\u3067\u3059",
       mobile_preview_title: "\u5b8c\u5168\u306a\u30d1\u30bf\u30fc\u30f3\u30d1\u30c3\u30af",
-      mobile_preview_items: "\u30b0\u30ea\u30c3\u30c9 \u00b7 \u7cf8\u306e\u51e1\u4f8b \u00b7 \u30ab\u30e9\u30fc\u30b3\u30fc\u30c9 \u00b7 \u5bf8\u6cd5"
+      mobile_preview_items: "\u30b0\u30ea\u30c3\u30c9 \u00b7 \u7cf8\u306e\u51e1\u4f8b \u00b7 \u30ab\u30e9\u30fc\u30b3\u30fc\u30c9 \u00b7 \u5bf8\u6cd5",
+      share_copied: "\u30ea\u30f3\u30af\u3092\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f\uff01",
+      share_aria: "\u30d1\u30bf\u30fc\u30f3\u3092\u5171\u6709"
     },
     ko: {
       placeholder_text: "텍스트를 입력하세요…",
@@ -1009,7 +1025,9 @@
       upsell_btn: "10개 패턴으로 업그레이드 — $9.99",
       upsell_skip: "괜찮아요",
       mobile_preview_title: "완전한 패턴 팩",
-      mobile_preview_items: "그리드 \u00b7 실 범례 \u00b7 색상 코드 \u00b7 치수"
+      mobile_preview_items: "그리드 \u00b7 실 범례 \u00b7 색상 코드 \u00b7 치수",
+      share_copied: "링크가 복사되었습니다!",
+      share_aria: "패턴 공유"
     },
     zh: {
       placeholder_text: "在此输入文字…",
@@ -1121,7 +1139,9 @@
       upsell_btn: "升级至10个图案 — $9.99",
       upsell_skip: "不用了，谢谢",
       mobile_preview_title: "您的完整图案包",
-      mobile_preview_items: "网格 \u00b7 线材图例 \u00b7 色号 \u00b7 尺寸"
+      mobile_preview_items: "网格 \u00b7 线材图例 \u00b7 色号 \u00b7 尺寸",
+      share_copied: "链接已复制！",
+      share_aria: "分享图案"
     },
     ru: {
       placeholder_text: "Введите текст…",
@@ -1233,7 +1253,9 @@
       upsell_btn: "Перейти на 10 Схем — $9.99",
       upsell_skip: "Нет, спасибо",
       mobile_preview_title: "Ваш полный набор схем",
-      mobile_preview_items: "Сетка \u00b7 Таблица ниток \u00b7 Цветовые коды \u00b7 Размеры"
+      mobile_preview_items: "Сетка \u00b7 Таблица ниток \u00b7 Цветовые коды \u00b7 Размеры",
+      share_copied: "Ссылка скопирована!",
+      share_aria: "Поделиться схемой"
     },
     pl: {
       placeholder_text: "Wpisz swój tekst…",
@@ -1345,7 +1367,9 @@
       upsell_btn: "Przejdź na 10 Wzorów — $9.99",
       upsell_skip: "Nie, dziękuję",
       mobile_preview_title: "Twój kompletny pakiet wzorów",
-      mobile_preview_items: "Siatka \u00b7 Legenda nici \u00b7 Kody kolorów \u00b7 Wymiary"
+      mobile_preview_items: "Siatka \u00b7 Legenda nici \u00b7 Kody kolorów \u00b7 Wymiary",
+      share_copied: "Link skopiowany!",
+      share_aria: "Udostępnij wzór"
     },
     sv: {
       placeholder_text: "Skriv din text här…",
@@ -1457,7 +1481,9 @@
       upsell_btn: "Uppgradera till 10 Mönster — $9.99",
       upsell_skip: "Nej tack",
       mobile_preview_title: "Ditt kompletta mönsterpaket",
-      mobile_preview_items: "Rutnät \u00b7 Trådguide \u00b7 Färgkoder \u00b7 Mått"
+      mobile_preview_items: "Rutnät \u00b7 Trådguide \u00b7 Färgkoder \u00b7 Mått",
+      share_copied: "Länk kopierad!",
+      share_aria: "Dela mönster"
     },
     da: {
       placeholder_text: "Skriv din tekst her…",
@@ -1569,7 +1595,9 @@
       upsell_btn: "Opgrader til 10 Mønstre — $9.99",
       upsell_skip: "Nej tak",
       mobile_preview_title: "Din komplette mønsterpakke",
-      mobile_preview_items: "Gitter \u00b7 Trådoversigt \u00b7 Farvekoder \u00b7 Mål"
+      mobile_preview_items: "Gitter \u00b7 Trådoversigt \u00b7 Farvekoder \u00b7 Mål",
+      share_copied: "Link kopieret!",
+      share_aria: "Del mønster"
     },
     fi: {
       placeholder_text: "Kirjoita tekstisi tähän…",
@@ -1681,7 +1709,9 @@
       upsell_btn: "Päivitä 10 Kuvioon — $9.99",
       upsell_skip: "Ei kiitos",
       mobile_preview_title: "Täydellinen kuviopakettisi",
-      mobile_preview_items: "Ruudukko \u00b7 Lankaopas \u00b7 Värikoodit \u00b7 Mitat"
+      mobile_preview_items: "Ruudukko \u00b7 Lankaopas \u00b7 Värikoodit \u00b7 Mitat",
+      share_copied: "Linkki kopioitu!",
+      share_aria: "Jaa kuvio"
     },
     uk: {
       placeholder_text: "Введіть текст…",
@@ -1793,7 +1823,9 @@
       upsell_btn: "Перейти на 10 Схем — $9.99",
       upsell_skip: "Ні, дякую",
       mobile_preview_title: "Ваш повний набір схем",
-      mobile_preview_items: "Сітка \u00b7 Таблиця ниток \u00b7 Кольорові коди \u00b7 Розміри"
+      mobile_preview_items: "Сітка \u00b7 Таблиця ниток \u00b7 Кольорові коди \u00b7 Розміри",
+      share_copied: "Посилання скопійовано!",
+      share_aria: "Поділитися схемою"
     },
     hu: {
       placeholder_text: "Írd be a szöveged…",
@@ -1905,6 +1937,8 @@
       upsell_btn: "Frissítés 10 Mintára — $9.99",
       upsell_skip: "Nem, köszönöm",
       mobile_preview_title: "A teljes mintacsomagod",
-      mobile_preview_items: "Rács \u00b7 Fonalútmutató \u00b7 Színkódok \u00b7 Méretek"
+      mobile_preview_items: "Rács \u00b7 Fonalútmutató \u00b7 Színkódok \u00b7 Méretek",
+      share_copied: "Link másolva!",
+      share_aria: "Minta megosztása"
     }
   };

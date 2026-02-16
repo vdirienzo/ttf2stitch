@@ -118,3 +118,59 @@
   function hideLoading() {
     previewLoading.classList.add('hidden');
   }
+
+  function encodeStateToURL() {
+    var params = new URLSearchParams();
+    if (currentText && currentText !== 'Welcome') params.set('t', currentText);
+    if (currentFontFile && currentFontFile !== 'GeorgiaPro-Bold.ttf') params.set('f', currentFontFile);
+    if (currentHeight && currentHeight !== 18) params.set('h', currentHeight);
+    if (currentColorCode && currentColorCode !== '310') params.set('c', currentColorCode);
+    if (currentAida && currentAida !== 14) params.set('a', currentAida);
+    if (currentAlign && currentAlign !== 'center') params.set('al', currentAlign);
+    var qs = params.toString();
+    return window.location.origin + window.location.pathname + (qs ? '?' + qs : '');
+  }
+
+  function copyPatternLink() {
+    var url = encodeStateToURL();
+    var msg = (typeof I18N !== 'undefined' && typeof currentLang !== 'undefined' && I18N[currentLang] && I18N[currentLang].share_copied) ? I18N[currentLang].share_copied : 'Link copied!';
+
+    // Try clipboard API, fallback to execCommand
+    var done = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function() {
+        showShareToast(msg);
+      }).catch(function() {
+        fallbackCopy(url, msg);
+      });
+      done = true;
+    }
+    if (!done) fallbackCopy(url, msg);
+  }
+
+  function fallbackCopy(text, msg) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta);
+    showShareToast(msg);
+  }
+
+  function showShareToast(msg) {
+    var existing = document.querySelector('.share-toast');
+    if (existing) existing.remove();
+    var toast = document.createElement('div');
+    toast.className = 'share-toast';
+    toast.textContent = msg;
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#3d3229;color:#fff;padding:10px 24px;border-radius:8px;font-size:0.85rem;font-family:Anybody,system-ui,sans-serif;z-index:100000;opacity:0;transition:opacity 0.3s;pointer-events:none;';
+    document.body.appendChild(toast);
+    requestAnimationFrame(function() { toast.style.opacity = '1'; });
+    setTimeout(function() {
+      toast.style.opacity = '0';
+      setTimeout(function() { toast.remove(); }, 300);
+    }, 2000);
+  }

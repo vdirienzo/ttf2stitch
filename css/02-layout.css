@@ -78,6 +78,32 @@
     box-shadow: 0 0 0 3px var(--accent-glow);
   }
 
+  /* Share button in topbar */
+  .btn-share {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: none;
+    color: var(--text-muted);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .btn-share:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(184,58,42,0.05);
+  }
+  .btn-share:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .btn-share svg { width: 16px; height: 16px; }
+
   /* Download button in topbar */
   .btn-download {
     flex-shrink: 0;

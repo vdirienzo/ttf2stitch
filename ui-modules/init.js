@@ -10,7 +10,50 @@
 
   // -- Initialize --
 
+  function loadStateFromURL() {
+    var params = new URLSearchParams(window.location.search);
+    if (!params.toString()) return;
+
+    var t = params.get('t');
+    var f = params.get('f');
+    var h = params.get('h');
+    var c = params.get('c');
+    var a = params.get('a');
+    var al = params.get('al');
+
+    if (t) {
+      currentText = t;
+      if (textInput) textInput.value = t;
+      var mobileInput = document.getElementById('mobileTextInput');
+      if (mobileInput) mobileInput.value = t;
+    }
+    if (f) currentFontFile = f;
+    if (h) {
+      var hNum = parseInt(h, 10);
+      if (hNum >= 8 && hNum <= 30) {
+        currentHeight = hNum;
+        if (heightSlider) heightSlider.value = hNum;
+        if (heightValue) heightValue.textContent = hNum;
+      }
+    }
+    if (c) currentColorCode = c;
+    if (a) {
+      var aNum = parseInt(a, 10);
+      if ([11, 14, 16, 18].indexOf(aNum) !== -1) {
+        currentAida = aNum;
+      }
+    }
+    if (al && ['left', 'center', 'right'].indexOf(al) !== -1) {
+      currentAlign = al;
+    }
+
+    // Clean URL
+    history.replaceState({}, '', window.location.pathname);
+  }
+
   function init() {
+    loadStateFromURL();
+
     // Detect language
     var savedLang = null;
     try { savedLang = localStorage.getItem('w2s_lang'); } catch(e) {}
