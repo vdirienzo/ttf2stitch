@@ -70,6 +70,10 @@
     syncMobileTextInput();
     fetchFontList();
     updatePreview();
+
+    // Share button
+    var btnShare = document.getElementById('btnShare');
+    if (btnShare) btnShare.addEventListener('click', copyPatternLink);
   }
 
   // Expose for pdf-engine
